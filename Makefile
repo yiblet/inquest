@@ -1,8 +1,8 @@
 # The binary to build (just the basename).
-MODULE := xray
+MODULE := inquest
 
 # Where to push the docker image.
-REGISTRY ?= gcr.io/yiblet/xray
+REGISTRY ?= gcr.io/yiblet/inquest
 
 IMAGE := $(REGISTRY)/$(MODULE)
 

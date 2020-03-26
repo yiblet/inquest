@@ -20,7 +20,7 @@ COPY --from=tester /app /app
 
 WORKDIR /app
 
-ENTRYPOINT ["/venv/bin/python3", "-m", "xray"]
+ENTRYPOINT ["/venv/bin/python3", "-m", "inquest"]
 USER 1001
 
 LABEL name={NAME}
