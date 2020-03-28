@@ -1,0 +1,10 @@
+usdt:/home/shalom/.local/python/bin/python3.8:python:function__entry
+{
+    printf("->%s:%s\n", str(arg0), str(arg1));
+}
+
+
+usdt:/home/shalom/.local/python/bin/python3.8:python:function__return
+{
+    printf("<-%s:%s\n", str(arg0), str(arg1));
+}
