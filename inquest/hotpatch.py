@@ -37,7 +37,11 @@ def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
                 Instr('FORMAT_VALUE', 0),
             ]
         else:
-            instructions.append(Instr('LOAD_CONST', literal))
+            instructions.append(
+                Instr(
+                    'LOAD_CONST',
+                    literal.replace(r"\{", "{").replace(r"\}", "}"),
+                ))
 
     instructions.append(Instr("BUILD_STRING", len(sections)))
 
