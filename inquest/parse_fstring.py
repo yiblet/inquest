@@ -1,5 +1,4 @@
-from bytecode import Bytecode, Instr
-from typing import List, Callable, NamedTuple
+from typing import List, NamedTuple
 
 # take from https://github.com/mpolney/hotpatch (MIT Licesense)
 # for inspiration
@@ -66,7 +65,7 @@ def parse_fstring(fstring: str) -> List[Segment]:
         if found == -1:
             # finished the string
             return args
-        elif found != 0 and fstring[found - 1] == "\\":
+        if found != 0 and fstring[found - 1] == "\\":
             # the '{' was escaped
             cursor = found + 1
         else:

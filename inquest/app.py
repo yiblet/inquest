@@ -1,18 +1,17 @@
-from starlette.applications import Starlette
-from starlette.responses import JSONResponse, PlainTextResponse
-from starlette.routing import Route, WebSocketRoute
-from starlette.requests import Request
-from starlette.websockets import WebSocket
-import uvicorn
 import importlib
+import logging
 import sys
 import time
-from typing import Tuple, Callable
-import functools
-import logging
+from typing import Callable, Tuple
+
+import uvicorn
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import JSONResponse, PlainTextResponse
+from starlette.routing import Route
 
 
-async def homepage(request):
+async def homepage(_):
     return JSONResponse({"hello": "world"})
 
 
@@ -27,36 +26,30 @@ def fib_helper(prev: int, cur: int) -> Tuple[int, int]:
 
 def fib(helper: Callable[[int, int], Tuple[int, int]]):
     async def fib_func(request: Request):
-        n: int = request.path_params["n"]
+        idx: int = request.path_params["n"]
         cur_time = time.time_ns()
         res = 1
-        if n > 1:
+        if idx > 1:
             prev = 1
             cur = 1
-            next = 2
-            while next <= n:
+            _next = 2
+            while _next <= idx:
                 prev, cur = helper(prev, cur)
-                next += 1
+                _next += 1
             res = cur
         return JSONResponse(
-            {"n": n, "fib": res, "time": (time.time_ns() - cur_time) / 1e6}
+            {"n": idx, "fib": res, "time": (time.time_ns() - cur_time) / 1e6}
         )
 
     return fib_func
 
 
-async def reload(request):
+async def reload(_):
     importlib.reload(sys.modules["__main__"])
     return PlainTextResponse(str(sys.modules))
 
 
-async def ws(websocket: WebSocket):
-    await websocket.accept()
-    await websocket.send_text("Hello, world!")
-    await websocket.close()
-
-
-if __name__ == "__main__":
+def main():
     app = Starlette(
         debug=True,
         routes=[
@@ -64,7 +57,10 @@ if __name__ == "__main__":
             Route("/reload", reload),
             Route("/fib/{n:int}", fib(fib_helper)),
             Route("/fib2/{n:int}", fib(fib2_helper)),
-            WebSocketRoute("/ws", ws),
         ],
     )
     uvicorn.run(app, host="127.0.0.1", port=3000, log_level="info")
+
+
+if __name__ == "__main__":
+    main()
