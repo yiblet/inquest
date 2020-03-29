@@ -25,6 +25,7 @@ def fib_helper(prev: int, cur: int) -> Tuple[int, int]:
 
 
 def fib(helper: Callable[[int, int], Tuple[int, int]]):
+
     async def fib_func(request: Request):
         idx: int = request.path_params["n"]
         cur_time = time.time_ns()
@@ -37,9 +38,11 @@ def fib(helper: Callable[[int, int], Tuple[int, int]]):
                 prev, cur = helper(prev, cur)
                 _next += 1
             res = cur
-        return JSONResponse(
-            {"n": idx, "fib": res, "time": (time.time_ns() - cur_time) / 1e6}
-        )
+        return JSONResponse({
+            "n": idx,
+            "fib": res,
+            "time": (time.time_ns() - cur_time) / 1e6
+        })
 
     return fib_func
 
