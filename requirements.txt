@@ -1,7 +1,11 @@
-pytest==4.6.9
-pytest-cov==2.8.1
-pytest-asyncio==0.10.0
+bytecode==0.11.0
 loguru==0.4.1
+pytest-asyncio==0.10.0
+pytest-cov==2.8.1
+pytest==4.6.9
 starlette==0.13.2
 uvicorn==0.11.3
-bytecode==0.11.0
+graphene==2.1.8
+ujson==2.0.3
+databases[sqlite]
+sqlachemy
