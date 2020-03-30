@@ -109,8 +109,9 @@ def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
                       if is_segment]
     for is_valid_segment, segment in valid_segments:
         if not is_valid_segment:
-            raise ValueError(f"segment {segment} is not valid; segments must "
-                             + "be exclusively argument literals")
+            raise ValueError(
+                f"segment {segment} is not valid; segments must "
+                + f"be exclusively these argument literals: {tuple(args_set)}")
 
     instructions = []
     for is_segment, literal in sections:
