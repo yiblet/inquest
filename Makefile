@@ -13,54 +13,29 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 run:
-	@python -m $(MODULE)
+	@echo "unable to run"
 
 test:
-	@pytest
+	@make -C probe test
 
 lint:
-	@echo "\n${BLUE}Running Pylint against source and test files...${NC}\n"
-	@pylint --rcfile=setup.cfg **/*.py
-	@echo "\n${BLUE}Running Flake8 against source and test files...${NC}\n"
-	@flake8
-	@echo "\n${BLUE}Running Bandit against source files...${NC}\n"
-	@bandit -r --ini setup.cfg -x 'inquest/**/*_test.py'
+	@make -C probe lint
 
 # Example: make build-prod VERSION=1.0.0
 build-prod:
-	@echo "\n${BLUE}Building Production image with labels:\n"
-	@echo "name: $(MODULE)"
-	@echo "version: $(VERSION)${NC}\n"
-	@sed                                     \
-	    -e 's|{NAME}|$(MODULE)|g'            \
-	    -e 's|{VERSION}|$(VERSION)|g'        \
-	    docker/prod.Dockerfile | docker build -t $(IMAGE):$(VERSION) -f- .
+	@make -C probe build-prod
 
 
 build-dev:
-	@echo "\n${BLUE}Building Development image with labels:\n"
-	@echo "name: $(MODULE)"
-	@echo "version: $(TAG)${NC}\n"
-	@sed                                 \
-	    -e 's|{NAME}|$(MODULE)|g'        \
-	    -e 's|{VERSION}|$(TAG)|g'        \
-	    docker/dev.Dockerfile | docker build -t $(IMAGE):$(TAG) -f- .
+	@make -C probe build-dev
 
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev
-	@echo "\n${BLUE}Launching a shell in the containerized build environment...${NC}\n"
-		@docker run                                                 \
-			-ti                                                     \
-			--rm                                                    \
-			--entrypoint /bin/bash                                  \
-			-u $$(id -u):$$(id -g)                                  \
-			$(IMAGE):$(TAG)										    \
-			$(CMD)
+	@make -C probe shell
 
 # Example: make push VERSION=0.0.2
 push: build-prod
-	@echo "\n${BLUE}Pushing image to GitHub Docker Registry...${NC}\n"
-	@docker push $(IMAGE):$(VERSION)
+	@make -C probe push
 
 version:
 	@echo $(TAG)
@@ -71,4 +46,4 @@ clean:
 	rm -rf .pytest_cache .coverage .pytest_cache coverage.xml
 
 docker-clean:
-	@docker system prune -f --filter "label=name=$(MODULE)"
+	@make -C probe docker-clean

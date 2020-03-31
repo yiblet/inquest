@@ -1,5 +1,0 @@
-usdt:/home/shalom/.local/python/bin/python3.8:python:line 
-/ str(arg0) == str($1) / 
-{ 
-    @line_hist = lhist(arg2, 0, 50, 1);
-}

@@ -1,5 +1,0 @@
-usdt:/home/shalom/.local/python/bin/python3.8:python:function__entry
-/ str(arg1) == "fib_helper" /
-{
-    printf("->%s:%s\n", str(arg0), str(arg1));
-}
