@@ -3,7 +3,7 @@ name: probe CI
 on:
   push:
     paths:
-      - "probe/**/*"
+      - "probe/*"
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run Makefile build for Development
-        run: make build-dev
+        run: make -C probe build-dev
 
   test:
     runs-on: ubuntu-latest
@@ -25,12 +25,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r probe/requirements.txt
       - name: Run Makefile test
-        run: make test
+        run: make -C probe test
       - name: Install Linters
         run: |
           pip install -r probe/util/linters.requirements.txt
       - name: Run Linters
-        run: make lint
+        run: make -C probe lint
     # - name: Send report to CodeClimate
     #   run: |
     #     export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
