@@ -3,6 +3,7 @@ import { getRepository, Column, ColumnOptions } from "typeorm";
 import { Recipe } from "./entities/recipe";
 import { Rate } from "./entities/rate";
 import { User } from "./entities/user";
+import { hash } from "bcrypt";
 
 export async function seedDatabase() {
     const recipeRepository = getRepository(Recipe);
@@ -12,7 +13,7 @@ export async function seedDatabase() {
     const defaultUser = userRepository.create({
         email: "test@github.com",
         nickname: "MichalLytek",
-        password: "s3cr3tp4ssw0rd",
+        password: await hash("s3cr3tp4ssw0rd", 10),
     });
     await userRepository.save(defaultUser);
 

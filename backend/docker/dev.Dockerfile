@@ -7,7 +7,7 @@ RUN yarn install
 FROM builder AS tester
 WORKDIR /app
 COPY . .
-RUN make lint
+RUN make test
 
 FROM tester AS runner
 WORKDIR /app
