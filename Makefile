@@ -14,25 +14,31 @@ run:
 
 test:
 	@make -C probe test
+	@make -C backend test
 
 lint:
 	@make -C probe lint
+	@make -C backend lint
 
 # Example: make build-prod VERSION=1.0.0
 build-prod:
 	@make -C probe build-prod
+	@make -C backend build-prod
 
 
 build-dev:
 	@make -C probe build-dev
+	@make -C backend build-dev
 
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev
 	@make -C probe shell
+	@make -C backend shell
 
 # Example: make push VERSION=0.0.2
 push: build-prod
 	@make -C probe push
+	@make -C backend push
 
 version:
 	@echo $(TAG)
@@ -44,3 +50,4 @@ clean:
 
 docker-clean:
 	@make -C probe docker-clean
+	@make -C backend docker-clean

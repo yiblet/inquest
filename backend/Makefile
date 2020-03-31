@@ -43,11 +43,19 @@ build-dev:
 
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev
-	@make -C probe shell
+	@echo "\n${BLUE}Launching a shell in the containerized build environment...${NC}\n"
+		@docker run                                                 \
+			-ti                                                     \
+			--rm                                                    \
+			--entrypoint /bin/bash                                  \
+			-u $$(id -u):$$(id -g)                                  \
+			$(IMAGE):$(TAG)										    \
+			$(CMD)
 
 # Example: make push VERSION=0.0.2
 push: build-prod
-	@make -C probe push
+	@echo "\n${BLUE}Pushing image to GitHub Docker Registry...${NC}\n"
+	@docker push $(IMAGE):$(VERSION)
 
 version:
 	@echo $(TAG)
@@ -58,4 +66,4 @@ clean:
 	rm -rf node_modules/
 
 docker-clean:
-	@make -C probe docker-clean
+	@docker system prune -f --filter "label=name=$(MODULE)"
