@@ -1,10 +1,13 @@
 {
     "compilerOptions": {
-        "module": "esnext",
-        "target": "es2018",
-        // "outDir": "out",
-        "outDir": "./dist",
-        "sourceMap": true
+        "emitDecoratorMetadata": true,
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "noImplicitAny": false,
+        "sourceMap": true,
+        "target": "es6"
     },
-    "include": ["**/*.ts"]
+    "include": ["src/**/*.ts"]
 }
