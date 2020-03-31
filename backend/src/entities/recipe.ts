@@ -33,6 +33,7 @@ export class Recipe {
     @Field((type) => User)
     @ManyToOne((type) => User)
     author: User;
+
     @RelationColumn()
     authorId: number;
 }

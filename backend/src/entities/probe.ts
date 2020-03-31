@@ -3,6 +3,7 @@ import { GraphQLBoolean } from "graphql";
 import {
     Entity,
     PrimaryGeneratedColumn,
+    Generated,
     Column,
     Index,
     ManyToMany,
@@ -24,22 +25,26 @@ export class Probe {
     readonly id: number;
 
     @Field()
-    @Index()
     @Column()
-    last_heartbeat?: Date;
+    lastHeartbeat?: Date;
 
-    @Field({ nullable: true })
-    @Column({ nullable: true })
-    description?: string;
+    @Index({ unique: true })
+    @Column({ nullable: false, unique: true })
+    @Generated("uuid")
+    key: string;
+
+    @Field()
+    @Column()
+    ip?: string;
 
     @Field((type) => GraphQLBoolean, { nullable: false })
     isAlive(): boolean {
         // TODO make this smarter
-        if (this.last_heartbeat === null) {
+        if (this.lastHeartbeat === null) {
             return false;
         }
         const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-        return twoMinutesAgo >= this.last_heartbeat;
+        return twoMinutesAgo >= this.lastHeartbeat;
     }
 
     @Field((type) => [Trace], { nullable: "items" })

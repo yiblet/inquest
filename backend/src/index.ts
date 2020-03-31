@@ -7,14 +7,9 @@ import { Container } from "typedi";
 import * as TypeORM from "typeorm";
 import * as TypeGraphQL from "type-graphql";
 import { ALL_ENTITIES } from "./entities";
-import { RecipeResolver } from "./resolvers/recipe-resolver";
-import { RateResolver } from "./resolvers/rate-resolver";
-import { User } from "./entities/user";
+import { ALL_RESOLVERS } from "./resolvers";
+import { Context } from "./context";
 import { seedDatabase } from "./helpers";
-
-export interface Context {
-    user: User;
-}
 
 // register 3rd party IOC container
 TypeORM.useContainer(Container);
@@ -36,7 +31,7 @@ async function bootstrap() {
 
         // build TypeGraphQL executable schema
         const schema = await TypeGraphQL.buildSchema({
-            resolvers: [RecipeResolver, RateResolver],
+            resolvers: ALL_RESOLVERS,
             container: Container,
         });
 

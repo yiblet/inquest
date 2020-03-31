@@ -24,8 +24,7 @@ module.exports = {
         indent: [1, 4],
         "linebreak-style": [2, "unix"],
         quotes: [2, "double"],
-        "no-unused-vars": "off",
-        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": [1, { args: "none" }],
         "@typescript-eslint/explicit-function-return-type": "off",
     },
 };
