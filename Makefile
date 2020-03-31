@@ -34,7 +34,7 @@ build-prod:
 	@sed                                     \
 	    -e 's|{NAME}|$(MODULE)|g'            \
 	    -e 's|{VERSION}|$(VERSION)|g'        \
-	    prod.Dockerfile | docker build -t $(IMAGE):$(VERSION) -f- .
+	    docker/prod.Dockerfile | docker build -t $(IMAGE):$(VERSION) -f- .
 
 
 build-dev:
@@ -44,7 +44,7 @@ build-dev:
 	@sed                                 \
 	    -e 's|{NAME}|$(MODULE)|g'        \
 	    -e 's|{VERSION}|$(TAG)|g'        \
-	    dev.Dockerfile | docker build -t $(IMAGE):$(TAG) -f- .
+	    docker/dev.Dockerfile | docker build -t $(IMAGE):$(TAG) -f- .
 
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev
