@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType, Arg } from "type-graphql";
 import { GraphQLBoolean, GraphQLString } from "graphql";
 import { PrimaryGeneratedColumn, Column, Entity } from "typeorm";
-import { Min, Max, IsEmail } from "class-validator";
+import { IsEmail } from "class-validator";
 import { hash, compare } from "bcrypt";
 
 @ObjectType()

@@ -1,13 +1,14 @@
+// needed for typeorm && type-graphl to function
 import "reflect-metadata";
+// imports the .env file
+import "./lib/env.ts";
 import { ApolloServer } from "apollo-server";
 import { Container } from "typedi";
 import * as TypeORM from "typeorm";
 import * as TypeGraphQL from "type-graphql";
-
+import { ALL_ENTITIES } from "./entities";
 import { RecipeResolver } from "./resolvers/recipe-resolver";
 import { RateResolver } from "./resolvers/rate-resolver";
-import { Recipe } from "./entities/recipe";
-import { Rate } from "./entities/rate";
 import { User } from "./entities/user";
 import { seedDatabase } from "./helpers";
 
@@ -24,7 +25,7 @@ async function bootstrap() {
         await TypeORM.createConnection({
             type: "sqlite",
             database: ":memory:",
-            entities: [Recipe, Rate, User],
+            entities: ALL_ENTITIES,
             synchronize: true,
             logger: "debug",
             cache: true,
