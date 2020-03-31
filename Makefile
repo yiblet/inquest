@@ -9,9 +9,6 @@ IMAGE := $(REGISTRY)/$(MODULE)
 # This version-strategy uses git tags to set the version string
 TAG := $(shell git describe --tags --always --dirty)
 
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
 run:
 	@echo "unable to run"
 

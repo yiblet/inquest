@@ -18,7 +18,9 @@
     },
     "scripts": {
         "start": "ts-node src/index.ts",
-        "test": "jest"
+        "test": "jest",
+        "lint": "eslint 'src/**/*ts' && prettier -c 'src/**/*ts'",
+        "fix": "eslint --fix 'src/**/*ts'; prettier --write 'src/**/*ts'"
     },
     "dependencies": {
         "@types/dotenv": "^8.2.0",
