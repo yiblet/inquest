@@ -18,8 +18,22 @@ run:
 test:
 	@yarn test
 
-lint:
+
+lint: lint-generated
 	@yarn lint
+
+lint-generated: SHELL:=/bin/bash
+lint-generated:
+	cmp --silent <(python3 scripts/make_entities.py src/entities) src/entities/index.ts
+	cmp --silent <(python3 scripts/make_resolvers.py src/resolvers) src/resolvers/index.ts
+
+fix: fix-generated
+	@yarn fix
+
+fix-generated: SHELL:=/bin/bash
+fix-generated:
+	python3 scripts/make_entities.py src/entities > src/entities/index.ts
+	python3 scripts/make_resolvers.py src/resolvers > src/resolvers/index.ts
 
 # Example: make build-prod VERSION=1.0.0
 build-prod:

@@ -11,4 +11,5 @@ export const ALL_ENTITIES = [
     Recipe,
     Trace,
     User,
+    // placeholder to prevent prettier from turning array into one line
 ];

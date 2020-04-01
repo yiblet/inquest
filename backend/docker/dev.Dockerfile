@@ -1,4 +1,6 @@
 FROM node:13.12-buster AS builder
+RUN apt update 
+RUN apt install -y python3
 WORKDIR /app
 COPY package.json package.json
 COPY yarn.lock yarn.lock
