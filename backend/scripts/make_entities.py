@@ -35,9 +35,8 @@ def main():
     for file in files:
         basename = os.path.basename(file)
         print(f'    {camel(basename[:-3])},')
-    print(
-        f'    // placeholder to prevent prettier from turning array into one line'
-    )
+    print(f'    // placeholder to prevent prettier from' +
+          ' turning array into one line')
     print('];')
 
 
