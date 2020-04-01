@@ -3,10 +3,9 @@ import {
     createTestClient,
     ApolloServerTestClient,
 } from "apollo-server-testing";
+import gql from "graphql-tag";
 
-const gql = require("graphql-tag");
-
-const NEW_TRACE: string = gql`
+const NEW_TRACE = gql`
     mutation newTrace($module: String!, $function: String!) {
         newTrace(newTraceInput: { module: $module, function: $function }) {
             module

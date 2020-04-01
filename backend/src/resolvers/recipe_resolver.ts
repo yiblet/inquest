@@ -27,7 +27,8 @@ export class RecipeResolver {
         private readonly ratingsRepository: Repository<Rate>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>
-    ) {}index
+    ) {}
+    index;
 
     @Query((returns) => Recipe, { nullable: true })
     recipe(@Arg("recipeId", (_) => Int) recipeId: number) {

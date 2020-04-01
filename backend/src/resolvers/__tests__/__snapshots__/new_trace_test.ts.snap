@@ -16,20 +16,3 @@ Object {
   },
 }
 `;
-
-exports[`queries test new trace subscription 1`] = `
-Object {
-  "data": Object {
-    "newTrace": Object {
-      "module": "mod",
-    },
-  },
-  "errors": undefined,
-  "extensions": undefined,
-  "http": Object {
-    "headers": Headers {
-      Symbol(map): Object {},
-    },
-  },
-}
-`;
