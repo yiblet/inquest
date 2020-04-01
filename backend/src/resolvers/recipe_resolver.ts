@@ -15,7 +15,7 @@ import { Recipe } from "../entities/recipe";
 import { Rate } from "../entities/rate";
 import { User } from "../entities/user";
 import { RecipeInput } from "./types/recipe-input";
-import { Context } from "../index";
+import { Context } from "../context";
 import { RateInput } from "./types/rate-input";
 
 @Resolver((of) => Recipe)
@@ -27,7 +27,7 @@ export class RecipeResolver {
         private readonly ratingsRepository: Repository<Rate>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>
-    ) {}
+    ) {}index
 
     @Query((returns) => Recipe, { nullable: true })
     recipe(@Arg("recipeId", (_) => Int) recipeId: number) {

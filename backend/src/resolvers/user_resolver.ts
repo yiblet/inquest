@@ -48,6 +48,7 @@ export class UserResolver {
             this.traceRepository.create({
                 module: newTraceInput.module,
                 func: newTraceInput.function,
+                active: true,
             })
         );
         await publish(trace);

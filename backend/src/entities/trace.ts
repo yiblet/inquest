@@ -33,7 +33,7 @@ export class Trace {
 
     @Field({ nullable: false })
     @Column({ nullable: false })
-    active: string; //avoiding calling it function because that's a reserved word
+    active: boolean; //avoiding calling it function because that's a reserved word
 
     @Field((type) => [Probe], { nullable: "items" })
     @ManyToMany((type) => Probe, (probe) => probe.traces)

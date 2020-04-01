@@ -2,45 +2,12 @@
 import "reflect-metadata";
 // imports the .env file
 import "./lib/env.ts";
-import { ApolloServer } from "apollo-server";
-import { Container } from "typedi";
-import * as TypeORM from "typeorm";
-import * as TypeGraphQL from "type-graphql";
-import { ALL_ENTITIES } from "./entities";
-import { ALL_RESOLVERS } from "./resolvers";
-import { Context } from "./context";
-import { seedDatabase } from "./helpers";
+import { createSQLiteServer } from "./connect";
 
 // register 3rd party IOC container
-TypeORM.useContainer(Container);
-
 async function bootstrap() {
     try {
-        // create TypeORM connection
-        await TypeORM.createConnection({
-            type: "sqlite",
-            database: ":memory:",
-            entities: ALL_ENTITIES,
-            synchronize: true,
-            logger: "debug",
-            cache: true,
-        });
-
-        // seed database with some data
-        const { defaultUser } = await seedDatabase();
-
-        // build TypeGraphQL executable schema
-        const schema = await TypeGraphQL.buildSchema({
-            resolvers: ALL_RESOLVERS,
-            container: Container,
-        });
-
-        // create mocked context
-        const context: Context = { user: defaultUser };
-
-        // Create GraphQL server
-        const server = new ApolloServer({ schema, context });
-
+        const server = await createSQLiteServer();
         // Start the server
         const { url } = await server.listen(process.env.PORT || 4000);
         console.log(

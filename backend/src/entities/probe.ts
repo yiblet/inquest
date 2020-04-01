@@ -20,7 +20,6 @@ import { Trace } from "./trace";
 @Entity()
 @ObjectType()
 export class Probe {
-    @Field((type) => ID)
     @PrimaryGeneratedColumn()
     readonly id: number;
 
@@ -28,6 +27,7 @@ export class Probe {
     @Column()
     lastHeartbeat?: Date;
 
+    @Field()
     @Index({ unique: true })
     @Column({ nullable: false, unique: true })
     @Generated("uuid")
