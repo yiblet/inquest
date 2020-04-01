@@ -22,7 +22,7 @@ describe("queries", () => {
         client = createTestClient(server);
     });
 
-    it("test new trace subscription", async () => {
+    test("test new trace subscription", async () => {
         expect(
             await client.mutate({
                 mutation: NEW_TRACE,
