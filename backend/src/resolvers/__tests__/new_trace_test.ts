@@ -16,13 +16,12 @@ const NEW_TRACE: string = gql`
 
 describe("queries", () => {
     let client: ApolloServerTestClient;
-
     beforeAll(async () => {
         const server = await createSQLiteServer();
         client = createTestClient(server);
     });
 
-    test("test new trace subscription", async () => {
+    test("test new trace mutation", async () => {
         expect(
             await client.mutate({
                 mutation: NEW_TRACE,
