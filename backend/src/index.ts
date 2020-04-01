@@ -9,10 +9,9 @@ async function bootstrap() {
     try {
         const server = await createSQLiteServer();
         // Start the server
-        const { url } = await server.listen(process.env.PORT || 4000);
-        console.log(
-            `Server is running, GraphQL Playground available at ${url}`
-        );
+        const info = await server.listen(process.env.PORT || 4000);
+        console.log(`Server is running on ${info.url}`);
+        console.log(`websockets at ${info.subscriptionsUrl}`);
     } catch (err) {
         console.error(err);
     }
