@@ -22,7 +22,8 @@
         "start": "ts-node src/index.ts",
         "test": "jest",
         "lint": "eslint 'src/**/*ts' && prettier -c 'src/**/*ts'",
-        "fix": "eslint --fix 'src/**/*ts'; prettier --write 'src/**/*ts'"
+        "fix": "eslint --fix 'src/**/*ts'; prettier --write 'src/**/*ts'",
+        "staged": "lint-staged"
     },
     "dependencies": {
         "@types/bcrypt": "^3.0.0",
@@ -36,11 +37,22 @@
         "dotenv": "^8.2.0",
         "graphql": "^14.6.0",
         "graphql-tag": "^2.10.3",
+        "lint-staged": "^10.1.1",
         "reflect-metadata": "^0.1.13",
         "type-graphql": "^0.17.6",
         "typedi": "^0.8.0",
         "typeorm": "^0.2.24",
         "typeorm-typedi-extensions": "^0.2.3",
         "uuid": "^7.0.3"
-    }
+    },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "prettier --write",
+      "eslint --fix",
+      "jest --bail --findRelatedTests"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
 }
