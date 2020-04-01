@@ -1,4 +1,6 @@
 import { createSQLiteServer } from "./../../connect";
+import { ApolloServer } from "apollo-server";
+import { Container } from "typedi";
 import {
     createTestClient,
     ApolloServerTestClient,
@@ -13,22 +15,27 @@ const NEW_TRACE = gql`
     }
 `;
 
-describe("queries", () => {
-    let client: ApolloServerTestClient;
-    beforeAll(async () => {
-        const server = await createSQLiteServer();
-        client = createTestClient(server);
-    });
+let server: ApolloServer;
+let client: ApolloServerTestClient;
+beforeAll(async () => {
+    Container.reset();
+    server = await createSQLiteServer();
+    client = createTestClient(server);
+});
 
-    test("test new trace mutation", async () => {
-        expect(
-            await client.mutate({
-                mutation: NEW_TRACE,
-                variables: {
-                    module: "mod",
-                    function: "func",
-                },
-            })
-        ).toMatchSnapshot();
-    });
+afterAll(() => {
+    server.stop();
+    Container.reset();
+});
+
+it("should create new trace object", async () => {
+    expect(
+        await client.mutate({
+            mutation: NEW_TRACE,
+            variables: {
+                module: "mod",
+                function: "func",
+            },
+        })
+    ).toMatchSnapshot();
 });

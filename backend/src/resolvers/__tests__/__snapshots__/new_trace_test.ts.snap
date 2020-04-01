@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`queries test new trace mutation 1`] = `
+exports[`should create new trace object 1`] = `
 Object {
   "data": Object {
     "newTrace": Object {
