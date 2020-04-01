@@ -1,25 +1,14 @@
-import {
-    Resolver,
-    Query,
-    Arg,
-    Mutation,
-    Subscription,
-    Root,
-} from "type-graphql";
+import { Resolver, Query, Arg, Mutation } from "type-graphql";
 import { Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { GraphQLString } from "graphql";
-import * as Topics from "../topics";
 import { Probe } from "../entities/probe";
-import { Trace } from "../entities/trace";
 
 @Resolver((of) => Probe)
 export class ProbeResolver {
     constructor(
         @InjectRepository(Probe)
-        private readonly probeRepository: Repository<Probe>,
-        @InjectRepository(Trace)
-        private readonly traceRepository: Repository<Trace>
+        private readonly probeRepository: Repository<Probe>
     ) {}
 
     @Query((returns) => Probe, { nullable: true })
@@ -50,12 +39,5 @@ export class ProbeResolver {
     @Mutation((returns) => Probe)
     async newProbe(): Promise<Probe> {
         return await this.probeRepository.save(this.probeRepository.create({}));
-    }
-
-    @Subscription((returns) => Trace, {
-        topics: Topics.TRACES,
-    })
-    async newTrace(@Root() trace: Trace): Promise<Trace> {
-        return trace;
     }
 }
