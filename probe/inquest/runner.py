@@ -8,7 +8,6 @@ from typing import Optional
 
 from gql import AsyncClient, gql
 from gql.transport.websockets import WebsocketsTransport
-from .probe import Probe
 
 LOGGER = logging.getLogger(__name__)
 
