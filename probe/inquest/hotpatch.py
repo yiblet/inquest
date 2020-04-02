@@ -36,25 +36,28 @@ def embed_in_function(path: str,
         mod = inspect.getmodule(frame[0])
         package = mod.__name__
 
-        # TODO in relative modules, you must import relative to the parent
-        # package of the calling function so we add an additional '.' to the
-        # relative import
-        if module_name.startswith('.'):
-            # module is a relative import
-            module_name = '.' + module_name
+    # relative modules, you must import relative to the parent
+    # package of the calling function so we add an additional '.' to the
+    # relative import
+    if module_name.startswith('.'):
+        # module is a relative import
+        module_name = '.' + module_name
 
     try:
         module = importlib.import_module(module_name, package)
     except (ImportError, ImportWarning):
-        raise ValueError("path does not resolve to known module")
+        raise ValueError(f"path: {module_name} relative to {package}"
+                         + " does not resolve to known module")
 
     try:
         function = getattr(module, function_name)
     except AttributeError:
-        raise ValueError('path does not resolve to known function')
+        raise ValueError(f"path: {module_name} relative to {package}"
+                         + " does not resolve to known function")
 
     if not isinstance(function, (types.FunctionType, types.MethodType)):
-        raise ValueError('path must resolve to a function or a method')
+        raise ValueError(f"path: {module_name} relative to {package}"
+                         + " must resolve to a known function or method")
 
     function.__code__ = embed_fstring(function.__code__, fstring)
 

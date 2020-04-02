@@ -21,6 +21,9 @@ class NewTraceInput {
 
     @Field({ nullable: false })
     function: string;
+
+    @Field({ nullable: false })
+    statement: string;
 }
 
 @Resolver((of) => Trace)
@@ -38,7 +41,8 @@ export class TraceResolver {
         const trace = await this.traceRepository.save(
             this.traceRepository.create({
                 module: newTraceInput.module,
-                func: newTraceInput.function,
+                function: newTraceInput.function,
+                statement: newTraceInput.statement,
                 active: true,
             })
         );

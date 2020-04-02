@@ -1,22 +1,30 @@
 # import asyncio
 import asyncio
+import inspect
 import logging
 import threading
 from collections import OrderedDict
+from typing import Optional
 
 from gql import AsyncClient, gql
 from gql.transport.websockets import WebsocketsTransport
+from .probe import Probe
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Probe(threading.Thread):
+class ProbeRunner(threading.Thread):
+
+    package: str
+
+    def __init__(self, package: str):
+        super().__init__()
+        self.package = package
 
     def run(self):
         LOGGER.info('inquest daemon is running')
         evloop = asyncio.new_event_loop()
         evloop.run_until_complete(self._run_async())
-        print('complete')
         LOGGER.info('inquest daemon closed')
 
     async def _run_async(self):
@@ -34,7 +42,8 @@ class Probe(threading.Thread):
 subscription {
   newTraceSubscription {
     module
-    func
+    function
+    statement
   }
 }
             ''')
@@ -43,11 +52,16 @@ subscription {
                 __import__('pprint').pprint(result)
 
 
-def enable(daemon: bool = True) -> None:
+def enable(daemon: bool = True, package: Optional[str] = None) -> None:
     '''
     runs the probe in a separate thread
     '''
-    probe = Probe()
+
+    if package is None:
+        frame = inspect.stack()[1]
+        mod = inspect.getmodule(frame[0])
+        package = mod.__name__
+    probe = ProbeRunner(package)
     probe.setName('inquest probe')
     probe.setDaemon(daemon)
     probe.start()

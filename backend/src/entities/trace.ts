@@ -29,7 +29,11 @@ export class Trace {
 
     @Field({ nullable: false })
     @Column({ nullable: false })
-    func: string; //avoiding calling it function because that's a reserved word
+    function: string; //avoiding calling it function because that's a reserved word
+
+    @Field({ nullable: false })
+    @Column({ nullable: false })
+    statement: string; //avoiding calling it function because that's a reserved word
 
     @Field({ nullable: false })
     @Column({ nullable: false })

@@ -8,8 +8,18 @@ import {
 import gql from "graphql-tag";
 
 const NEW_TRACE = gql`
-    mutation newTrace($module: String!, $function: String!) {
-        newTrace(newTraceInput: { module: $module, function: $function }) {
+    mutation newTrace(
+        $module: String!
+        $function: String!
+        $statement: String!
+    ) {
+        newTrace(
+            newTraceInput: {
+                module: $module
+                function: $function
+                statement: $statement
+            }
+        ) {
             module
         }
     }
@@ -35,6 +45,7 @@ it("should create new trace object", async () => {
             variables: {
                 module: "mod",
                 function: "func",
+                statement: "statement",
             },
         })
     ).toMatchSnapshot();
