@@ -3,11 +3,63 @@ from __future__ import absolute_import
 import importlib
 import inspect
 import types
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from bytecode import Bytecode, Instr
 
 from inquest.parse_fstring import Segment, generate_sections, parse_fstring
+
+
+def _retrieve_module(
+        module_name: str,
+        package: str,
+) -> types.ModuleType:
+    '''
+    resolves modules relative to packages
+    @returns module at module_name (relative to package if imported relatively)
+    @raises ValueError module path does not resolve to known module
+    '''
+    try:
+        module = importlib.import_module(module_name, package)
+    except (ImportError, ImportWarning):
+        raise ValueError(
+            f"path: module '{module.__name__}' relative to '{package}'"
+            + " does not resolve to known module")
+    if module is None:
+        raise ValueError(
+            f"path: module '{module.__name__}' relative to '{package}'"
+            + " does not resolve to known module")
+    return module
+
+
+def _retrieve_function_or_method(
+        path: str,
+        module: types.ModuleType,
+        package: str,
+) -> Union[types.FunctionType, types.MethodType]:
+    '''
+    resolves function names or method names inside modules
+    @returns the function at the given module
+    @raises ValueError function path does not resolve to known function
+    '''
+    module_name = module.__name__
+
+    try:
+        location = module
+        for path_section in path.split('.'):
+            location = getattr(location, path_section)
+        function = location
+    except AttributeError:
+        raise ValueError(
+            f"path: '{module_name}:{path}' relative to '{package}'"
+            + " must resolve to a known function or method")
+
+    if (function is None) or not isinstance(
+            function, (types.FunctionType, types.MethodType)):
+        raise ValueError(
+            f"path: '{module_name}:{path}' relative to '{package}'"
+            + " must resolve to a known function or method")
+    return function
 
 
 def embed_in_function(path: str,
@@ -45,23 +97,8 @@ def embed_in_function(path: str,
         # module is a relative import
         module_name = '.' + module_name
 
-    try:
-        module = importlib.import_module(module_name, package)
-    except (ImportError, ImportWarning):
-        raise ValueError(
-            f"path: module '{module_name}' relative to '{package}'"
-            + " does not resolve to known module")
-
-    try:
-        function = getattr(module, function_name)
-    except AttributeError:
-        raise ValueError(f"path: '{module_name}' relative to '{package}'"
-                         + " does not resolve to known function")
-
-    if not isinstance(function, (types.FunctionType, types.MethodType)):
-        raise ValueError(f"path: '{module_name}' relative to '{package}'"
-                         + " must resolve to a known function or method")
-
+    module = _retrieve_module(module_name, package)
+    function = _retrieve_function_or_method(function_name, module, package)
     function.__code__ = embed_fstring(function.__code__, fstring)
 
 
