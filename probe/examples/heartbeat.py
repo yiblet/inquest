@@ -1,6 +1,5 @@
 from time import sleep
-
-from ..main import enable
+from inquest.runner import enable
 
 
 def work(x):

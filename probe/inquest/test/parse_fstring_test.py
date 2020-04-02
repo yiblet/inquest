@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from ..parse_fstring import Segment, generate_sections, parse_fstring
+from inquest.parse_fstring import Segment, generate_sections, parse_fstring
 
 
 def deepeq(l1: List, l2: List):

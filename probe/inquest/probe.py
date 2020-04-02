@@ -2,7 +2,7 @@
 import logging
 from typing import List, NamedTuple, Optional
 
-from .hotpatch import embed_in_function
+from inquest.hotpatch import embed_in_function
 
 LOGGER = logging.getLogger(__name__)
 

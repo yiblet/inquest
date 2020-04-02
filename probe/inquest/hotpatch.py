@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import importlib
 import inspect
 import types
@@ -5,7 +7,7 @@ from typing import List, Optional
 
 from bytecode import Bytecode, Instr
 
-from .parse_fstring import Segment, generate_sections, parse_fstring
+from inquest.parse_fstring import Segment, generate_sections, parse_fstring
 
 
 def embed_in_function(path: str,

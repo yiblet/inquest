@@ -1,5 +1,5 @@
-from ..probe import Probe
-from .probe_test_module.test_imported_module import sample
+from inquest.probe import Probe
+from inquest.test.probe_test_module.test_imported_module import sample
 
 
 def test_imported_module(capsys):

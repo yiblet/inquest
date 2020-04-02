@@ -1,6 +1,6 @@
 import pytest
 
-from ..hotpatch import embed_fstring
+from inquest.hotpatch import embed_fstring
 
 
 def test_embed_fstring(capsys):
