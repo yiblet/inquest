@@ -48,17 +48,18 @@ def embed_in_function(path: str,
     try:
         module = importlib.import_module(module_name, package)
     except (ImportError, ImportWarning):
-        raise ValueError(f"path: {module_name} relative to {package}"
-                         + " does not resolve to known module")
+        raise ValueError(
+            f"path: module '{module_name}' relative to '{package}'"
+            + " does not resolve to known module")
 
     try:
         function = getattr(module, function_name)
     except AttributeError:
-        raise ValueError(f"path: {module_name} relative to {package}"
+        raise ValueError(f"path: '{module_name}' relative to '{package}'"
                          + " does not resolve to known function")
 
     if not isinstance(function, (types.FunctionType, types.MethodType)):
-        raise ValueError(f"path: {module_name} relative to {package}"
+        raise ValueError(f"path: '{module_name}' relative to '{package}'"
                          + " must resolve to a known function or method")
 
     function.__code__ = embed_fstring(function.__code__, fstring)
@@ -115,7 +116,7 @@ def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
     for is_valid_segment, segment in valid_segments:
         if not is_valid_segment:
             raise ValueError(
-                f"segment {segment} is not valid; segments must "
+                f"segment '{segment}' is not valid; segments must "
                 + f"be exclusively these argument literals: {tuple(args_set)}")
 
     instructions = []

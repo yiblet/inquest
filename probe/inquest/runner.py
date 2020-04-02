@@ -1,30 +1,56 @@
 # import asyncio
 import asyncio
 import inspect
+import json
 import logging
 import threading
 from collections import OrderedDict
-from typing import Optional
+from typing import NamedTuple, Optional
 
 from gql import AsyncClient, gql
 from gql.transport.websockets import WebsocketsTransport
 
+from inquest.probe import Probe
+
 LOGGER = logging.getLogger(__name__)
+
+
+class NewTraceSubscription(NamedTuple):
+    module: str
+    function: str
+    statement: str
 
 
 class ProbeRunner(threading.Thread):
 
     package: str
+    probe: Probe
 
     def __init__(self, package: str):
         super().__init__()
         self.package = package
+        self.probe = Probe(package)
 
     def run(self):
         LOGGER.info('inquest daemon is running')
         evloop = asyncio.new_event_loop()
         evloop.run_until_complete(self._run_async())
         LOGGER.info('inquest daemon closed')
+
+    def _new_trace(self, trace: NewTraceSubscription):
+        injection = self.probe.add_log(
+            module=trace.module,
+            function=trace.function,
+            statement=trace.statement,
+        )
+        if not injection.enabled or injection.error is not None:
+            if not injection.enabled and injection.error is None:
+                LOGGER.warning('injection failed')
+            else:
+                LOGGER.warning(
+                    'injection failed with error %s',
+                    injection.error,
+                )
 
     async def _run_async(self):
         transport = WebsocketsTransport(
@@ -46,9 +72,26 @@ subscription {
   }
 }
             ''')
+
             async for result in client.subscribe(subscription):
                 result: OrderedDict = result.to_dict()
-                __import__('pprint').pprint(result)
+                if 'errors' in result:
+                    LOGGER.warning(
+                        "backend returned with errors: %s",
+                        json.dumps(result['errors']),
+                    )
+                if 'data' in result:
+                    LOGGER.debug(
+                        "backend returned with data: %s",
+                        json.dumps(result['data']),
+                    )
+                if 'data' not in result:
+                    continue
+
+                data = result['data']
+                if 'newTraceSubscription' in data:
+                    self._new_trace(
+                        NewTraceSubscription(**data['newTraceSubscription']))
 
 
 def enable(daemon: bool = True, package: Optional[str] = None) -> None:
