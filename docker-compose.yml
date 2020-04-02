@@ -4,6 +4,6 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: ./docker/dev.Dockerfile
+      dockerfile: ./docker/prod.Dockerfile
     ports:
       - "4000:4000"
