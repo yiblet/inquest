@@ -2,4 +2,4 @@ bytecode==0.11.0
 pytest-asyncio==0.10.0
 pytest-cov==2.8.1
 pytest==4.6.9
-git+git://github.com/leszekhanusz/gql.git@81b795064f06e4466ce30affea8465a86c3358b3
+git+git://github.com/leszekhanusz/gql.git@81b795064f06e4466ce30affea8465a86c3358b3#egg=gql
