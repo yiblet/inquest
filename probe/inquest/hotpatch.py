@@ -23,7 +23,7 @@ def _retrieve_module(
         module = importlib.import_module(module_name, package)
     except (ImportError, ImportWarning):
         raise ValueError(
-            f"path: module '{module.__name__}' relative to '{package}'"
+            f"path: module '{module_name}' relative to '{package}'"
             + " does not resolve to known module")
     if module is None:
         raise ValueError(
@@ -62,31 +62,32 @@ def _retrieve_function_or_method(
     return function
 
 
-def embed_in_function(path: str,
-                      fstring: str,
-                      package: Optional[str] = None) -> None:
+# by separating out _embed_function from embed_in_function we are now
+# able to test the crux of finding the right function's logic more thoroughly
+def get_function_in_module(
+        path: str,
+        package: str,
+        stack_depth: int = 1,
+) -> Union[types.FunctionType, types.MethodType]:
     '''
     @param path: has format '<module_path>:<function_name>'
-    @param fstring: must be a valid fstring (see embed_fstring)
     @param package: when resolving the function, it's module is found
                     relative to this package
-    @returns: Nothing, this function embeds instructions
-              into the function and modifies it in place
+    @returns: the function
     @raise ValueError: path does not resolve to a known module
     @raise ValueError: fstring has an invalid format
-
-    TODO examples
     '''
 
     # retrieve module and path names
     path_parts = path.split(':')
     if len(path_parts) != 2:
-        raise ValueError("invalid path parameter must be of the form "
-                         + "'<module_path>:<function_name>'")
+        raise ValueError(
+            f"invalid path parameter '{path}' must be of the form "
+            + "'<module_path>:<function_name>'")
     module_name, function_name = path_parts
 
     if package is None:
-        frame = inspect.stack()[1]
+        frame = inspect.stack()[stack_depth]
         mod = inspect.getmodule(frame[0])
         package = mod.__name__
 
@@ -98,17 +99,40 @@ def embed_in_function(path: str,
         module_name = '.' + module_name
 
     module = _retrieve_module(module_name, package)
-    function = _retrieve_function_or_method(function_name, module, package)
-    function.__code__ = embed_fstring(function.__code__, fstring)
+    return _retrieve_function_or_method(function_name, module, package)
+
+
+def embed_in_function(
+        path: str,
+        fstring: str,
+        package: Optional[str] = None,
+        old_code: Optional[types.CodeType] = None,
+) -> types.CodeType:
+    '''
+    embeds a log statment at the path
+    @param path: has format '<module_path>:<function_name>'
+    @param fstring: must be a valid fstring (see embed_fstring)
+    @param package: when resolving the function, it's module is found
+                    relative to this package
+    @returns: the old code
+    @raise ValueError: path does not resolve to a known module
+    @raise ValueError: fstring has an invalid format
+    '''
+
+    function = get_function_in_module(path, package, stack_depth=2)
+    if old_code is None:
+        old_code = function.__code__
+    function.__code__ = embed_fstring(old_code, fstring)
+    return old_code
 
 
 def _generate_print_instruction(load_arguments: List[Instr],
                                 num_arguments: int = 1) -> List[Instr]:
     '''
-    param load_arguments: the list of instructions to load the arguments in for
-                          the print function
-    param num_arguments: the number of arguments going into the print function
-    returns: the new instructions with the added call to print
+    @param load_arguments: the list of instructions to load the arguments in
+                           for the print function
+    @param num_arguments: the number of arguments going into the print function
+    @returns: the new instructions with the added call to print
     '''
     return [
         Instr("LOAD_GLOBAL", "print"),
@@ -124,8 +148,7 @@ def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
     @param fstring: must be a valid fstring (see embed_fstring)
                     function parameters may be inserted by adding
                     a '{<param_literal>}'
-    @returns: Nothing, this function embeds instructions
-              into the function and modifies it in place
+    @returns: the new bytecode with the print statement
     @raise ValueError: fstring has an invalid format
 
     ## examples

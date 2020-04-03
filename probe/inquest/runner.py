@@ -38,7 +38,7 @@ class ProbeRunner(threading.Thread):
         LOGGER.info('inquest daemon closed')
 
     def _new_trace(self, trace: NewTraceSubscription):
-        injection = self.probe.add_log(
+        injection = self.probe.upsert_log(
             module=trace.module,
             function=trace.function,
             statement=trace.statement,
