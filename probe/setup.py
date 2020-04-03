@@ -1,13 +1,7 @@
 import pathlib
-from distutils.core import setup
+from setuptools import setup
 
-import pkg_resources
-
-with pathlib.Path('requirements.txt').open() as requirements_txt:
-    REQUIREMENTS = [
-        str(requirement)
-        for requirement in pkg_resources.parse_requirements(requirements_txt)
-    ]
+REQUIREMENTS = pathlib.Path('requirements.txt').open().readlines()
 
 setup(
     name='inquest',
@@ -15,6 +9,8 @@ setup(
     description='the inquest logger',
     author='Shalom Yiblet',
     author_email='shalom.yiblet@gmail.com',
-    install_requires=REQUIREMENTS,
+    # TODO make this more robust to changes in the requirements.txt
+    install_requires=REQUIREMENTS[:-1],
+    dependency_links=REQUIREMENTS[-1:],
     packages=['inquest'],
 )
