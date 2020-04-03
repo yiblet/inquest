@@ -77,7 +77,9 @@ def generate_sections(fstring: str,
 
 
 def parse_fstring(fstring: str) -> List[Segment]:
-    """parses fstrings to reveal internal arguments"""
+    """parses fstrings to reveal internal arguments
+    example fstring: "arg1: {arg1}"
+    """
     # psuedo code:
     #   1. find the first not escaped '{'
     #   2. look for the completing '}'

@@ -126,8 +126,10 @@ def embed_in_function(
     return old_code
 
 
-def _generate_print_instruction(load_arguments: List[Instr],
-                                num_arguments: int = 1) -> List[Instr]:
+def _generate_print_instruction(
+        load_arguments: List[Instr],
+        num_arguments: int = 1,
+) -> List[Instr]:
     '''
     @param load_arguments: the list of instructions to load the arguments in
                            for the print function
