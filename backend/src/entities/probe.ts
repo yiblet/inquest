@@ -6,10 +6,12 @@ import {
     Generated,
     Column,
     Index,
-    ManyToMany,
+    OneToMany,
+    ManyToOne,
 } from "typeorm";
 
-import { Trace } from "./trace";
+import { TraceLog } from "./trace/trace_log";
+import { TraceState } from "./trace/trace_state";
 
 /**
  * Probe
@@ -47,14 +49,18 @@ export class Probe {
         return twoMinutesAgo >= this.lastHeartbeat;
     }
 
-    @Field((type) => [Trace], { nullable: "items" })
-    @ManyToMany((type) => Trace, (trace) => trace.probes)
-    traces: Trace[];
+    @Field((type) => [TraceLog], { nullable: "items" })
+    @OneToMany((type) => TraceLog, (traceLog) => traceLog.probe)
+    traceLogs: TraceLog[];
 
-    // TODO once users are made add this
-    // @Field((type) => User)
-    // @ManyToOne((type) => User)
-    // user: User;
-    // @RelationColumn()
-    // userId: number;
+    /**
+     * the respective TraceState
+     */
+    @Field({ nullable: false })
+    @ManyToOne((type) => TraceState, { nullable: false })
+    traceState: TraceState;
+
+    @Index()
+    @Column({ nullable: false })
+    traceStateId: number;
 }

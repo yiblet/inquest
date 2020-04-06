@@ -21,32 +21,36 @@ const NEW_TRACE = gql`
             }
         ) {
             module
+            function
+            statement
         }
     }
 `;
 
-let server: ApolloServer;
-let client: ApolloServerTestClient;
-beforeAll(async () => {
-    Container.reset();
-    server = await createSQLiteServer();
-    client = createTestClient(server);
-});
+describe("testing server", () => {
+    let server: ApolloServer;
+    let client: ApolloServerTestClient;
+    beforeAll(async () => {
+        Container.reset();
+        server = await createSQLiteServer();
+        client = createTestClient(server);
+    });
 
-afterAll(() => {
-    server.stop();
-    Container.reset();
-});
+    afterAll(async () => {
+        await server.stop();
+        Container.reset();
+    });
 
-it("should create new trace object", async () => {
-    expect(
-        await client.mutate({
-            mutation: NEW_TRACE,
-            variables: {
-                module: "mod",
-                function: "func",
-                statement: "statement",
-            },
-        })
-    ).toMatchSnapshot();
+    it("should create new trace object", async () => {
+        expect(
+            await client.mutate({
+                mutation: NEW_TRACE,
+                variables: {
+                    module: "mod",
+                    function: "func",
+                    statement: "statement",
+                },
+            })
+        ).toMatchSnapshot();
+    });
 });

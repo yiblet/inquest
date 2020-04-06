@@ -12,7 +12,7 @@ import {
 import { Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import * as Topics from "../topics";
-import { Trace } from "../entities/trace";
+import { Trace } from "../entities/trace/trace";
 
 @InputType()
 class NewTraceInput {
@@ -43,7 +43,6 @@ export class TraceResolver {
                 module: newTraceInput.module,
                 function: newTraceInput.function,
                 statement: newTraceInput.statement,
-                active: true,
             })
         );
         await publish(trace);

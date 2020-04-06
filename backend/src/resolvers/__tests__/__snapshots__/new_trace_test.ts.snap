@@ -1,10 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should create new trace object 1`] = `
+exports[`testing server should create new trace object 1`] = `
 Object {
   "data": Object {
     "newTrace": Object {
+      "function": "func",
       "module": "mod",
+      "statement": "statement",
     },
   },
   "errors": undefined,
