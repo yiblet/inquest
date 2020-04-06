@@ -9,7 +9,7 @@ import {
     ManyToOne,
 } from "typeorm";
 
-import { TraceState } from "./trace_state";
+import { TraceSet } from "./trace_set";
 
 /**
  * Trace
@@ -50,9 +50,9 @@ export class Trace {
     active: boolean;
 
     @Column({ nullable: false })
-    traceStateId: number;
+    traceSetId: number;
 
-    @Field((type) => TraceState, { nullable: false })
-    @ManyToOne((type) => TraceState, { nullable: false })
-    traceState: TraceState;
+    @Field((type) => TraceSet, { nullable: false })
+    @ManyToOne((type) => TraceSet, { nullable: false })
+    traceSet: TraceSet;
 }

@@ -12,7 +12,7 @@ import {
 import { getManager, Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { GraphQLString } from "graphql";
-import { Probe, TraceState } from "../entities";
+import { Probe, TraceSet } from "../entities";
 
 @ObjectType()
 export class ProbeNotification {
@@ -46,8 +46,8 @@ export class ProbeResolver {
     constructor(
         @InjectRepository(Probe)
         private readonly probeRepository: Repository<Probe>,
-        @InjectRepository(TraceState)
-        private readonly traceStateRepository: Repository<TraceState>
+        @InjectRepository(TraceSet)
+        private readonly traceSetRepository: Repository<TraceSet>
     ) {}
 
     @Query((returns) => Probe, { nullable: true })
@@ -76,19 +76,19 @@ export class ProbeResolver {
     }
 
     @Mutation((returns) => Probe)
-    async newProbe(@Arg("traceStateKey") key: string): Promise<Probe> {
-        const traceState = await this.traceStateRepository.findOne({
+    async newProbe(@Arg("traceSetKey") key: string): Promise<Probe> {
+        const traceSet = await this.traceSetRepository.findOne({
             select: ["id"],
             where: {
                 key,
             },
         });
-        if (traceState == null) {
-            throw new Error("could not find traceState with given key");
+        if (traceSet == null) {
+            throw new Error("could not find traceSet with given key");
         }
         return await this.probeRepository.save(
             this.probeRepository.create({
-                traceStateId: traceState.id,
+                traceSetId: traceSet.id,
                 lastHeartbeat: new Date(),
             })
         );
@@ -99,7 +99,7 @@ export class ProbeResolver {
     })
     probeNotification(
         @Root() message: string,
-        @Arg("traceStateKey") key: string
+        @Arg("traceSetKey") key: string
     ): string {
         return message;
     }

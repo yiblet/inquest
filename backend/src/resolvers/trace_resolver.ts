@@ -9,7 +9,7 @@ import {
 } from "type-graphql";
 import { Repository, EntityManager } from "typeorm";
 import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
-import { Trace, TraceLog, TraceState, TraceLogStatus } from "../entities";
+import { Trace, TraceLog, TraceSet, TraceLogStatus } from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
 
 @InputType()
@@ -24,7 +24,7 @@ class NewTraceInput {
     statement: string;
 
     @Field({ nullable: false })
-    traceStateKey: string;
+    traceSetKey: string;
 }
 
 @Resolver((of) => Trace)
@@ -32,8 +32,8 @@ export class TraceResolver {
     constructor(
         @InjectRepository(Trace)
         private readonly traceRepository: Repository<Trace>,
-        @InjectRepository(TraceState)
-        private readonly traceStateRepository: Repository<TraceState>,
+        @InjectRepository(TraceSet)
+        private readonly traceSetRepository: Repository<TraceSet>,
         @InjectManager()
         private readonly entityManager: EntityManager
     ) {}
@@ -45,17 +45,17 @@ export class TraceResolver {
     ): Promise<Trace> {
         return await this.entityManager.transaction(async (manager) => {
             const traceRepository = manager.getRepository(Trace);
-            const traceStateRepository = manager.getRepository(TraceState);
+            const traceSetRepository = manager.getRepository(TraceSet);
             const probeRepository = manager.getCustomRepository(
                 ProbeRepository
             );
 
-            // find the trace state
-            const traceState = await traceStateRepository.findOne({
-                key: newTraceInput.traceStateKey,
+            // find the trace set
+            const traceSet = await traceSetRepository.findOne({
+                key: newTraceInput.traceSetKey,
             });
-            if (traceState == null) {
-                throw new Error("could not find trace state");
+            if (traceSet == null) {
+                throw new Error("could not find trace set");
             }
 
             const [trace, relevantProbeIds] = await Promise.all([
@@ -66,11 +66,11 @@ export class TraceResolver {
                         function: newTraceInput.function,
                         statement: newTraceInput.statement,
                         active: true,
-                        traceStateId: traceState.id,
+                        traceSetId: traceSet.id,
                     })
                 ),
                 // find the relevant probes
-                probeRepository.findActiveProbesIds(traceState.id),
+                probeRepository.findActiveProbesIds(traceSet.id),
             ]);
 
             // create a new trace log
@@ -78,7 +78,7 @@ export class TraceResolver {
                 manager.create(
                     TraceLog,
                     TraceLog.createTrace({
-                        traceStateId: traceState.id,
+                        traceSetId: traceSet.id,
                         traceId: trace.id,
                     })
                 )
@@ -97,7 +97,7 @@ export class TraceResolver {
                         )
                     )
                 ),
-                pubsub.publish(traceState.key, "new trace"),
+                pubsub.publish(traceSet.key, "new trace"),
             ]);
 
             return trace;

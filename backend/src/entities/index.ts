@@ -5,7 +5,7 @@ import { Recipe } from "./recipe";
 import { Trace } from "./trace/trace";
 import { TraceLog } from "./trace/trace_log";
 import { TraceLogStatus } from "./trace/trace_log_status";
-import { TraceState } from "./trace/trace_state";
+import { TraceSet } from "./trace/trace_set";
 import { User } from "./user";
 
 // export all entities written inside a list
@@ -16,7 +16,7 @@ export const ALL_ENTITIES = [
     Trace,
     TraceLog,
     TraceLogStatus,
-    TraceState,
+    TraceSet,
     User,
 ];
 
@@ -28,6 +28,6 @@ export {
     Trace,
     TraceLog,
     TraceLogStatus,
-    TraceState,
+    TraceSet,
     User,
 };

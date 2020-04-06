@@ -12,11 +12,11 @@ import {
 import { TraceLog } from "./trace_log";
 
 /**
- * TraceState the current desired state of all active statements
+ * TraceSet the current desired set of all active statements
  */
 @Entity()
 @ObjectType()
-export class TraceState {
+export class TraceSet {
     @PrimaryGeneratedColumn()
     readonly id: number;
 
@@ -34,6 +34,6 @@ export class TraceState {
     readonly updatedAt: Date;
 
     @Field((type) => [TraceLog], { nullable: "items" })
-    @OneToMany((type) => TraceLog, (log) => log.traceState)
+    @OneToMany((type) => TraceLog, (log) => log.traceSet)
     traceLogs: TraceLog[];
 }

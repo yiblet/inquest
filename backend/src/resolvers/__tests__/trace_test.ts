@@ -4,7 +4,7 @@ import { ApolloServer } from "apollo-server";
 import { getManager, EntityManager } from "typeorm";
 import { Container } from "typedi";
 import { ProbeRepository } from "../../repositories/probe_repository";
-import { Probe, TraceState, TraceLog } from "../../entities";
+import { Probe, TraceSet, TraceLog } from "../../entities";
 import {
     createTestClient,
     ApolloServerTestClient,
@@ -12,16 +12,16 @@ import {
 import gql from "graphql-tag";
 
 const FIND_TRACE_STATE = gql`
-    query traceStateQuery($key: String!) {
-        traceState(traceStateKey: $key) {
+    query traceSetQuery($key: String!) {
+        traceSet(traceSetKey: $key) {
             key
         }
     }
 `;
 
 export const NEW_TRACE_STATE = gql`
-    mutation newTraceState($key: String!) {
-        newTraceState(traceStateKey: $key) {
+    mutation newTraceSet($key: String!) {
+        newTraceSet(traceSetKey: $key) {
             key
         }
     }
@@ -39,7 +39,7 @@ const NEW_TRACE = gql`
                 module: $module
                 function: $function
                 statement: $statement
-                traceStateKey: $key
+                traceSetKey: $key
             }
         ) {
             module
@@ -65,7 +65,7 @@ describe("testing server", () => {
         Container.reset();
     });
 
-    it("should fail to find trace state object", async () => {
+    it("should fail to find trace set object", async () => {
         expect(
             await client.mutate({
                 mutation: FIND_TRACE_STATE,
@@ -74,12 +74,12 @@ describe("testing server", () => {
                 },
             })
         ).toMatchObject({
-            data: { traceState: null },
+            data: { traceSet: null },
             errors: undefined,
         });
     });
 
-    it("should create new trace state object", async () => {
+    it("should create new trace set object", async () => {
         expect(
             await client.mutate({
                 mutation: NEW_TRACE_STATE,
@@ -89,7 +89,7 @@ describe("testing server", () => {
             })
         ).toMatchObject({
             data: {
-                newTraceState: {
+                newTraceSet: {
                     key: "test",
                 },
             },
@@ -97,7 +97,7 @@ describe("testing server", () => {
         });
     });
 
-    it("should find trace state object", async () => {
+    it("should find trace set object", async () => {
         expect(
             await client.mutate({
                 mutation: FIND_TRACE_STATE,
@@ -107,7 +107,7 @@ describe("testing server", () => {
             })
         ).toMatchObject({
             data: {
-                traceState: {
+                traceSet: {
                     key: "test",
                 },
             },
@@ -123,7 +123,7 @@ describe("testing server", () => {
                     key: "test_key",
                 },
             })
-        ).toMatchObject({ data: { newTraceState: { key: "test_key" } } });
+        ).toMatchObject({ data: { newTraceSet: { key: "test_key" } } });
 
         expect(
             await client.mutate({
@@ -147,7 +147,7 @@ describe("testing server", () => {
         });
     });
 
-    it("should fail to create trace state object", async () => {
+    it("should fail to create trace set object", async () => {
         expect(
             await client.mutate({
                 mutation: NEW_TRACE_STATE,
@@ -156,7 +156,7 @@ describe("testing server", () => {
                 },
             })
         ).toMatchObject({
-            data: { newTraceState: { key: "test_key2" } },
+            data: { newTraceSet: { key: "test_key2" } },
             errors: undefined,
         });
 
@@ -174,22 +174,22 @@ describe("testing server", () => {
     });
 
     it("test secondary objects created", async () => {
-        const traceState = await manager.save(
-            manager.create(TraceState, {
+        const traceSet = await manager.save(
+            manager.create(TraceSet, {
                 key: "test-key",
             })
         );
 
         let probe = await manager.save(
             manager.create(Probe, {
-                traceStateId: traceState.id,
+                traceSetId: traceSet.id,
                 lastHeartbeat: new Date(),
             })
         );
 
         const probeRepository = manager.getCustomRepository(ProbeRepository);
         expect(
-            await probeRepository.findActiveProbesIds(traceState.id)
+            await probeRepository.findActiveProbesIds(traceSet.id)
         ).toMatchObject([{}]);
 
         expect(
@@ -199,7 +199,7 @@ describe("testing server", () => {
                     module: "mod",
                     function: "func",
                     statement: "statement",
-                    key: traceState.key,
+                    key: traceSet.key,
                 },
             })
         ).toMatchObject({
@@ -214,13 +214,13 @@ describe("testing server", () => {
         });
 
         expect(
-            await probeRepository.findActiveProbesIds(traceState.id)
+            await probeRepository.findActiveProbesIds(traceSet.id)
         ).toMatchObject([{}]);
 
         const traceLog = await manager.findOne(TraceLog, {
             relations: ["traceLogStatuses"],
             where: {
-                traceStateId: traceState.id,
+                traceSetId: traceSet.id,
             },
             order: {
                 updatedAt: "DESC",

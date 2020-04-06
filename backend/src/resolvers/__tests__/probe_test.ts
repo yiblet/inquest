@@ -3,7 +3,7 @@ import { createSQLiteServer } from "./../../connect";
 import { ApolloServer } from "apollo-server";
 import { Container } from "typedi";
 import { EntityManager, getManager } from "typeorm";
-import { TraceState } from "../../entities";
+import { TraceSet } from "../../entities";
 import {
     createTestClient,
     ApolloServerTestClient,
@@ -11,8 +11,8 @@ import {
 import gql from "graphql-tag";
 
 export const NEW_TRACE_STATE = gql`
-    mutation newTraceState($key: String!) {
-        newTraceState(traceStateKey: $key) {
+    mutation newTraceSet($key: String!) {
+        newTraceSet(traceSetKey: $key) {
             key
         }
     }
@@ -28,7 +28,7 @@ const FIND_PROBE = gql`
 
 const NEW_PROBE = gql`
     mutation newProbeMutation($key: String!) {
-        newProbe(traceStateKey: $key) {
+        newProbe(traceSetKey: $key) {
             key
         }
     }
@@ -50,15 +50,15 @@ describe("testing server", () => {
         Container.reset();
     });
 
-    it("should fail to find probe state object", async () => {
-        const state = await manager.save(
-            manager.create(TraceState, { key: "testing123" })
+    it("should fail to find probe set object", async () => {
+        const set = await manager.save(
+            manager.create(TraceSet, { key: "testing123" })
         );
         expect(
             await client.mutate({
                 mutation: FIND_PROBE,
                 variables: {
-                    key: state.key,
+                    key: set.key,
                 },
             })
         ).toMatchInlineSnapshot(`
@@ -80,7 +80,7 @@ describe("testing server", () => {
             await client.mutate({
                 mutation: FIND_PROBE,
                 variables: {
-                    key: "wrong state key test",
+                    key: "wrong trace set key test",
                 },
             })
         ).toMatchInlineSnapshot(`
@@ -99,15 +99,15 @@ describe("testing server", () => {
         `);
     });
 
-    it("should fail to find probe state object", async () => {
-        const state = await manager.save(
-            manager.create(TraceState, { key: "testing1234" })
+    it("should fail to find probe trace set object", async () => {
+        const set = await manager.save(
+            manager.create(TraceSet, { key: "testing1234" })
         );
 
         const mutation = client.mutate({
             mutation: NEW_PROBE,
             variables: {
-                key: state.key,
+                key: set.key,
             },
         });
         expect(await mutation).toMatchObject({

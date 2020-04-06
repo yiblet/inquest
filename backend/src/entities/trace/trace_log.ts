@@ -11,7 +11,7 @@ import {
 } from "typeorm";
 
 import { Trace } from "./trace";
-import { TraceState } from "./trace_state";
+import { TraceSet } from "./trace_set";
 import { Probe } from "../probe";
 import { TraceLogStatus } from "./trace_log_status";
 
@@ -30,16 +30,16 @@ registerEnumType(TraceLogType, {
 });
 
 export type StateChange = {
-    traceStateId: number;
+    traceSetId: number;
     traceId: string;
 };
 
 /**
  * TraceLog displays which trace is currently active (logging)
  *
- * in order for TraceState to be reversible we must maintain a
+ * in order for TraceSet to be reversible we must maintain a
  * changelog of all the usual types of changes the user may ask
- * to the TraceState. This way as things change it'll be easy to
+ * to the TraceSet. This way as things change it'll be easy to
  * track user changes and to revert them if necessary.
  */
 @Entity()
@@ -63,15 +63,15 @@ export class TraceLog {
     readonly type: TraceLogType;
 
     /**
-     * the respective TraceState
+     * the respective TraceSet
      */
-    @Field((type) => TraceState, { nullable: false })
-    @ManyToOne((type) => TraceState, { nullable: false })
-    traceState: TraceState;
+    @Field((type) => TraceSet, { nullable: false })
+    @ManyToOne((type) => TraceSet, { nullable: false })
+    traceSet: TraceSet;
 
     @Index()
     @Column({ nullable: false })
-    traceStateId: number;
+    traceSetId: number;
 
     /**
      * the respective Trace
@@ -123,7 +123,7 @@ export class TraceLog {
     ): Partial<TraceLog> {
         return {
             type,
-            traceStateId: stateChange.traceStateId,
+            traceSetId: stateChange.traceSetId,
             traceId: stateChange.traceId,
         };
     }

@@ -10,7 +10,7 @@ import {
     ManyToOne,
 } from "typeorm";
 
-import { TraceState } from "./trace/trace_state";
+import { TraceSet } from "./trace/trace_set";
 import { TraceLogStatus } from "./trace/trace_log_status";
 
 /**
@@ -50,15 +50,15 @@ export class Probe {
     traceLogStatuses: TraceLogStatus[];
 
     /**
-     * the respective TraceState
+     * the respective TraceSet
      */
     @Field({ nullable: false })
-    @ManyToOne((type) => TraceState, { nullable: false })
-    traceState: TraceState;
+    @ManyToOne((type) => TraceSet, { nullable: false })
+    traceSet: TraceSet;
 
     @Index()
     @Column({ nullable: false })
-    traceStateId: number;
+    traceSetId: number;
 
     heartbeat() {
         this.lastHeartbeat = new Date();

@@ -5,14 +5,14 @@ import { subMinutes } from "date-fns";
 @EntityRepository(Probe)
 export class ProbeRepository extends Repository<Probe> {
     /**
-     * retrieves the list of active probes for the given tracestate
+     * retrieves the list of active probes for the given traceset
      */
-    async findActiveProbesIds(traceStateId: number): Promise<number[]> {
+    async findActiveProbesIds(traceSetId: number): Promise<number[]> {
         return (
             await this.find({
                 select: ["id"],
                 where: {
-                    traceStateId: traceStateId,
+                    traceSetId: traceSetId,
                     lastHeartbeat: MoreThanOrEqual(subMinutes(new Date(), 5)),
                 },
             })
