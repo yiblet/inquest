@@ -21,6 +21,7 @@ export const ALL_ENTITIES = [
 ];
 
 // re-export all entities for easy importing
+// prettier-ignore
 export {
     Probe,
     Rate,

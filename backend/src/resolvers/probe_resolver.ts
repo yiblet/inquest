@@ -7,7 +7,6 @@ import {
     Arg,
     Mutation,
     Subscription,
-    ResolverTopicData,
 } from "type-graphql";
 import { getManager, Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";

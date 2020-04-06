@@ -40,6 +40,7 @@ def main():
 
     print("")
     print("// re-export all entities for easy importing")
+    print("// prettier-ignore")
     print('export {')
     for file in files:
         basename = os.path.basename(file)

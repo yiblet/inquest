@@ -37,9 +37,7 @@ export class TraceSetResolver {
     @Mutation((returns) => TraceSet, {
         description: "creates a traceSet with a given key",
     })
-    async newTraceSet(
-        @Arg("traceSetKey") key: string
-    ): Promise<TraceSet> {
+    async newTraceSet(@Arg("traceSetKey") key: string): Promise<TraceSet> {
         return await this.traceSetRepository.save(
             this.traceSetRepository.create({
                 key,
@@ -52,9 +50,7 @@ export class TraceSetResolver {
         name: "traceSet",
         description: "creates a traceSet with a given key",
     })
-    async findTraceSet(
-        @Arg("traceSetKey") key: string
-    ): Promise<TraceSet> {
+    async findTraceSet(@Arg("traceSetKey") key: string): Promise<TraceSet> {
         return await this.traceSetRepository.findOne({ key });
     }
 }
