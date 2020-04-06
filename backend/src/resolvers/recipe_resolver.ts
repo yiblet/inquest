@@ -11,9 +11,7 @@ import {
 import { Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 
-import { Recipe } from "../entities/recipe";
-import { Rate } from "../entities/rate";
-import { User } from "../entities/user";
+import { Recipe, Rate, User } from "../entities";
 import { RecipeInput } from "./types/recipe-input";
 import { Context } from "../context";
 import { RateInput } from "./types/rate-input";

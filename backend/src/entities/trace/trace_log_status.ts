@@ -52,7 +52,7 @@ export class TraceLogStatus {
 
     @Field((type) => TraceLogStatusState, { nullable: false })
     @Column({ nullable: false, type: "int" })
-    readonly type: TraceLogStatusState;
+    type: TraceLogStatusState;
 
     @Field({ nullable: true })
     @Column({ nullable: true })
@@ -64,7 +64,7 @@ export class TraceLogStatus {
 
     @Index()
     @Column({ nullable: false })
-    probeId: string;
+    probeId: number;
 
     @Field((type) => TraceLog, { nullable: false })
     @ManyToOne((type) => TraceLog, { nullable: false })
@@ -73,4 +73,14 @@ export class TraceLogStatus {
     @Index()
     @Column({ nullable: false })
     traceLogId: string;
+
+    static newTraceLogstatus(relations: {
+        probeId: number;
+        traceLogId: string;
+    }): Partial<TraceLogStatus> {
+        return {
+            type: TraceLogStatusState.SENT,
+            ...relations,
+        };
+    }
 }

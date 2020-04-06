@@ -2,8 +2,7 @@ import { Resolver, FieldResolver, Root } from "type-graphql";
 import { Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 
-import { Rate } from "../entities/rate";
-import { User } from "../entities/user";
+import { Rate, User } from "../entities";
 
 @Resolver((of) => Rate)
 export class RateResolver {

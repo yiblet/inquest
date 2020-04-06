@@ -2,7 +2,7 @@ import { Resolver, Query, Arg, Mutation } from "type-graphql";
 import { Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { GraphQLString } from "graphql";
-import { Probe } from "../entities/probe";
+import { Probe} from "../entities";
 
 @Resolver((of) => Probe)
 export class ProbeResolver {

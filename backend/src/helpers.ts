@@ -1,8 +1,6 @@
 import { getRepository, Column, ColumnOptions } from "typeorm";
 
-import { Recipe } from "./entities/recipe";
-import { Rate } from "./entities/rate";
-import { User } from "./entities/user";
+import { Recipe, Rate, User } from "./entities";
 import { hash } from "bcrypt";
 
 export async function seedDatabase() {

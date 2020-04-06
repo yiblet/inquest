@@ -31,13 +31,20 @@ def main():
         print(f'import {{ {camel(basename[:-3])} }} from ".{file[:-3]}";')
 
     print("")
+    print("// export all entities written inside a list")
     print('export const ALL_ENTITIES = [')
     for file in files:
         basename = os.path.basename(file)
         print(f'    {camel(basename[:-3])},')
-    print(f'    // placeholder to prevent prettier from' +
-          ' turning array into one line')
     print('];')
+
+    print("")
+    print("// re-export all entities for easy importing")
+    print('export {')
+    for file in files:
+        basename = os.path.basename(file)
+        print(f'    {camel(basename[:-3])},')
+    print('};')
 
 
 if __name__ == "__main__":

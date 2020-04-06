@@ -1,9 +1,11 @@
 import { Field, ObjectType } from "type-graphql";
 import {
     Entity,
+    Index,
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
+    Column,
     OneToMany,
 } from "typeorm";
 
@@ -17,6 +19,11 @@ import { TraceLog } from "./trace_log";
 export class TraceState {
     @PrimaryGeneratedColumn()
     readonly id: number;
+
+    @Field({ nullable: false })
+    @Index({ unique: true })
+    @Column({ nullable: false, type: "varchar", length: 255 })
+    readonly key: string;
 
     @Field({ nullable: false })
     @CreateDateColumn()

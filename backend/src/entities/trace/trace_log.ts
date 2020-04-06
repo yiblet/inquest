@@ -29,6 +29,11 @@ registerEnumType(TraceLogType, {
     description: "type of trace log",
 });
 
+export type StateChange = {
+    traceStateId: number;
+    traceId: string;
+};
+
 /**
  * TraceLog displays which trace is currently active (logging)
  *
@@ -99,4 +104,27 @@ export class TraceLog {
     @Field((type) => [TraceLogStatus], { nullable: "items" })
     @OneToMany((type) => TraceLogStatus, (status) => status.traceLog)
     traceLogStatus: TraceLogStatus[];
+
+    static createTrace(stateChange: StateChange): Partial<TraceLog> {
+        return TraceLog.stateChange(TraceLogType.CREATE_TRACE, stateChange);
+    }
+
+    static updateTrace(stateChange: StateChange): Partial<TraceLog> {
+        return TraceLog.stateChange(TraceLogType.UPDATE_TRACE, stateChange);
+    }
+
+    static deleteTrace(stateChange: StateChange): Partial<TraceLog> {
+        return TraceLog.stateChange(TraceLogType.DELETE_TRACE, stateChange);
+    }
+
+    private static stateChange(
+        type: TraceLogType,
+        stateChange: StateChange
+    ): Partial<TraceLog> {
+        return {
+            type,
+            traceStateId: stateChange.traceStateId,
+            traceId: stateChange.traceId,
+        };
+    }
 }

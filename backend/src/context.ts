@@ -1,4 +1,4 @@
-import { User } from "./entities/user";
+import { User } from "./entities";
 
 export type Context = {
     user: User;

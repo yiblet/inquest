@@ -8,6 +8,7 @@ import { TraceLogStatus } from "./trace/trace_log_status";
 import { TraceState } from "./trace/trace_state";
 import { User } from "./user";
 
+// export all entities written inside a list
 export const ALL_ENTITIES = [
     Probe,
     Rate,
@@ -17,5 +18,16 @@ export const ALL_ENTITIES = [
     TraceLogStatus,
     TraceState,
     User,
-    // placeholder to prevent prettier from turning array into one line
 ];
+
+// re-export all entities for easy importing
+export {
+    Probe,
+    Rate,
+    Recipe,
+    Trace,
+    TraceLog,
+    TraceLogStatus,
+    TraceState,
+    User,
+};
