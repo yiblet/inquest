@@ -6,6 +6,8 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "noImplicitAny": false,
+        "incremental": true,
+        "outDir": "./build",
         "sourceMap": true,
         "target": "es6"
     },

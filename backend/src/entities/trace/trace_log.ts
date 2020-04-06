@@ -103,7 +103,7 @@ export class TraceLog {
      */
     @Field((type) => [TraceLogStatus], { nullable: "items" })
     @OneToMany((type) => TraceLogStatus, (status) => status.traceLog)
-    traceLogStatus: TraceLogStatus[];
+    traceLogStatuses: TraceLogStatus[];
 
     static createTrace(stateChange: StateChange): Partial<TraceLog> {
         return TraceLog.stateChange(TraceLogType.CREATE_TRACE, stateChange);

@@ -1,6 +1,9 @@
 import { createSQLiteServer } from "./../../connect";
 import { ApolloServer } from "apollo-server";
+import { getManager, EntityManager } from "typeorm";
 import { Container } from "typedi";
+import { ProbeRepository } from "../../repositories/probe_repository";
+import { Probe, TraceState, TraceLog } from "../../entities";
 import {
     createTestClient,
     ApolloServerTestClient,
@@ -15,7 +18,7 @@ const FIND_TRACE_STATE = gql`
     }
 `;
 
-const NEW_TRACE_STATE = gql`
+export const NEW_TRACE_STATE = gql`
     mutation newTraceState($key: String!) {
         newTraceState(traceStateKey: $key) {
             key
@@ -48,10 +51,12 @@ const NEW_TRACE = gql`
 describe("testing server", () => {
     let server: ApolloServer;
     let client: ApolloServerTestClient;
+    let manager: EntityManager;
     beforeAll(async () => {
         Container.reset();
         server = await createSQLiteServer();
         client = createTestClient(server);
+        manager = getManager();
     });
 
     afterAll(async () => {
@@ -108,6 +113,7 @@ describe("testing server", () => {
             errors: undefined,
         });
     });
+
     it("should create new trace object", async () => {
         expect(
             await client.mutate({
@@ -137,6 +143,103 @@ describe("testing server", () => {
                 },
             },
             errors: undefined,
+        });
+    });
+
+    it("should fail to create trace state object", async () => {
+        expect(
+            await client.mutate({
+                mutation: NEW_TRACE_STATE,
+                variables: {
+                    key: "test_key2",
+                },
+            })
+        ).toMatchObject({
+            data: { newTraceState: { key: "test_key2" } },
+            errors: undefined,
+        });
+
+        expect(
+            await client.mutate({
+                mutation: NEW_TRACE_STATE,
+                variables: {
+                    key: "test_key2",
+                },
+            })
+        ).toMatchObject({
+            data: null,
+            errors: [{}],
+        });
+    });
+
+    it("test secondary objects created", async () => {
+        const traceState = await manager.save(
+            manager.create(TraceState, {
+                key: "test-key",
+            })
+        );
+
+        let probe = await manager.save(
+            manager.create(Probe, {
+                traceStateId: traceState.id,
+                lastHeartbeat: new Date(),
+            })
+        );
+
+        const probeRepository = manager.getCustomRepository(ProbeRepository);
+        expect(
+            await probeRepository.findActiveProbesIds(traceState.id)
+        ).toMatchObject([{}]);
+
+        expect(
+            await client.mutate({
+                mutation: NEW_TRACE,
+                variables: {
+                    module: "mod",
+                    function: "func",
+                    statement: "statement",
+                    key: traceState.key,
+                },
+            })
+        ).toMatchObject({
+            data: {
+                newTrace: {
+                    module: "mod",
+                    function: "func",
+                    statement: "statement",
+                },
+            },
+            errors: undefined,
+        });
+
+        expect(
+            await probeRepository.findActiveProbesIds(traceState.id)
+        ).toMatchObject([{}]);
+
+        const traceLog = await manager.findOne(TraceLog, {
+            relations: ["traceLogStatuses"],
+            where: {
+                traceStateId: traceState.id,
+            },
+            order: {
+                updatedAt: "DESC",
+            },
+        });
+
+        expect(traceLog).toMatchObject({
+            traceLogStatuses: [{ probeId: 1, type: 0 }],
+        });
+
+        probe = await manager.findOne(Probe, {
+            where: {
+                id: probe.id,
+            },
+            relations: ["traceLogStatuses"],
+        });
+
+        expect(probe).toMatchObject({
+            id: 1,
+            traceLogStatuses: [{}],
         });
     });
 });

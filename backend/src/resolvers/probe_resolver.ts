@@ -2,13 +2,15 @@ import { Resolver, Query, Arg, Mutation } from "type-graphql";
 import { Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { GraphQLString } from "graphql";
-import { Probe} from "../entities";
+import { Probe, TraceState } from "../entities";
 
 @Resolver((of) => Probe)
 export class ProbeResolver {
     constructor(
         @InjectRepository(Probe)
-        private readonly probeRepository: Repository<Probe>
+        private readonly probeRepository: Repository<Probe>,
+        @InjectRepository(TraceState)
+        private readonly traceStateRepository: Repository<TraceState>
     ) {}
 
     @Query((returns) => Probe, { nullable: true })
@@ -37,7 +39,21 @@ export class ProbeResolver {
     }
 
     @Mutation((returns) => Probe)
-    async newProbe(): Promise<Probe> {
-        return await this.probeRepository.save(this.probeRepository.create({}));
+    async newProbe(@Arg("traceStateKey") key: string): Promise<Probe> {
+        const traceState = await this.traceStateRepository.findOne({
+            select: ["id"],
+            where: {
+                key,
+            },
+        });
+        if (traceState == null) {
+            throw new Error("could not find traceState with given key");
+        }
+        return await this.probeRepository.save(
+            this.probeRepository.create({
+                traceStateId: traceState.id,
+                lastHeartbeat: new Date(),
+            })
+        );
     }
 }

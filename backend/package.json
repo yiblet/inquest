@@ -19,8 +19,8 @@
         "typescript": "^3.8.3"
     },
     "scripts": {
-        "start": "ts-node src/index.ts",
-        "test": "jest",
+        "start": "tsc && node build/index.js",
+        "test": "tsc && jest build",
         "lint": "eslint 'src/**/*ts' && prettier -c 'src/**/*ts'",
         "fix": "eslint --fix 'src/**/*ts'; prettier --write 'src/**/*ts'",
         "staged": "lint-staged"

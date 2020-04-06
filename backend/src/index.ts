@@ -1,7 +1,7 @@
 // needed for typeorm && type-graphl to function
 import "reflect-metadata";
 // imports the .env file
-import "./lib/env.ts";
+import "./lib/env";
 import { createSQLiteServer } from "./connect";
 
 // register 3rd party IOC container

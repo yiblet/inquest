@@ -10,8 +10,8 @@ import {
     ManyToOne,
 } from "typeorm";
 
-import { TraceLog } from "./trace/trace_log";
 import { TraceState } from "./trace/trace_state";
+import { TraceLogStatus } from "./trace/trace_log_status";
 
 /**
  * Probe
@@ -25,19 +25,15 @@ export class Probe {
     @PrimaryGeneratedColumn()
     readonly id: number;
 
-    @Field()
-    @Column()
-    lastHeartbeat?: Date;
+    @Field({ nullable: false })
+    @Column({ nullable: false })
+    lastHeartbeat: Date;
 
     @Field()
     @Index({ unique: true })
     @Column({ nullable: false, unique: true })
     @Generated("uuid")
     key: string;
-
-    @Field()
-    @Column()
-    ip?: string;
 
     @Field((type) => GraphQLBoolean, { nullable: false })
     isAlive(): boolean {
@@ -49,9 +45,12 @@ export class Probe {
         return twoMinutesAgo >= this.lastHeartbeat;
     }
 
-    @Field((type) => [TraceLog], { nullable: "items" })
-    @OneToMany((type) => TraceLog, (traceLog) => traceLog.probe)
-    traceLogs: TraceLog[];
+    @Field((type) => [TraceLogStatus], { nullable: "items" })
+    @OneToMany(
+        (type) => TraceLogStatus,
+        (traceLogStatus) => traceLogStatus.probe
+    )
+    traceLogStatuses: TraceLogStatus[];
 
     /**
      * the respective TraceState
@@ -63,4 +62,8 @@ export class Probe {
     @Index()
     @Column({ nullable: false })
     traceStateId: number;
+
+    heartbeat() {
+        this.lastHeartbeat = new Date();
+    }
 }
