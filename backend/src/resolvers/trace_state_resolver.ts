@@ -1,7 +1,14 @@
-import { Resolver, Mutation, Arg, Query } from "type-graphql";
+import {
+    Root,
+    FieldResolver,
+    Resolver,
+    Mutation,
+    Arg,
+    Query,
+} from "type-graphql";
 import { Repository, EntityManager } from "typeorm";
 import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
-import { TraceState } from "../entities";
+import { Trace, TraceState } from "../entities";
 
 @Resolver((of) => TraceState)
 export class TraceStateResolver {
@@ -11,6 +18,21 @@ export class TraceStateResolver {
         @InjectManager()
         private readonly entityManager: EntityManager
     ) {}
+
+    @FieldResolver((returns) => [Trace], {
+        description: "the desired state according to this traceState",
+    })
+    async desiredState(@Root() traceState: TraceState): Promise<Trace[]> {
+        return await this.entityManager.find(Trace, {
+            where: {
+                traceStateId: traceState.id,
+                active: true,
+            },
+            order: {
+                updatedAt: "DESC",
+            },
+        });
+    }
 
     @Mutation((returns) => TraceState, {
         description: "creates a traceState with a given key",

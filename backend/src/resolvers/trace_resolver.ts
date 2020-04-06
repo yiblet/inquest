@@ -5,13 +5,10 @@ import {
     Arg,
     Field,
     PubSub,
-    Publisher,
-    Subscription,
-    Root,
+    PubSubEngine,
 } from "type-graphql";
 import { Repository, EntityManager } from "typeorm";
 import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
-import * as Topics from "../topics";
 import { Trace, TraceLog, TraceState, TraceLogStatus } from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
 
@@ -44,7 +41,7 @@ export class TraceResolver {
     @Mutation((returns) => Trace)
     async newTrace(
         @Arg("newTraceInput") newTraceInput: NewTraceInput,
-        @PubSub(Topics.TRACES) publish: Publisher<Trace>
+        @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
         return await this.entityManager.transaction(async (manager) => {
             const traceRepository = manager.getRepository(Trace);
@@ -68,6 +65,8 @@ export class TraceResolver {
                         module: newTraceInput.module,
                         function: newTraceInput.function,
                         statement: newTraceInput.statement,
+                        active: true,
+                        traceStateId: traceState.id,
                     })
                 ),
                 // find the relevant probes
@@ -98,17 +97,10 @@ export class TraceResolver {
                         )
                     )
                 ),
-                publish(trace),
+                pubsub.publish(traceState.key, "new trace"),
             ]);
 
             return trace;
         });
-    }
-
-    @Subscription((returns) => Trace, {
-        topics: Topics.TRACES,
-    })
-    async newTraceSubscription(@Root() trace: Trace): Promise<Trace> {
-        return trace;
     }
 }

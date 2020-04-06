@@ -6,7 +6,10 @@ import {
     UpdateDateColumn,
     Column,
     Index,
+    ManyToOne,
 } from "typeorm";
+
+import { TraceState } from "./trace_state";
 
 /**
  * Trace
@@ -41,4 +44,15 @@ export class Trace {
     @Field({ nullable: false })
     @Column({ nullable: false })
     statement: string;
+
+    @Field({ nullable: false })
+    @Column({ nullable: false })
+    active: boolean;
+
+    @Column({ nullable: false })
+    traceStateId: number;
+
+    @Field((type) => TraceState, { nullable: false })
+    @ManyToOne((type) => TraceState, { nullable: false })
+    traceState: TraceState;
 }

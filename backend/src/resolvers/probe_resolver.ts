@@ -1,8 +1,45 @@
-import { Resolver, Query, Arg, Mutation } from "type-graphql";
-import { Repository } from "typeorm";
+import {
+    Field,
+    ObjectType,
+    Resolver,
+    Root,
+    Query,
+    Arg,
+    Mutation,
+    Subscription,
+    ResolverTopicData,
+} from "type-graphql";
+import { getManager, Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { GraphQLString } from "graphql";
 import { Probe, TraceState } from "../entities";
+
+@ObjectType()
+export class ProbeNotification {
+    constructor(message: string, probeKey: string) {
+        this.message = message;
+        this.probeKey = probeKey;
+    }
+
+    @Field({ nullable: false })
+    message: string;
+
+    @Field({ nullable: false })
+    probeKey: string;
+
+    @Field((type) => Probe, { nullable: false })
+    async probe() {
+        return await getManager()
+            .findOneOrFail(Probe, {
+                where: {
+                    key: this.probeKey,
+                },
+            })
+            .catch((err) => {
+                throw new Error("could not find probe");
+            });
+    }
+}
 
 @Resolver((of) => Probe)
 export class ProbeResolver {
@@ -55,5 +92,15 @@ export class ProbeResolver {
                 lastHeartbeat: new Date(),
             })
         );
+    }
+
+    @Subscription({
+        topics: ({ args }) => args.probeKey,
+    })
+    probeNotification(
+        @Root() message: string,
+        @Arg("traceStateKey") key: string
+    ): string {
+        return message;
     }
 }

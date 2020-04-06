@@ -38,9 +38,6 @@ export class Probe {
     @Field((type) => GraphQLBoolean, { nullable: false })
     isAlive(): boolean {
         // TODO make this smarter
-        if (this.lastHeartbeat === null) {
-            return false;
-        }
         const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
         return twoMinutesAgo >= this.lastHeartbeat;
     }
