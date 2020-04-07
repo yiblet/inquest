@@ -15,27 +15,23 @@ import { Probe, TraceSet } from "../entities";
 
 @ObjectType()
 export class ProbeNotification {
-    constructor(message: string, probeKey: string) {
+    constructor(message: string, private traceSetKey: string) {
         this.message = message;
-        this.probeKey = probeKey;
     }
 
     @Field({ nullable: false })
     message: string;
 
-    @Field({ nullable: false })
-    probeKey: string;
-
-    @Field((type) => Probe, { nullable: false })
-    async probe() {
+    @Field((type) => TraceSet, { nullable: false })
+    async traceSet() {
         return await getManager()
-            .findOneOrFail(Probe, {
+            .findOneOrFail(TraceSet, {
                 where: {
-                    key: this.probeKey,
+                    key: this.traceSetKey,
                 },
             })
             .catch((err) => {
-                throw new Error("could not find probe");
+                throw new Error("could not find trace set");
             });
     }
 }
@@ -93,13 +89,13 @@ export class ProbeResolver {
         );
     }
 
-    @Subscription({
-        topics: ({ args }) => args.probeKey,
+    @Subscription((type) => ProbeNotification, {
+        topics: ({ args }) => args.traceSetKey,
     })
-    probeNotification(
+    async probeNotification(
         @Root() message: string,
         @Arg("traceSetKey") key: string
-    ): string {
-        return message;
+    ): Promise<ProbeNotification> {
+        return new ProbeNotification(message, key);
     }
 }

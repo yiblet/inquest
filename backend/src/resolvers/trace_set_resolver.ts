@@ -29,6 +29,8 @@ export class TraceSetResolver {
                 active: true,
             },
             order: {
+                // first order by updatedAt
+                // NOTE: updatedAt is set to second precision
                 updatedAt: "DESC",
             },
         });
