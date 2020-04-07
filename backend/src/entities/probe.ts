@@ -47,14 +47,14 @@ export class Probe {
         (type) => TraceLogStatus,
         (traceLogStatus) => traceLogStatus.probe
     )
-    traceLogStatuses: TraceLogStatus[];
+    traceLogStatuses: Promise<TraceLogStatus[]>;
 
     /**
      * the respective TraceSet
      */
-    @Field({ nullable: false })
+    @Field((type) => TraceSet, { nullable: false })
     @ManyToOne((type) => TraceSet, { nullable: false })
-    traceSet: TraceSet;
+    traceSet: Promise<TraceSet>;
 
     @Index()
     @Column({ nullable: false })

@@ -35,5 +35,5 @@ export class TraceSet {
 
     @Field((type) => [TraceLog], { nullable: "items" })
     @OneToMany((type) => TraceLog, (log) => log.traceSet)
-    traceLogs: TraceLog[];
+    traceLogs: Promise<TraceLog[]>;
 }

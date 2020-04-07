@@ -54,5 +54,5 @@ export class Trace {
 
     @Field((type) => TraceSet, { nullable: false })
     @ManyToOne((type) => TraceSet, { nullable: false })
-    traceSet: TraceSet;
+    traceSet: Promise<TraceSet>;
 }

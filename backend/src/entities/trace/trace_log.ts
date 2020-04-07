@@ -67,7 +67,7 @@ export class TraceLog {
      */
     @Field((type) => TraceSet, { nullable: false })
     @ManyToOne((type) => TraceSet, { nullable: false })
-    traceSet: TraceSet;
+    traceSet: Promise<TraceSet>;
 
     @Index()
     @Column({ nullable: false })
@@ -79,7 +79,7 @@ export class TraceLog {
      */
     @Field((type) => Trace, { nullable: true })
     @ManyToOne((type) => Trace, { nullable: true })
-    trace: Trace;
+    trace: Promise<Trace>;
 
     @Index()
     @Column({ nullable: true })
@@ -91,7 +91,7 @@ export class TraceLog {
      */
     @Field((type) => Probe, { nullable: true })
     @ManyToOne((type) => Probe, { nullable: true })
-    probe: Probe;
+    probe: Promise<Probe>;
 
     @Index()
     @Column({ nullable: true })
@@ -103,7 +103,7 @@ export class TraceLog {
      */
     @Field((type) => [TraceLogStatus], { nullable: "items" })
     @OneToMany((type) => TraceLogStatus, (status) => status.traceLog)
-    traceLogStatuses: TraceLogStatus[];
+    traceLogStatuses: Promise<TraceLogStatus[]>;
 
     static createTrace(stateChange: StateChange): Partial<TraceLog> {
         return TraceLog.stateChange(TraceLogType.CREATE_TRACE, stateChange);

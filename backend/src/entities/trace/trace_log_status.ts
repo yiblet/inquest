@@ -60,7 +60,7 @@ export class TraceLogStatus {
 
     @Field((type) => Probe, { nullable: false })
     @ManyToOne((type) => Probe, { nullable: false })
-    probe: Probe;
+    probe: Promise<Probe>;
 
     @Index()
     @Column({ nullable: false })
@@ -68,7 +68,7 @@ export class TraceLogStatus {
 
     @Field((type) => TraceLog, { nullable: false })
     @ManyToOne((type) => TraceLog, { nullable: false })
-    traceLog: TraceLog;
+    traceLog: Promise<TraceLog>;
 
     @Index()
     @Column({ nullable: false })

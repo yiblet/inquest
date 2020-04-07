@@ -45,6 +45,9 @@ const NEW_TRACE = gql`
             module
             function
             statement
+            traceSet {
+                key
+            }
         }
     }
 `;
@@ -227,9 +230,9 @@ describe("testing server", () => {
             },
         });
 
-        expect(traceLog).toMatchObject({
-            traceLogStatuses: [{ probeId: 1, type: 0 }],
-        });
+        expect(await traceLog.traceLogStatuses).toMatchObject([
+            { probeId: 1, type: 0 },
+        ]);
 
         probe = await manager.findOne(Probe, {
             where: {
@@ -240,7 +243,7 @@ describe("testing server", () => {
 
         expect(probe).toMatchObject({
             id: 1,
-            traceLogStatuses: [{}],
         });
+        expect(await probe.traceLogStatuses).toMatchObject([{}]);
     });
 });
