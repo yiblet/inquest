@@ -10,12 +10,19 @@ from bytecode import Bytecode, Instr
 from inquest.parse_fstring import Segment, generate_sections, parse_fstring
 
 
-def convert_relative_import_to_absolute_import(import_string: str, package: str):
+def convert_relative_import_to_absolute_import(
+    import_string: str,
+    package: str,
+    add_level=False,
+):
     if import_string[0] != ".":
         return import_string
 
     package_path = package.split('.')
     idx = 0
+
+    if add_level:
+        import_string = "." + import_string
 
     for char in import_string[1:]:
         if char == '.':

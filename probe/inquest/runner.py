@@ -64,14 +64,21 @@ class ProbeRunner(threading.Thread):
 
             # Request subscription
             subscription = gql('''
-subscription {
-  newTraceSubscription {
-    module
-    function
-    statement
+subscription probeNotification {
+  probeNotification(traceSetKey: "%s") {
+    message
+    traceSet {
+      key
+      desiredSet {
+        id
+        module
+        function
+        statement
+      }
+    }
   }
 }
-            ''')
+            ''' % ("test-key"))
 
             async for result in client.subscribe(subscription):
                 result: OrderedDict = result.to_dict()
@@ -87,11 +94,6 @@ subscription {
                     )
                 if 'data' not in result:
                     continue
-
-                data = result['data']
-                if 'newTraceSubscription' in data:
-                    self._new_trace(
-                        NewTraceSubscription(**data['newTraceSubscription']))
 
 
 def enable(daemon: bool = True, package: Optional[str] = None) -> None:

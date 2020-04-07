@@ -108,8 +108,10 @@ class Probe(contextlib.ExitStack):
         desired_set = [{
             **trace, "module":
                 convert_relative_import_to_absolute_import(
-                    "." + trace['module'], self.package)
-                if trace['module'].startswith('.') else trace['module']
+                    trace['module'],
+                    self.package,
+                    add_level=True,
+                )
         } for trace in desired_set]
 
         traces, final_code, errors = self._add_desired_set(desired_set)
