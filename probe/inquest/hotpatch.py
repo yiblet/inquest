@@ -10,6 +10,27 @@ from bytecode import Bytecode, Instr
 from inquest.parse_fstring import Segment, generate_sections, parse_fstring
 
 
+def convert_relative_import_to_absolute_import(import_string: str, package: str):
+    if import_string[0] != ".":
+        return import_string
+
+    package_path = package.split('.')
+    idx = 0
+
+    for char in import_string[1:]:
+        if char == '.':
+            package_path.pop()
+            idx += 1
+        else:
+            break
+
+    import_string = import_string[idx + 1:]
+    if import_string != "":
+        package_path.append(import_string)
+
+    return ".".join(package_path)
+
+
 def _retrieve_module(
         module_name: str,
         package: str,
@@ -144,29 +165,7 @@ def _generate_print_instruction(
     ]
 
 
-def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
-    '''
-    @param code: the code object to be modified
-    @param fstring: must be a valid fstring (see embed_fstring)
-                    function parameters may be inserted by adding
-                    a '{<param_literal>}'
-    @returns: the new bytecode with the print statement
-    @raise ValueError: fstring has an invalid format
-
-    ## examples
-    >>> def sample(x, y):
-    >>>     return x + y
-    >>> sample.__code__ = embed_fstring(sample.__code__, "{x},{y}")
-
-    now `sample()`  will behave as if it's code was
-    >>> def sample(x, y):
-    >>>     print(f'{x},{y}')
-    >>>     return x + y
-
-    WARNING fstrings currently do not allow for general python expressions
-    within their '{}' insertion points, you may only directly refer to function
-    parameter values.
-    '''
+def _generate_instructions(code: types.CodeType, fstring: str) -> List[Instr]:
     segments: List[Segment] = parse_fstring(fstring)
     args = code.co_varnames[:code.co_argcount]
     args_set = set(args)
@@ -196,9 +195,43 @@ def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
                 ))
 
     instructions.append(Instr("BUILD_STRING", len(sections)))
-
     instructions = _generate_print_instruction(instructions)
+    return instructions
 
+
+def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
+    return embed_fstrings(code, [fstring])
+
+
+def embed_fstrings(code: types.CodeType,
+                   fstrings: List[str]) -> types.CodeType:
+    '''
+    @param code: the code object to be modified
+    @param fstring: must be a valid fstring (see embed_fstring)
+                    function parameters may be inserted by adding
+                    a '{<param_literal>}'
+    @returns: the new bytecode with the print statement
+    @raise ValueError: fstring has an invalid format
+
+    ## examples
+    >>> def sample(x, y):
+    >>>     return x + y
+    >>> sample.__code__ = embed_fstring(sample.__code__, "{x},{y}")
+
+    now `sample()`  will behave as if it's code was
+    >>> def sample(x, y):
+    >>>     print(f'{x},{y}')
+    >>>     return x + y
+
+    WARNING fstrings currently do not allow for general python expressions
+    within their '{}' insertion points, you may only directly refer to function
+    parameter values.
+    '''
+
+    instructions = [
+        instr for fstring in fstrings
+        for instr in _generate_instructions(code, fstring)
+    ]
     bytecode: Bytecode = Bytecode.from_code(code)
     bytecode.reverse()
     bytecode.extend(reversed(instructions))
