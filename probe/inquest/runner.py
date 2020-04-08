@@ -1,11 +1,10 @@
-# import asyncio
 import asyncio
 import inspect
 import json
 import logging
 import threading
 from collections import OrderedDict
-from typing import NamedTuple, Optional
+from typing import Optional
 
 from gql import AsyncClient, gql
 from gql.transport.websockets import WebsocketsTransport
@@ -13,13 +12,6 @@ from gql.transport.websockets import WebsocketsTransport
 from inquest.probe import Probe
 
 LOGGER = logging.getLogger(__name__)
-
-
-class NewTraceSubscription(NamedTuple):
-    id: str
-    module: str
-    function: str
-    statement: str
 
 
 class ProbeRunner(threading.Thread):
