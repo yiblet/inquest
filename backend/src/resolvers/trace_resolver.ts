@@ -13,6 +13,24 @@ import { Trace, TraceLog, TraceSet, TraceLogStatus } from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
 
 @InputType()
+class UpdateTraceInput {
+    @Field({ nullable: true })
+    module?: string;
+
+    @Field({ nullable: true })
+    function?: string;
+
+    @Field({ nullable: true })
+    statement?: string;
+
+    @Field({ nullable: true })
+    active?: boolean;
+
+    @Field({ nullable: false })
+    id: string;
+}
+
+@InputType()
 class NewTraceInput {
     @Field({ nullable: false })
     module: string;
@@ -38,6 +56,110 @@ export class TraceResolver {
         private readonly entityManager: EntityManager
     ) {}
 
+    protected async createRelevantLogStatuses(
+        manager: EntityManager,
+        traceLog: TraceLog
+    ): Promise<TraceLogStatus[]> {
+        const probeRepository = manager.getCustomRepository(ProbeRepository);
+        const relevantProbeIds = await probeRepository.findActiveProbesIds(
+            traceLog.traceSetId
+        );
+
+        return relevantProbeIds.map((id) =>
+            manager.create(
+                TraceLogStatus,
+                TraceLogStatus.newTraceLogstatus({
+                    probeId: id,
+                    traceLogId: traceLog.id,
+                })
+            )
+        );
+    }
+
+    private static async saveTraceLogWithRelevantLogStatuses(
+        manager: EntityManager,
+        traceLogPartial: Partial<TraceLog>
+    ) {
+        const traceLog = await manager.save(traceLogPartial);
+        await manager.save(await traceLog.createRelevantLogStatuses());
+        return traceLog;
+    }
+
+    @Mutation((returns) => Trace)
+    async deleteTrace(
+        @Arg("traceId") traceId: string,
+        @PubSub() pubsub: PubSubEngine
+    ): Promise<Trace> {
+        return await this.entityManager.transaction(async (manager) => {
+            const traceRepository = manager.getRepository(Trace);
+            let trace = await traceRepository.findOne({
+                where: { id: traceId },
+                relations: ["traceSet"],
+            });
+            if (trace == null) {
+                throw new Error("could not find trace with that id");
+            }
+            trace = await manager.softRemove(trace);
+            const traceSet = await trace.traceSet;
+            await TraceResolver.saveTraceLogWithRelevantLogStatuses(
+                manager,
+                manager.create(
+                    TraceLog,
+                    TraceLog.deleteTrace({
+                        traceSetId: traceSet.id,
+                        traceId: trace.id,
+                    })
+                )
+            );
+
+            await pubsub.publish(traceSet.key, "delete trace");
+            return trace;
+        });
+    }
+
+    // TODO convert updates to no-ops if nothing is changed
+    @Mutation((returns) => Trace)
+    async updateTrace(
+        @Arg("updateTraceInput") updateTraceInput: UpdateTraceInput,
+        @PubSub() pubsub: PubSubEngine
+    ): Promise<Trace> {
+        return await this.entityManager.transaction(async (manager) => {
+            const traceRepository = manager.getRepository(Trace);
+
+            let trace = await traceRepository.findOne({
+                where: { id: updateTraceInput.id },
+                relations: ["traceSet"],
+            });
+            if (trace == null) {
+                throw new Error("could not find trace with that id");
+            }
+
+            // setting updates
+            for (const field of ["module", "statement", "function", "active"]) {
+                if (updateTraceInput[field] != null) {
+                    trace[field] = updateTraceInput[field];
+                }
+            }
+
+            trace = await manager.save(trace);
+            const traceSet = await trace.traceSet;
+
+            // create a new trace log
+            await TraceResolver.saveTraceLogWithRelevantLogStatuses(
+                manager,
+                manager.create(
+                    TraceLog,
+                    TraceLog.updateTrace({
+                        traceSetId: traceSet.id,
+                        traceId: trace.id,
+                    })
+                )
+            );
+            await pubsub.publish(traceSet.key, "update trace");
+            return trace;
+        });
+    }
+
     @Mutation((returns) => Trace)
     async newTrace(
         @Arg("newTraceInput") newTraceInput: NewTraceInput,
@@ -58,23 +180,19 @@ export class TraceResolver {
                 throw new Error("could not find trace set");
             }
 
-            const [trace, relevantProbeIds] = await Promise.all([
-                // create trace
-                traceRepository.save(
-                    this.traceRepository.create({
-                        module: newTraceInput.module,
-                        function: newTraceInput.function,
-                        statement: newTraceInput.statement,
-                        active: true,
-                        traceSetId: traceSet.id,
-                    })
-                ),
-                // find the relevant probes
-                probeRepository.findActiveProbesIds(traceSet.id),
-            ]);
+            const trace = await traceRepository.save(
+                this.traceRepository.create({
+                    module: newTraceInput.module,
+                    function: newTraceInput.function,
+                    statement: newTraceInput.statement,
+                    active: true,
+                    traceSetId: traceSet.id,
+                })
+            );
 
             // create a new trace log
-            const traceLog = await manager.save(
+            await TraceResolver.saveTraceLogWithRelevantLogStatuses(
+                manager,
                 manager.create(
                     TraceLog,
                     TraceLog.createTrace({
@@ -83,23 +201,7 @@ export class TraceResolver {
                     })
                 )
             );
-
-            await Promise.all([
-                // create the relevant trace log status
-                manager.save(
-                    relevantProbeIds.map((id) =>
-                        manager.create(
-                            TraceLogStatus,
-                            TraceLogStatus.newTraceLogstatus({
-                                probeId: id,
-                                traceLogId: traceLog.id,
-                            })
-                        )
-                    )
-                ),
-                pubsub.publish(traceSet.key, "new trace"),
-            ]);
-
+            await pubsub.publish(traceSet.key, "new trace");
             return trace;
         });
     }

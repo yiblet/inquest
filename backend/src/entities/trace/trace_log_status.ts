@@ -51,7 +51,7 @@ export class TraceLogStatus {
     readonly updatedAt: Date;
 
     @Field((type) => TraceLogStatusState, { nullable: false })
-    @Column({ nullable: false, type: "int" })
+    @Column({ nullable: false, type: "int", default: TraceLogStatusState.SENT })
     type: TraceLogStatusState;
 
     @Field({ nullable: true })

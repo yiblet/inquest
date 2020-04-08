@@ -4,6 +4,7 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
+    DeleteDateColumn,
     Column,
     Index,
     ManyToOne,
@@ -31,6 +32,9 @@ export class Trace {
     @Field({ nullable: false })
     @UpdateDateColumn()
     readonly updatedAt: Date;
+
+    @DeleteDateColumn()
+    readonly deletedAt: Date;
 
     @Field({ nullable: false })
     @Index()
