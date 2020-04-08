@@ -11,6 +11,7 @@ import { Repository, EntityManager } from "typeorm";
 import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
 import { Trace, TraceLog, TraceSet, TraceLogStatus } from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
+import { TraceLogRepository } from "../repositories/trace_log_repository";
 
 @InputType()
 class UpdateTraceInput {
@@ -78,10 +79,14 @@ export class TraceResolver {
 
     private static async saveTraceLogWithRelevantLogStatuses(
         manager: EntityManager,
-        traceLogPartial: Partial<TraceLog>
-    ) {
-        const traceLog = await manager.save(traceLogPartial);
-        await manager.save(await traceLog.createRelevantLogStatuses());
+        traceLogPartial: TraceLog
+    ): Promise<TraceLog> {
+        const traceLog = await manager.save<TraceLog>(traceLogPartial);
+        await manager.save(
+            await manager
+                .getCustomRepository(TraceLogRepository)
+                .createRelevantLogStatuses(traceLog)
+        );
         return traceLog;
     }
 
@@ -168,9 +173,6 @@ export class TraceResolver {
         return await this.entityManager.transaction(async (manager) => {
             const traceRepository = manager.getRepository(Trace);
             const traceSetRepository = manager.getRepository(TraceSet);
-            const probeRepository = manager.getCustomRepository(
-                ProbeRepository
-            );
 
             // find the trace set
             const traceSet = await traceSetRepository.findOne({

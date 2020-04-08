@@ -8,15 +8,12 @@ import {
     ManyToOne,
     Column,
     OneToMany,
-    EntityManager,
-    getManager,
 } from "typeorm";
 
 import { Trace } from "./trace";
 import { TraceSet } from "./trace_set";
 import { Probe } from "../probe";
 import { TraceLogStatus } from "./trace_log_status";
-import { ProbeRepository } from "../../repositories/probe_repository";
 
 // TODO test if this works
 export enum TraceLogType {
@@ -128,30 +125,5 @@ export class TraceLog {
             traceSetId: stateChange.traceSetId,
             traceId: stateChange.traceId,
         };
-    }
-
-    async createRelevantLogStatuses(
-        manager: EntityManager | null = null
-    ): Promise<TraceLogStatus[]> {
-        if (this.id == null) {
-            throw new Error("trace log unitialized");
-        }
-        if (manager == null) {
-            manager = getManager();
-        }
-        const probeRepository = manager.getCustomRepository(ProbeRepository);
-        const relevantProbeIds = await probeRepository.findActiveProbesIds(
-            this.traceSetId
-        );
-
-        return relevantProbeIds.map((id) =>
-            manager.create(
-                TraceLogStatus,
-                TraceLogStatus.newTraceLogstatus({
-                    probeId: id,
-                    traceLogId: this.id,
-                })
-            )
-        );
     }
 }

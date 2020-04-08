@@ -266,6 +266,59 @@ describe("testing server", () => {
                         traceSetKey: $key
                     }
                 ) {
+                    id
+                    module
+                    function
+                    statement
+                    traceSet {
+                        key
+                        desiredSet {
+                            module
+                            function
+                            statement
+                        }
+                    }
+                }
+            }
+        `;
+
+        const UPDATE_TRACE_WITH_DESIRED_STATE = gql`
+            mutation updateTrace(
+                $module: String
+                $function: String
+                $statement: String
+                $active: Boolean
+                $id: String!
+            ) {
+                updateTrace(
+                    updateTraceInput: {
+                        module: $module
+                        function: $function
+                        statement: $statement
+                        active: $active
+                        id: $id
+                    }
+                ) {
+                    id
+                    module
+                    function
+                    statement
+                    traceSet {
+                        key
+                        desiredSet {
+                            module
+                            function
+                            statement
+                        }
+                    }
+                }
+            }
+        `;
+
+        const DELETE_TRACE_WITH_DESIRED_STATE = gql`
+            mutation deleteTrace($id: String!) {
+                deleteTrace(traceId: $id) {
+                    id
                     module
                     function
                     statement
@@ -282,6 +335,8 @@ describe("testing server", () => {
         `;
 
         const KEY = "test-key2";
+        let modId = "";
+        let mod2Id = "";
 
         it("trace set should have been created", async () => {
             const traceSet = await manager.save(
@@ -293,17 +348,17 @@ describe("testing server", () => {
         });
 
         it("desired set should have one object", async () => {
-            expect(
-                await client.mutate({
-                    mutation: NEW_TRACE_WITH_DESIRED_STATE,
-                    variables: {
-                        module: "mod",
-                        function: "func",
-                        statement: "statement",
-                        key: KEY,
-                    },
-                })
-            ).toMatchObject({
+            const mod1 = await client.mutate({
+                mutation: NEW_TRACE_WITH_DESIRED_STATE,
+                variables: {
+                    module: "mod",
+                    function: "func",
+                    statement: "statement",
+                    key: KEY,
+                },
+            });
+            modId = mod1.data.newTrace.id;
+            expect(mod1).toMatchObject({
                 data: {
                     newTrace: {
                         module: "mod",
@@ -326,17 +381,17 @@ describe("testing server", () => {
         });
 
         it("desired set should have two object", async () => {
-            expect(
-                await client.mutate({
-                    mutation: NEW_TRACE_WITH_DESIRED_STATE,
-                    variables: {
-                        module: "mod2",
-                        function: "func",
-                        statement: "statement",
-                        key: KEY,
-                    },
-                })
-            ).toMatchObject({
+            const mod2 = await client.mutate({
+                mutation: NEW_TRACE_WITH_DESIRED_STATE,
+                variables: {
+                    module: "mod2",
+                    function: "func",
+                    statement: "statement",
+                    key: KEY,
+                },
+            });
+            mod2Id = mod2.data.newTrace.id;
+            expect(mod2).toMatchObject({
                 data: {
                     newTrace: {
                         module: "mod2",
@@ -369,6 +424,145 @@ describe("testing server", () => {
             expect(traces[1].updatedAt.valueOf()).toBeLessThanOrEqual(
                 traces[0].updatedAt.valueOf()
             );
+        });
+
+        it("desired set should lose one object", async () => {
+            expect(
+                await client.mutate({
+                    mutation: UPDATE_TRACE_WITH_DESIRED_STATE,
+                    variables: {
+                        active: false,
+                        id: mod2Id,
+                    },
+                })
+            ).toMatchObject({
+                data: {
+                    updateTrace: {
+                        module: "mod2",
+                        function: "func",
+                        statement: "statement",
+                        traceSet: {
+                            key: KEY,
+                            desiredSet: [
+                                {
+                                    module: "mod",
+                                    function: "func",
+                                    statement: "statement",
+                                },
+                            ],
+                        },
+                    },
+                },
+                errors: undefined,
+            });
+        });
+
+        it("desired set should have statements change", async () => {
+            expect(
+                await client.mutate({
+                    mutation: UPDATE_TRACE_WITH_DESIRED_STATE,
+                    variables: {
+                        statement: "statements",
+                        id: modId,
+                    },
+                })
+            ).toMatchObject({
+                data: {
+                    updateTrace: {
+                        module: "mod",
+                        function: "func",
+                        statement: "statements",
+                        traceSet: {
+                            key: KEY,
+                            desiredSet: [
+                                {
+                                    module: "mod",
+                                    function: "func",
+                                    statement: "statements",
+                                },
+                            ],
+                        },
+                    },
+                },
+                errors: undefined,
+            });
+        });
+
+        it("desired set should have gain mod2 again", async () => {
+            expect(
+                await client.mutate({
+                    mutation: UPDATE_TRACE_WITH_DESIRED_STATE,
+                    variables: {
+                        function: "funct",
+                        active: true,
+                        id: mod2Id,
+                    },
+                })
+            ).toMatchObject({
+                data: {
+                    updateTrace: {
+                        module: "mod2",
+                        function: "funct",
+                        statement: "statement",
+                        traceSet: {
+                            key: KEY,
+                            desiredSet: [{}, {}],
+                        },
+                    },
+                },
+                errors: undefined,
+            });
+        });
+
+        it("delete trace should lose mod2 now permanently", async () => {
+            expect(
+                await client.mutate({
+                    mutation: DELETE_TRACE_WITH_DESIRED_STATE,
+                    variables: {
+                        id: mod2Id,
+                    },
+                })
+            ).toMatchObject({
+                data: {
+                    deleteTrace: {
+                        module: "mod2",
+                        function: "funct",
+                        statement: "statement",
+                        traceSet: {
+                            key: KEY,
+                            desiredSet: [{}],
+                        },
+                    },
+                },
+                errors: undefined,
+            });
+        });
+
+        it("connecting to that trace should now fail", async () => {
+            expect(
+                await client.mutate({
+                    mutation: DELETE_TRACE_WITH_DESIRED_STATE,
+                    variables: {
+                        id: mod2Id,
+                    },
+                })
+            ).toMatchObject({
+                data: null,
+                errors: [{}],
+            });
+
+            expect(
+                await client.mutate({
+                    mutation: UPDATE_TRACE_WITH_DESIRED_STATE,
+                    variables: {
+                        function: "func",
+                        id: mod2Id,
+                    },
+                })
+            ).toMatchObject({
+                data: null,
+                errors: [{}],
+            });
         });
     });
 });
