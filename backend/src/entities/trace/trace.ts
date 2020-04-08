@@ -4,7 +4,6 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
-    Generated,
     Column,
     Index,
     ManyToOne,

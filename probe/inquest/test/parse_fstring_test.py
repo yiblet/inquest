@@ -16,9 +16,11 @@ def parse_sections(fstring: str) -> List[Tuple[bool, str]]:
 
 
 def test_parse_fsting_simple():
-    assert deepeq(parse_fstring("{x} {y}"),
-                  [Segment(start=1, end=2),
-                   Segment(start=5, end=6)])
+    assert deepeq(
+        parse_fstring("{x} {y}"),
+        [Segment(start=1, end=2),
+         Segment(start=5, end=6)]
+    )
 
 
 def test_parse_fsting():
@@ -38,21 +40,27 @@ def test_generate_sections():
     assert deepeq(parse_sections("{x}"), [
         (True, "x"),
     ])
-    assert deepeq(parse_sections("{x} {y}"), [
-        (True, "x"),
-        (False, " "),
-        (True, "y"),
-    ])
-    assert deepeq(parse_sections("{x = 2} {y}"), [
-        (True, "x = 2"),
-        (False, " "),
-        (True, "y"),
-    ])
-    assert deepeq(parse_sections("{x} {x}"), [
-        (True, "x"),
-        (False, " "),
-        (True, "x"),
-    ])
+    assert deepeq(
+        parse_sections("{x} {y}"), [
+            (True, "x"),
+            (False, " "),
+            (True, "y"),
+        ]
+    )
+    assert deepeq(
+        parse_sections("{x = 2} {y}"), [
+            (True, "x = 2"),
+            (False, " "),
+            (True, "y"),
+        ]
+    )
+    assert deepeq(
+        parse_sections("{x} {x}"), [
+            (True, "x"),
+            (False, " "),
+            (True, "x"),
+        ]
+    )
     assert deepeq(parse_sections("{x}{x}"), [
         (True, "x"),
         (True, "x"),

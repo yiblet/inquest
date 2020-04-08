@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import importlib
 import inspect
 import types
+from functools import lru_cache
 from typing import List, Optional, Union
 
 from bytecode import Bytecode, Instr
@@ -38,6 +39,7 @@ def convert_relative_import_to_absolute_import(
     return ".".join(package_path)
 
 
+@lru_cache(maxsize=128, typed=True)
 def _retrieve_module(
         module_name: str,
         package: str,
@@ -52,14 +54,17 @@ def _retrieve_module(
     except (ImportError, ImportWarning):
         raise ValueError(
             f"path: module '{module_name}' relative to '{package}'"
-            + " does not resolve to known module")
+            + " does not resolve to known module"
+        )
     if module is None:
         raise ValueError(
             f"path: module '{module.__name__}' relative to '{package}'"
-            + " does not resolve to known module")
+            + " does not resolve to known module"
+        )
     return module
 
 
+@lru_cache(maxsize=512, typed=True)
 def _retrieve_function_or_method(
         path: str,
         module: types.ModuleType,
@@ -80,13 +85,15 @@ def _retrieve_function_or_method(
     except AttributeError:
         raise ValueError(
             f"path: '{module_name}:{path}' relative to '{package}'"
-            + " must resolve to a known function or method")
+            + " must resolve to a known function or method"
+        )
 
     if (function is None) or not isinstance(
             function, (types.FunctionType, types.MethodType)):
         raise ValueError(
             f"path: '{module_name}:{path}' relative to '{package}'"
-            + " must resolve to a known function or method")
+            + " must resolve to a known function or method"
+        )
     return function
 
 
@@ -111,7 +118,8 @@ def get_function_in_module(
     if len(path_parts) != 2:
         raise ValueError(
             f"invalid path parameter '{path}' must be of the form "
-            + "'<module_path>:<function_name>'")
+            + "'<module_path>:<function_name>'"
+        )
     module_name, function_name = path_parts
 
     if package is None:
@@ -178,14 +186,17 @@ def _generate_instructions(code: types.CodeType, fstring: str) -> List[Instr]:
     args_set = set(args)
     # generate string literals
     sections = list(generate_sections(fstring, segments))
-    valid_segments = [(literal in args_set, literal)
-                      for is_segment, literal in sections
-                      if is_segment]
+    valid_segments = [
+        (literal in args_set, literal)
+        for is_segment, literal in sections
+        if is_segment
+    ]
     for is_valid_segment, segment in valid_segments:
         if not is_valid_segment:
             raise ValueError(
                 f"segment '{segment}' is not valid; segments must "
-                + f"be exclusively these argument literals: {tuple(args_set)}")
+                + f"be exclusively these argument literals: {tuple(args_set)}"
+            )
 
     instructions = []
     for is_segment, literal in sections:
@@ -199,7 +210,8 @@ def _generate_instructions(code: types.CodeType, fstring: str) -> List[Instr]:
                 Instr(
                     'LOAD_CONST',
                     literal.replace(r"\{", "{").replace(r"\}", "}"),
-                ))
+                )
+            )
 
     instructions.append(Instr("BUILD_STRING", len(sections)))
     instructions = _generate_print_instruction(instructions)
@@ -210,8 +222,9 @@ def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
     return embed_fstrings(code, [fstring])
 
 
-def embed_fstrings(code: types.CodeType,
-                   fstrings: List[str]) -> types.CodeType:
+def embed_fstrings(
+        code: types.CodeType, fstrings: List[str]
+) -> types.CodeType:
     '''
     @param code: the code object to be modified
     @param fstring: must be a valid fstring (see embed_fstring)

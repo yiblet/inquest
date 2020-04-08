@@ -1,14 +1,18 @@
 import contextlib
 import logging
 import types
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import pandas as pd
 
-from inquest.hotpatch import (convert_relative_import_to_absolute_import,
-                              embed_fstrings, get_function_in_module)
+from inquest.hotpatch import (
+    convert_relative_import_to_absolute_import, embed_fstrings,
+    get_function_in_module
+)
 
 LOGGER = logging.getLogger(__name__)
+
+FunctionPath = Tuple[str, str]
 
 TRACE_COLUMNS = [
     'id',
@@ -52,6 +56,7 @@ def diff_desired_set(
         indicator=True,
     )
 
+    # recreate module, function, and statement
     merged['module'] = merged['module_y'].fillna(merged['module_x'])
     merged['function'] = merged['function_y'].fillna(merged['function_x'])
     merged['statement'] = merged['statement_y'].fillna(merged['statement_x'])
@@ -64,7 +69,8 @@ def diff_desired_set(
     to_be_updated = merged.query(
         '_merge == "both" & '
         + '( module_x != module_y | function_x != function_y '
-        + '| statement_x != statement_y ) ')[trace_df.columns]
+        + '| statement_x != statement_y ) '
+    )[trace_df.columns]
 
     new_traces = merged[merged['_merge'] != 'left_only'][trace_df.columns]
     return DiffResult(
@@ -78,7 +84,7 @@ def diff_desired_set(
 class Probe(contextlib.ExitStack):
     package: str
     traces: pd.DataFrame
-    code: Dict[Tuple[str, str], types.CodeType]
+    code: Dict[FunctionPath, types.CodeType]
 
     def __init__(self, package: str):
         super().__init__()
@@ -102,22 +108,39 @@ class Probe(contextlib.ExitStack):
             raise Exception(errors)
 
     def new_desired_state(
-        self, desired_set: List[Dict[str, str]]
-    ) -> Optional[Dict[Tuple[str, str], Exception]]:
+        self,
+        desired_set: List[Dict[str, str]],
+    ) -> Optional[Dict[FunctionPath, Exception]]:
+        '''
+        changes the probe to match the new desired state
+        @param desired_set: the set of desired traces
+        @returns: if the change failed and was not implemented an error
+                  a dict mapping (function, module) to Exception is returned
+        TODO make the error dict point directly to the problematic trace id
+        '''
 
-        desired_set = [{
-            **trace, "module":
-                convert_relative_import_to_absolute_import(
-                    trace['module'],
-                    self.package,
-                    add_level=True,
-                )
-        } for trace in desired_set]
+        # converts module path to absolute path in order to ensure that
+        # there is only one way to point to the same function
+        # TODO fix this bug a different way
+        # TODO this fails when users make trace statements to the same
+        #      function which was re-exported in 2 different paths
+        desired_set = [
+            {
+                **trace, "module":
+                    convert_relative_import_to_absolute_import(
+                        trace['module'],
+                        self.package,
+                        add_level=True,
+                    )
+            } for trace in desired_set
+        ]
 
         traces, final_code, errors = self._add_desired_set(desired_set)
-        if len(errors) != 0:
+
+        if errors != {}:
             return errors
 
+        # only after ensuring there are no errors at all do we set code objects
         for (module, function), code in final_code.items():
             function_obj = get_function_in_module(
                 self.get_path(module, function),
@@ -127,7 +150,12 @@ class Probe(contextlib.ExitStack):
         self.traces = traces
         return None
 
-    def _add_desired_set(self, desired_set: List[Dict[str, Any]]):
+    def _add_desired_set(self, desired_set: List[Dict[str, str]]):
+        '''
+        composes the new trace state given the input desired_set
+        @returns a tuple of the new traces, the final code objects,
+                 and the error dict
+        '''
         desired_df = pd.DataFrame(
             desired_set,
             columns=TRACE_COLUMNS,
@@ -145,7 +173,7 @@ class Probe(contextlib.ExitStack):
         }
         return diff.new_traces, final_code, errors
 
-    def get_og_code(self, module: str, function: str):
+    def _get_og_code(self, module: str, function: str):
         key = (module, function)
         if key in self.code:
             return self.code[key]
@@ -157,23 +185,28 @@ class Probe(contextlib.ExitStack):
         return function_obj.__code__
 
     def _delete_traces(self, traces: pd.DataFrame):
+        '''
+        sets up the code changes to revert the the traces
+        '''
         new_code = {}
-        for (module, function), group in group_by_location(traces):
-            code = self.get_og_code(module, function)
+        for (module, function), _ in group_by_location(traces):
+            code = self._get_og_code(module, function)
             new_code[(module, function)] = code
         return new_code
 
-    # TODO retrieve which statement caused the error
     def _set_traces(self, traces: pd.DataFrame):
+        '''
+        sets the code dict for the new traces
+        '''
         new_code = {}
         errors = {}
         for (module, function), group in group_by_location(traces):
             try:
-                code = self.get_og_code(module, function)
+                code = self._get_og_code(module, function)
                 fstrings = list(group['statement'])
                 embedded_code = embed_fstrings(code, fstrings)
                 new_code[(module, function)] = embedded_code
-            except Exception as error:
+            except Exception as error:  # pylint: disable=all
                 errors[(module, function)] = error
         return new_code, errors
 

@@ -16,6 +16,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class NewTraceSubscription(NamedTuple):
+    id: str
     module: str
     function: str
     statement: str
@@ -25,10 +26,12 @@ class ProbeRunner(threading.Thread):
 
     package: str
     probe: Probe
+    trace_set_key: str
 
-    def __init__(self, package: str):
+    def __init__(self, package: str, trace_set_key: str):
         super().__init__()
         self.package = package
+        self.trace_set_key = trace_set_key
         self.probe = Probe(package)
 
     def run(self):
@@ -36,21 +39,6 @@ class ProbeRunner(threading.Thread):
         evloop = asyncio.new_event_loop()
         evloop.run_until_complete(self._run_async())
         LOGGER.info('inquest daemon closed')
-
-    def _new_trace(self, trace: NewTraceSubscription):
-        injection = self.probe.upsert_log(
-            module=trace.module,
-            function=trace.function,
-            statement=trace.statement,
-        )
-        if not injection.enabled or injection.error is not None:
-            if not injection.enabled and injection.error is None:
-                LOGGER.warning('injection failed')
-            else:
-                LOGGER.warning(
-                    'injection failed with error %s',
-                    injection.error,
-                )
 
     async def _run_async(self):
         transport = WebsocketsTransport(
@@ -63,7 +51,8 @@ class ProbeRunner(threading.Thread):
             await client.fetch_schema()
 
             # Request subscription
-            subscription = gql('''
+            subscription = gql(
+                '''
 subscription probeNotification {
   probeNotification(traceSetKey: "%s") {
     message
@@ -78,7 +67,8 @@ subscription probeNotification {
     }
   }
 }
-            ''' % ("test-key"))
+            ''' % (self.trace_set_key)
+            )
 
             async for result in client.subscribe(subscription):
                 result: OrderedDict = result.to_dict()
@@ -92,10 +82,21 @@ subscription probeNotification {
                         "backend returned with data: %s",
                         json.dumps(result['data']),
                     )
-                if 'data' not in result:
-                    continue
+
+                    desired_set = result['data']['probeNotification'][
+                        'traceSet']['desiredSet']
+                    errors = self.probe.new_desired_state(desired_set)
+                    if errors is not None:
+                        for (module, function), error in errors.items():
+                            LOGGER.warning(
+                                'error in %s:%s %s',
+                                module,
+                                function,
+                                error,
+                            )
 
 
+# TODO pass the TraceSet Key in as an argument
 def enable(daemon: bool = True, package: Optional[str] = None) -> None:
     '''
     runs the probe in a separate thread
@@ -105,7 +106,7 @@ def enable(daemon: bool = True, package: Optional[str] = None) -> None:
         frame = inspect.stack()[1]
         mod = inspect.getmodule(frame[0])
         package = mod.__name__
-    probe = ProbeRunner(package)
+    probe = ProbeRunner(package, "trace_set")
     probe.setName('inquest probe')
     probe.setDaemon(daemon)
     probe.start()

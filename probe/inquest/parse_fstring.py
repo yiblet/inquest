@@ -47,7 +47,8 @@ def _parse_inside_block(fstring: str) -> str:
         prev = char
     if exit_length == -1:
         raise ValueError(
-            "invalid fstring argument, it doesn't contain a closing '}'")
+            "invalid fstring argument, it doesn't contain a closing '}'"
+        )
     return exit_length
 
 

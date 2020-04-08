@@ -18,7 +18,12 @@ run:
 test:
 	@pytest
 
+fix: 
+	yapf -ir inquest
+
 lint:
+	@echo "\n${BLUE}Running yapf against source and test files...${NC}\n"
+	@yapf -qr inquest
 	@echo "\n${BLUE}Running Pylint against source and test files...${NC}\n"
 	@pylint --rcfile=setup.cfg **/*.py
 	@echo "\n${BLUE}Running Flake8 against source and test files...${NC}\n"
