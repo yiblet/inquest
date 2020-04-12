@@ -10,6 +10,8 @@ export async function seedDatabase() {
 
     const defaultUser = userRepository.create({
         email: "test@github.com",
+        firstname: "Michal",
+        lastname: "Lytek",
         nickname: "MichalLytek",
         password: await hash("s#cr3tp4ssw0rd", 10),
     });

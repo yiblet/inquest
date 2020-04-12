@@ -1,7 +1,7 @@
 import { Field, ID, ObjectType, Arg } from "type-graphql";
 import { GraphQLBoolean, GraphQLString } from "graphql";
-import { PrimaryGeneratedColumn, Column, Entity } from "typeorm";
-import { IsEmail } from "class-validator";
+import { Index, PrimaryGeneratedColumn, Column, Entity } from "typeorm";
+import { validate, MinLength, IsEmail } from "class-validator";
 import { hash, compare } from "bcrypt";
 
 @ObjectType()
@@ -11,14 +11,19 @@ export class PasswordValidity {
         if (!isValid && (errors == null || errors.length === 0)) {
             throw new Error("an invalid password must have an explanation");
         }
-        this.errors = errors;
+        this._errors = errors;
     }
 
     @Field({ nullable: false })
     isValid: boolean;
 
+    private _errors?: string[];
+
     @Field((type) => [GraphQLString])
-    errors?: string[];
+    get errors(): string[] {
+        if (!this._errors) return [];
+        return this._errors;
+    }
 }
 
 @ObjectType()
@@ -30,8 +35,19 @@ export class User {
 
     @Field()
     @IsEmail()
-    @Column()
+    @Index({ unique: true })
+    @Column({ nullable: false, unique: true })
     email: string;
+
+    @MinLength(1)
+    @Field({ nullable: false })
+    @Column({ nullable: false })
+    firstname: string;
+
+    @MinLength(1)
+    @Field({ nullable: false })
+    @Column({ nullable: false })
+    lastname: string;
 
     @Field({ nullable: true })
     @Column({ nullable: true })
@@ -50,6 +66,13 @@ export class User {
             User.validatePassword(password).isValid &&
             (await compare(password, this.password))
         );
+    }
+
+    async isValid(password: string) {
+        return [
+            ...(await validate(this)).map((error) => error.toString()),
+            ...User.validatePassword(password).errors,
+        ];
     }
 
     static async hashPassword(
@@ -80,9 +103,6 @@ export class User {
         }
         if (password.search(/\s/) !== -1) {
             errors.push("password can not contain whitespace");
-        }
-        if (password.search(/\W/) === -1) {
-            errors.push("password must contain a special character");
         }
         if (errors.length === 0) {
             return new PasswordValidity(true);

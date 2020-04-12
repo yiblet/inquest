@@ -10,8 +10,7 @@ import { Context } from "./context";
 import { seedDatabase } from "./helpers";
 
 // register 3rd party IOC container
-
-export async function createSQLiteServer() {
+export async function createSQLiteServerSchema() {
     // create TypeORM connection
     TypeORM.useContainer(Container);
     await TypeORM.createConnection({
@@ -36,5 +35,9 @@ export async function createSQLiteServer() {
     const context: Context = { user: defaultUser };
 
     // Create GraphQL server
-    return new ApolloServer({ schema, context });
+    return { schema, context };
+}
+
+export async function createSQLiteServer() {
+    return new ApolloServer(await createSQLiteServerSchema());
 }
