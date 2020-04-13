@@ -1,8 +1,9 @@
 import "../styles/style.css";
 import React from "react";
+import { withAuth } from "../services/auth";
 import Link from "next/link";
 
-export default function Index() {
+function Dashboard() {
     return (
         <ul>
             <li>
@@ -23,3 +24,5 @@ export default function Index() {
         </ul>
     );
 }
+
+export default withAuth(Dashboard);
