@@ -1,7 +1,7 @@
 // needed for typeorm && type-graphl to function
 import "reflect-metadata";
 // imports the .env file
-import "./lib/env";
+import "./env";
 import { config } from "./config";
 import { createApp } from "./app";
 

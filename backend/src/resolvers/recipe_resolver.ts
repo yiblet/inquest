@@ -15,6 +15,7 @@ import { Recipe, Rate, User } from "../entities";
 import { RecipeInput } from "./types/recipe-input";
 import { Context } from "../context";
 import { RateInput } from "./types/rate-input";
+import { PublicError } from "../utils";
 
 @Resolver((of) => Recipe)
 export class RecipeResolver {
@@ -60,7 +61,7 @@ export class RecipeResolver {
             relations: ["ratings"],
         });
         if (!recipe) {
-            throw new Error("Invalid recipe ID");
+            throw new PublicError("Invalid recipe ID");
         }
 
         // set the new recipe rate

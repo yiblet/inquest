@@ -7,6 +7,7 @@ import {
 import { TraceLog, TraceLogStatus } from "../entities";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { ProbeRepository } from "./probe_repository";
+import { PublicError } from "../utils";
 
 @EntityRepository(TraceLog)
 export class TraceLogRepository extends Repository<TraceLog> {
@@ -21,7 +22,7 @@ export class TraceLogRepository extends Repository<TraceLog> {
         manager: EntityManager | null = null
     ): Promise<TraceLogStatus[]> {
         if (traceLog.id == null) {
-            throw new Error("trace log unitialized");
+            throw new PublicError("trace log unitialized");
         }
         if (manager == null) {
             manager = getManager();

@@ -12,6 +12,7 @@ import { getManager, Repository } from "typeorm";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { GraphQLString } from "graphql";
 import { Probe, TraceSet } from "../entities";
+import { PublicError } from "../utils";
 
 @ObjectType()
 export class ProbeNotification {
@@ -31,7 +32,7 @@ export class ProbeNotification {
                 },
             })
             .catch((err) => {
-                throw new Error("could not find trace set");
+                throw new PublicError("could not find trace set");
             });
     }
 }
@@ -64,7 +65,7 @@ export class ProbeResolver {
             },
         });
         if (probe === null) {
-            throw new Error("probe does not exist");
+            throw new PublicError("probe does not exist");
         }
         probe.lastHeartbeat = new Date();
         return await this.probeRepository.save(probe);
@@ -79,7 +80,7 @@ export class ProbeResolver {
             },
         });
         if (traceSet == null) {
-            throw new Error("could not find traceSet with given key");
+            throw new PublicError("could not find traceSet with given key");
         }
         return await this.probeRepository.save(
             this.probeRepository.create({

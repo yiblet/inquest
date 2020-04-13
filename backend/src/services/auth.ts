@@ -4,6 +4,7 @@ import { User } from "../entities";
 import { InjectManager } from "typeorm-typedi-extensions";
 import { sign, verify } from "jsonwebtoken";
 import { config } from "./../config";
+import { PublicError } from "../utils";
 import express from "express";
 import * as cv from "class-validator";
 
@@ -29,7 +30,7 @@ export class SignupInfo extends LoginInfo {
     password2: string;
 }
 
-export class ValidationException extends Error {
+export class ValidationException extends PublicError {
     constructor(public readonly validationExceptions: string[]) {
         super(validationExceptions.join("\n"));
     }
@@ -54,13 +55,13 @@ export class AuthService {
      */
     async signup(info: SignupInfo) {
         if (info.password != info.password2) {
-            throw new Error("passwords do not match");
+            throw new PublicError("passwords do not match");
         }
         await cv.validateOrReject(info);
         let user = await this.manager.findOne(User, {
             email: info.email,
         });
-        if (user) throw new Error("user already exists with that email");
+        if (user) throw new PublicError("user already exists with that email");
 
         user = new User();
         user.firstname = info.firstname;
@@ -86,9 +87,10 @@ export class AuthService {
         const user = await this.manager.findOne(User, {
             email: email,
         });
-        if (!user) throw Error("password or email could not be found");
+        if (!user)
+            throw new PublicError("password or email could not be found");
         if (!(await user.isPassword(password)))
-            throw Error("password or email could not be found");
+            throw new PublicError("password or email could not be found");
         return user;
     }
 
@@ -132,7 +134,7 @@ export class AuthService {
                     if (err) return reject(err);
                     const id = parseInt(token?.id);
                     if (!id || isNaN(id))
-                        return reject(Error("missing id value"));
+                        return reject(new PublicError("missing id value"));
                     resolve(id);
                 }
             )
@@ -140,7 +142,7 @@ export class AuthService {
 
         const user = await this.manager.findOne(User, id);
         if (!user) {
-            throw new Error("invalid user id");
+            throw new PublicError("invalid user id");
         }
         return user;
     }
@@ -148,19 +150,20 @@ export class AuthService {
 
 export function getAuthToken(req: express.Request) {
     const authorization: string | null = req.get("authorization");
-    if (!authorization) throw new Error("failed to get authorization");
+    if (!authorization) throw new PublicError("failed to get authorization");
     const auth = authorization.split(" ");
-    if (auth.length !== 2) throw new Error("invalid authorization format");
+    if (auth.length !== 2)
+        throw new PublicError("invalid authorization format");
     const [type, base64string] = authorization.split(" ");
     if (type !== "Basic") {
-        throw new Error("authorization must be basic auth");
+        throw new PublicError("authorization must be basic auth");
     }
     const loginToken = new Buffer(base64string.trim(), "base64").toString(
         "ascii"
     );
     const loginTokenSplit = loginToken.split(":");
     if (loginTokenSplit.length !== 2)
-        throw new Error("invalid authorization login format");
+        throw new PublicError("invalid authorization login format");
     const [, loginTokenPass] = loginTokenSplit;
     return loginTokenPass;
 }

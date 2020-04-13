@@ -3,13 +3,16 @@ import { GraphQLBoolean, GraphQLString } from "graphql";
 import { Index, PrimaryGeneratedColumn, Column, Entity } from "typeorm";
 import { validate, MinLength, IsEmail } from "class-validator";
 import { hash, compare } from "bcrypt";
+import { PublicError } from "../utils";
 
 @ObjectType()
 export class PasswordValidity {
     constructor(isValid: boolean, errors: string[] | null = null) {
         this.isValid = isValid;
         if (!isValid && (errors == null || errors.length === 0)) {
-            throw new Error("an invalid password must have an explanation");
+            throw new PublicError(
+                "an invalid password must have an explanation"
+            );
         }
         this._errors = errors;
     }
@@ -82,7 +85,7 @@ export class User {
         if (validate) {
             const validity = User.validatePassword(password);
             if (validity.isValid === false) {
-                throw new Error(validity.errors.join("; "));
+                throw new PublicError(validity.errors.join("; "));
             }
         }
         return await hash(password, 10);

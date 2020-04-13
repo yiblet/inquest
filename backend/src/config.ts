@@ -1,4 +1,4 @@
-import "./lib/env";
+import "./env";
 
 // TODO productionize use a more featured configuration management solution
 export const config = {
@@ -13,5 +13,16 @@ export const config = {
         name: "session_store",
         // maxAge is in millisecond we set it to 3 days
         maxAge: 1000 * 60 * 60 * 24 * 3,
+    },
+    storage: {
+        client: {
+            endPoint: "127.0.0.1",
+            port: 9000,
+            useSSL: false,
+            accessKey: "minio",
+            secretKey: "minio123",
+        },
+        bucket: "bucket",
+        region: "us-east-1",
     },
 };

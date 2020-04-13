@@ -1,6 +1,6 @@
 import "reflect-metadata";
 // imports the .env file
-import "../lib/env";
+import "../env";
 import { SignupInfo, LoginInfo, AuthService } from "../services/auth";
 import { createSQLiteServerSchema } from "../connect";
 import { Container } from "typedi";

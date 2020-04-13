@@ -12,6 +12,7 @@ import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
 import { Trace, TraceLog, TraceSet, TraceLogStatus } from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
 import { TraceLogRepository } from "../repositories/trace_log_repository";
+import { PublicError } from "../utils";
 
 @InputType()
 class UpdateTraceInput {
@@ -102,7 +103,7 @@ export class TraceResolver {
                 relations: ["traceSet"],
             });
             if (trace == null) {
-                throw new Error("could not find trace with that id");
+                throw new PublicError("could not find trace with that id");
             }
             trace = await manager.softRemove(trace);
             const traceSet = await trace.traceSet;
@@ -136,7 +137,7 @@ export class TraceResolver {
                 relations: ["traceSet"],
             });
             if (trace == null) {
-                throw new Error("could not find trace with that id");
+                throw new PublicError("could not find trace with that id");
             }
 
             // setting updates
@@ -179,7 +180,7 @@ export class TraceResolver {
                 key: newTraceInput.traceSetKey,
             });
             if (traceSet == null) {
-                throw new Error("could not find trace set");
+                throw new PublicError("could not find trace set");
             }
 
             const trace = await traceRepository.save(
