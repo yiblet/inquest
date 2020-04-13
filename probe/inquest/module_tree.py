@@ -5,7 +5,7 @@ import os
 import sys
 import types
 from dataclasses import dataclass
-from typing import Generator, List, NamedTuple, Optional, Union
+from typing import Generator, List, Optional, Union
 
 FunctionOrMethod = Union[types.FunctionType, types.MethodType]
 
@@ -19,13 +19,15 @@ def get_source(x) -> Optional[str]:
 
 
 def generate_functions(parent, parent_file: str) -> List[FunctionOrMethod]:
-    return [
-        func[1] for func in inspect.getmembers(
-            parent,
-            lambda x: isinstance(x, (types.FunctionType, types.ModuleType)
-                                ) and get_source(x) == parent_file
-        )
-    ]
+    function_or_method = (types.FunctionType, types.ModuleType)
+
+    def predicate(x):
+        return isinstance(
+            x,
+            function_or_method,
+        ) and get_source(x) == parent_file
+
+    return [func[1] for func in inspect.getmembers(parent, predicate)]
 
 
 class SourceInfo:

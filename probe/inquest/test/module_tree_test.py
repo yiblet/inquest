@@ -1,10 +1,9 @@
 import dataclasses
-import inspect
 import os
 import re
 import sys
 
-from ..module_tree import ClassInfo, FunctionInfo, ModuleInfo, ModuleTree
+from ..module_tree import ClassInfo, ModuleInfo, ModuleTree
 from . import embed_fstring_test, probe_test
 from .embed_test_module import test_imported_module as embed_test_module
 from .probe_test_module import test_imported_module as probe_test_module
@@ -88,7 +87,19 @@ def test_embed_module():
 
 
 def test_classes():
-    class_info = ClassInfo(class_object=SampleClass)
+    class_info = ClassInfo(
+        class_object=SampleClass,
+        parent_module=sys.modules[__name__],
+    )
+    assert class_info.start_line == 108
+    assert class_info.end_line == 110
+
+    class_info = ClassInfo(
+        class_object=SampleDataClass,
+        parent_module=sys.modules[__name__],
+    )
+    assert class_info.start_line == 113
+    assert class_info.end_line == 115
 
 
 # test classes
