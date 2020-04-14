@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import inspect
 import os
+import re
 import sys
 import types
 from dataclasses import dataclass
-from typing import Generator, List, Optional, Union
+from typing import Dict, Generator, List, Optional, Union
 
 FunctionOrMethod = Union[types.FunctionType, types.MethodType]
 
@@ -37,6 +38,10 @@ class SourceInfo:
         raise NotImplementedError()
 
     @property
+    def name(self) -> str:
+        return self.source_object.__name__
+
+    @property
     def file(self) -> Optional[str]:
         return get_source(self.source_object)
 
@@ -48,6 +53,9 @@ class SourceInfo:
     def end_line(self) -> Optional[int]:
         block, start_line = inspect.getsourcelines(self.source_object)
         return start_line + len(block)
+
+    def convert_to_gql_input(self) -> Dict:
+        raise NotImplementedError()
 
 
 @dataclass
@@ -105,6 +113,55 @@ class ModuleInfo(SourceInfo):
         ]
 
 
+def parent_module_name(name: str):
+    idx = name.rfind(".")
+    if idx == -1:
+        return None
+
+    result = name[:idx]
+
+    if re.match(r'\.+', result):
+        return None
+
+    return result
+
+
+def convert_function_info(function: FunctionInfo):
+    return {
+        "name": function.name,
+        "startLine": function.start_line,
+        "endLine": function.end_line,
+    }
+
+
+def convert_class_info(cls: ClassInfo):
+    return {
+        "name":
+            cls.name,
+        "startLine":
+            cls.start_line,
+        "endLine":
+            cls.end_line,
+        "methods":
+            [convert_function_info(function) for function in cls.methods],
+    }
+
+
+def convert_module_info(module: ModuleInfo, file_id: str):
+    res = {
+        "name": module.name,
+        "childFunctions":
+            [convert_function_info(function) for function in module.functions],
+        "childClasses": [convert_class_info(cls) for cls in module.classes],
+        "fileId": file_id,
+        "lines": module.end_line,
+    }
+    parent = parent_module_name(module.name)
+    if parent:
+        res['parentModuleName'] = parent
+    return res
+
+
 # TODO bug: this method is unable to find unimported modules
 class ModuleTree:
 
@@ -114,7 +171,7 @@ class ModuleTree:
         self.root_path = root_path
 
     def modules(self) -> Generator[ModuleInfo, None, None]:
-        for module in sys.modules.values():
+        for module in list(sys.modules.values()):
             if getattr(module, "__file__", None):
                 if not module.__file__.startswith(self.root_path):
                     continue
