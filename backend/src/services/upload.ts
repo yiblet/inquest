@@ -12,7 +12,7 @@ export class UploadService {
         @InjectManager()
         private manager: EntityManager,
 
-        @Inject()
+        @Inject((type) => StorageService)
         private storageService: StorageService
     ) {}
 

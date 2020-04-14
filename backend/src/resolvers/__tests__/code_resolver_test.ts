@@ -3,16 +3,12 @@ import { connectTypeOrm } from "../../connect";
 import { Container } from "typedi";
 import { EntityManager, getManager } from "typeorm";
 import { UploadService } from "../../services/upload";
-import { StorageService } from "../../services/storage";
-import { stubObject, StubbedInstance } from "ts-sinon";
 import { File } from "../../entities";
 import { plainToClass } from "class-transformer";
 
-describe("partially mocking the UploadService", () => {
+describe("setting up dummy file", () => {
     let manager: EntityManager;
     let file: File;
-    let storageStub: StubbedInstance<StorageService>;
-    let uploadService: UploadService;
     beforeAll(async () => {
         await connectTypeOrm();
         manager = getManager();
@@ -22,16 +18,13 @@ describe("partially mocking the UploadService", () => {
                 objectName: "test",
             })
         );
-        storageStub = stubObject<StorageService>(new StorageService());
-        new UploadService(manager, storageStub);
-    });
-
-    afterEach(() => {
-        storageStub = stubObject<StorageService>(new StorageService());
     });
 
     it("should create a new module", async () => {
-        const codeResolver = new CodeResolver(manager, uploadService);
+        const codeResolver = new CodeResolver(
+            manager,
+            Container.get(UploadService)
+        );
 
         const input = plainToClass(ModuleInput, {
             childFunctions: [],
@@ -49,7 +42,10 @@ describe("partially mocking the UploadService", () => {
     });
 
     it("should create a complex module", async () => {
-        const codeResolver = new CodeResolver(manager, uploadService);
+        const codeResolver = new CodeResolver(
+            manager,
+            Container.get(UploadService)
+        );
 
         const input = plainToClass(ModuleInput, {
             childFunctions: [

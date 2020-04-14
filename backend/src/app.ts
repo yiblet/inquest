@@ -19,6 +19,7 @@ import bodyParser from "body-parser";
 import fileUpload, { UploadedFile } from "express-fileupload";
 import session from "express-session";
 import { PublicError } from "./utils";
+import { createServer } from "http";
 
 function wrapAsync(handler: express.Handler) {
     return async (
@@ -134,7 +135,8 @@ export async function createApp() {
         wrapAsync(async (req, res) => {
             const uploadService = Container.get(UploadService);
             let file: UploadedFile;
-            if (!req.files.data) {
+            const data = req.files?.data;
+            if (!data) {
                 throw new PublicError("must pass in file");
             }
 
@@ -154,7 +156,9 @@ export async function createApp() {
         res.redirect("/");
     });
 
-    const server = new ApolloServer({ ...schema });
+    const server = new ApolloServer({ ...schema, subscriptions: "/graphql" });
     server.applyMiddleware({ app, path: "/graphql" });
-    return app;
+    const httpServer = createServer(app);
+    server.installSubscriptionHandlers(httpServer);
+    return httpServer;
 }

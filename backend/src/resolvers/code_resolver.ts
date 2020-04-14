@@ -25,7 +25,7 @@ class NodeInputWithLines extends NodeInput {
 
 @InputType()
 export class FunctionInput extends NodeInputWithLines {
-    @Field()
+    @Field({ nullable: true })
     metadata: string;
 }
 
@@ -54,7 +54,7 @@ export class CodeResolver {
     constructor(
         @InjectManager()
         private readonly manager: EntityManager,
-        @Inject()
+        @Inject((type) => UploadService)
         private readonly uploadService: UploadService
     ) {}
 
@@ -90,11 +90,16 @@ export class CodeResolver {
         const classObject = await manager.save(
             manager.create(Class, classPartial)
         );
-        const methods = classInput.methods.map((input) =>
-            CodeResolver.createFunction(manager, input, {
-                fileId: classObject.fileId,
-                parentClassId: classObject.id,
-            })
+
+        classObject.methods = Promise.resolve(
+            await manager.save(
+                classInput.methods.map((input) =>
+                    CodeResolver.createFunction(manager, input, {
+                        fileId: classObject.fileId,
+                        parentClassId: classObject.id,
+                    })
+                )
+            )
         );
         return classObject;
     }
