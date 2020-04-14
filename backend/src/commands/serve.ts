@@ -1,9 +1,6 @@
-// needed for typeorm && type-graphl to function
-import "reflect-metadata";
-// imports the .env file
-import "./env";
-import { config } from "./config";
-import { createApp } from "./app";
+import "../prelude";
+import { config } from "../config";
+import { createApp } from "../app";
 
 async function bootstrap() {
     const app = await createApp();

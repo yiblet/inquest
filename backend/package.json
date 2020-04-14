@@ -19,11 +19,13 @@
         "typescript": "^3.8.3"
     },
     "scripts": {
-        "start": "tsc && node build/index.js",
+        "start": "tsc && node build/commands/serve.js",
         "test": "tsc && jest build",
         "lint": "eslint 'src/**/*ts' && prettier -c 'src/**/*ts'",
         "fix": "eslint --fix 'src/**/*ts'; prettier --write 'src/**/*ts'",
-        "staged": "lint-staged"
+        "staged": "lint-staged",
+        "schema": "ts-node src/commands/output_schema.ts",
+        "schema:js": "node build/commands/output_schema.js"
     },
     "dependencies": {
         "@types/bcrypt": "^3.0.0",

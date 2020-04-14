@@ -1,0 +1,238 @@
+type AbstractPythonNode {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  startLine: Float!
+  endLine: Float!
+  file: File!
+}
+
+type Class {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  startLine: Float!
+  endLine: Float!
+  file: File!
+  methods: [Function]!
+  module: Module!
+}
+
+input ClassInput {
+  name: String!
+  startLine: Float!
+  endLine: Float!
+  methods: [FunctionInput!]!
+}
+
+"""
+The javascript `Date` as string. Type represents date and time as the ISO Date string.
+"""
+scalar DateTime
+
+type File {
+  id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+}
+
+type Function {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  startLine: Float!
+  endLine: Float!
+  file: File!
+  parentClass: Class
+  module: Module
+}
+
+input FunctionInput {
+  name: String!
+  startLine: Float!
+  endLine: Float!
+  metadata: String
+}
+
+type Module {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  startLine: Float!
+  endLine: Float!
+  file: Module!
+  childFunctions: [Function]!
+  childClasses: [Class]!
+  subModules: [Module]!
+  parentModule: Module
+}
+
+input ModuleInput {
+  name: String!
+  childFunctions: [FunctionInput!]!
+  childClasses: [ClassInput!]!
+  parentModuleName: String
+  fileId: String!
+  lines: Float!
+}
+
+type Mutation {
+  fileUpload(file: Upload!): File!
+  createModule(module: ModuleInput!): Module!
+  heartbeat(key: String!): Probe!
+  newProbe(traceSetKey: String!): Probe!
+  addRecipe(recipe: RecipeInput!): Recipe!
+  rate(rate: RateInput!): Recipe!
+  deleteTrace(traceId: String!): Trace!
+  updateTrace(updateTraceInput: UpdateTraceInput!): Trace!
+  newTrace(newTraceInput: NewTraceInput!): Trace!
+
+  """creates a traceSet with a given key"""
+  newTraceSet(traceSetKey: String!): TraceSet!
+}
+
+input NewTraceInput {
+  module: String!
+  function: String!
+  statement: String!
+  traceSetKey: String!
+}
+
+type PasswordValidity {
+  isValid: Boolean!
+  errors: [String!]!
+}
+
+type Probe {
+  lastHeartbeat: DateTime!
+  key: String!
+  isAlive: Boolean!
+  traceLogStatuses: [TraceLogStatus]!
+  traceSet: TraceSet!
+}
+
+type ProbeNotification {
+  message: String!
+  traceSet: TraceSet!
+}
+
+type Query {
+  probe(key: String!): Probe
+  recipe(recipeId: Int!): Recipe
+  recipes: [Recipe!]!
+
+  """creates a traceSet with a given key"""
+  traceSet(traceSetKey: String!): TraceSet
+  me: User
+}
+
+type Rate {
+  value: Int!
+  user: User!
+  date: DateTime!
+  recipe: Recipe!
+}
+
+input RateInput {
+  recipeId: ID!
+  value: Int!
+}
+
+type Recipe {
+  id: ID!
+  title: String!
+  description: String
+  ratings: [Rate!]!
+  author: User!
+}
+
+input RecipeInput {
+  title: String!
+  description: String
+}
+
+type Subscription {
+  probeNotification(traceSetKey: String!): ProbeNotification!
+}
+
+type Trace {
+  id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  module: String!
+  function: String!
+  statement: String!
+  active: Boolean!
+  traceSet: TraceSet!
+}
+
+type TraceLog {
+  id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  type: TraceLogType!
+  traceSet: TraceSet!
+  trace: Trace
+  probe: Probe
+  traceLogStatuses: [TraceLogStatus]!
+}
+
+type TraceLogStatus {
+  id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  type: TraceLogStatusState!
+  message: String
+  probe: Probe!
+  traceLog: TraceLog!
+}
+
+"""the state of the trace log status"""
+enum TraceLogStatusState {
+  SENT
+  SUCCESS
+  ERROR
+}
+
+"""type of trace log"""
+enum TraceLogType {
+  CREATE_TRACE
+  DELETE_TRACE
+  UPDATE_TRACE
+  CREATE_PROBE
+  DELETE_PROBE
+}
+
+type TraceSet {
+  key: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  traceLogs: [TraceLog]!
+
+  """the desired set according to this traceSet"""
+  desiredSet: [Trace!]!
+}
+
+input UpdateTraceInput {
+  module: String
+  function: String
+  statement: String
+  active: Boolean
+  id: String!
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+type User {
+  id: ID!
+  email: String!
+  firstname: String!
+  lastname: String!
+  nickname: String
+
+  """checks the user's password"""
+  isPassword(password: String!): Boolean!
+}
+

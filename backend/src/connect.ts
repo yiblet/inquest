@@ -9,6 +9,18 @@ import { ALL_RESOLVERS } from "./resolvers";
 import { Context } from "./context";
 import { seedDatabase } from "./helpers";
 
+/**
+ * build TypeGraphQL executable schema
+ */
+export async function buildSchema(
+    options: Partial<TypeGraphQL.BuildSchemaOptions> = {}
+) {
+    return await TypeGraphQL.buildSchema({
+        resolvers: ALL_RESOLVERS,
+        container: Container,
+    });
+}
+
 export async function connectTypeOrm() {
     // create TypeORM connection
     TypeORM.useContainer(Container);
@@ -28,17 +40,11 @@ export async function createSQLiteServerSchema() {
     // seed database with some data
     const { defaultUser } = await seedDatabase();
 
-    // build TypeGraphQL executable schema
-    const schema = await TypeGraphQL.buildSchema({
-        resolvers: ALL_RESOLVERS,
-        container: Container,
-    });
-
     // create mocked context
     const context: Context = { user: defaultUser };
 
     // Create GraphQL server
-    return { schema, context };
+    return { schema: await buildSchema(), context };
 }
 
 export async function createSQLiteServer() {
