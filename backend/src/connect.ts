@@ -9,11 +9,10 @@ import { ALL_RESOLVERS } from "./resolvers";
 import { Context } from "./context";
 import { seedDatabase } from "./helpers";
 
-// register 3rd party IOC container
-export async function createSQLiteServerSchema() {
+export async function connectTypeOrm() {
     // create TypeORM connection
     TypeORM.useContainer(Container);
-    await TypeORM.createConnection({
+    return await TypeORM.createConnection({
         type: "sqlite",
         database: ":memory:",
         entities: ALL_ENTITIES,
@@ -21,7 +20,11 @@ export async function createSQLiteServerSchema() {
         logger: "debug",
         cache: true,
     });
+}
 
+// register 3rd party IOC container
+export async function createSQLiteServerSchema() {
+    await connectTypeOrm();
     // seed database with some data
     const { defaultUser } = await seedDatabase();
 

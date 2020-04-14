@@ -18,25 +18,25 @@ abstract class NodeInput {
 @InputType({ isAbstract: true })
 class NodeInputWithLines extends NodeInput {
     @Field({ nullable: false })
-    start_line: number;
+    startLine: number;
     @Field({ nullable: false })
-    end_line: number;
+    endLine: number;
 }
 
 @InputType()
-class FunctionInput extends NodeInputWithLines {
+export class FunctionInput extends NodeInputWithLines {
     @Field()
     metadata: string;
 }
 
 @InputType()
-class ClassInput extends NodeInputWithLines {
+export class ClassInput extends NodeInputWithLines {
     @Field((type) => [FunctionInput], { nullable: false })
     methods: FunctionInput[];
 }
 
 @InputType() // introduces a bug with module names being unique
-class ModuleInput extends NodeInput {
+export class ModuleInput extends NodeInput {
     @Field((type) => [FunctionInput], { nullable: false })
     childFunctions: FunctionInput[];
     @Field((type) => [ClassInput], { nullable: false })
@@ -68,50 +68,72 @@ export class CodeResolver {
 
     static createFunction(
         manager: EntityManager,
-        functionInput: FunctionInput
+        functionInput: FunctionInput,
+        extra: Partial<Function>
     ): Function {
         const functionPartial: DeepPartial<Function> = classToPlain(
             functionInput
         );
-        return manager.create(Function, functionPartial);
+        return manager.create(Function, { ...functionPartial, ...extra });
     }
 
-    static createClass(manager: EntityManager, classInput: ClassInput): Class {
+    static async saveClass(
+        manager: EntityManager,
+        classInput: ClassInput,
+        extra: Partial<Class>
+    ): Promise<Class> {
         const plain = classToPlain(classInput);
         const classPartial: DeepPartial<Class> & typeof plain = {
             ...plain,
-            methods: Promise.resolve(
-                classInput.methods.map((input) =>
-                    CodeResolver.createFunction(manager, input)
-                )
-            ),
+            ...extra,
         };
-        return manager.create(Class, classPartial);
+        const classObject = await manager.save(
+            manager.create(Class, classPartial)
+        );
+        const methods = classInput.methods.map((input) =>
+            CodeResolver.createFunction(manager, input, {
+                fileId: classObject.fileId,
+                parentClassId: classObject.id,
+            })
+        );
+        return classObject;
     }
 
     @Mutation((_) => Module, { nullable: false })
-    async createModule(@Arg("module") module: ModuleInput) {
+    async createModule(@Arg("module") module: ModuleInput): Promise<Module> {
         return await this.manager.transaction(async (manager) => {
             const file = await manager.findOne(File, module.fileId);
             if (!file) throw new PublicError("could not find file");
 
-            const modulePartial: DeepPartial<Module> = {
-                childFunctions: Promise.resolve(
-                    module.childFunctions.map((input) =>
-                        manager.create(Function, classToPlain(input))
-                    )
-                ),
-                childClasses: Promise.resolve(
+            const moduleObject: Module = await manager.save(
+                manager.create(Module, {
+                    name: module.name,
+                    startLine: 1,
+                    endLine: module.lines,
+                    fileId: file.id,
+                })
+            );
+
+            await Promise.all([
+                Promise.all(
                     module.childClasses.map((input) =>
-                        CodeResolver.createClass(manager, input)
+                        CodeResolver.saveClass(manager, input, {
+                            fileId: file.id,
+                            moduleId: moduleObject.id,
+                        })
                     )
                 ),
-                name: module.name,
-                startLine: 1,
-                endLine: module.lines,
-                file: Promise.resolve(file),
-            };
-            return await manager.save(Module, modulePartial);
+                manager.save(
+                    module.childFunctions.map((input) =>
+                        CodeResolver.createFunction(manager, input, {
+                            fileId: file.id,
+                            moduleId: moduleObject.id,
+                        })
+                    )
+                ),
+            ]);
+
+            return moduleObject;
         });
     }
 }

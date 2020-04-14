@@ -8,11 +8,13 @@ import Stream from "stream";
 
 @Service()
 export class UploadService {
-    @InjectManager()
-    private manager: EntityManager;
+    constructor(
+        @InjectManager()
+        private manager: EntityManager,
 
-    @Inject()
-    private storageService: StorageService;
+        @Inject()
+        private storageService: StorageService
+    ) {}
 
     async upload(name: string, blob: Buffer | Stream) {
         const objectName: string = uuidv4();
