@@ -1,55 +1,62 @@
 {
-  "name": "frontend",
-  "version": "0.0.1",
-  "main": "index.js",
-  "license": "LGPL-3.0+",
-  "dependencies": {
-    "@apollo/client": "^3.0.0-beta.43",
-    "@types/js-cookie": "^2.2.6",
-    "@types/ms": "^0.7.31",
-    "@zeit/next-css": "^1.0.1",
-    "apollo": "^2.27.0",
-    "autoprefixer": "^9.6.0",
-    "eslint-plugin-react": "^7.19.0",
-    "js-cookie": "^2.2.1",
-    "ms": "^2.1.2",
-    "next": "^9.0.7",
-    "next-cookie": "^2.2.2",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-hook-form": "^5.3.1",
-    "ts-node": "^8.8.2"
-  },
-  "scripts": {
-    "dev": "next",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint '**/*.ts*' && prettier -c '**/*.ts*'",
-    "fix": "eslint --fix '**/*.ts*'; prettier --write '**/*.ts*'"
-  },
-  "devDependencies": {
-    "@types/node": "^13.9.8",
-    "@types/react": "^16.9.34",
-    "@typescript-eslint/eslint-plugin": "^2.27.0",
-    "@typescript-eslint/parser": "^2.27.0",
-    "eslint": "^6.8.0",
-    "jest": "^25.2.4",
-    "prettier": "^2.0.2",
-    "tailwindcss": "^1.0.4",
-    "ts-jest": "^25.3.1",
-    "typescript": "^3.8.3"
-  },
-  "resolutions": {
-    "lodash": "^4.17.13"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "prettier --write",
-      "eslint --fix",
-      "jest --bail --findRelatedTests"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
-  }
+    "name": "frontend",
+    "version": "0.0.1",
+    "main": "index.js",
+    "license": "LGPL-3.0+",
+    "dependencies": {
+        "@apollo/client": "^3.0.0-beta.43",
+        "@types/js-cookie": "^2.2.6",
+        "@types/ms": "^0.7.31",
+        "@zeit/next-css": "^1.0.1",
+        "apollo": "^2.27.0",
+        "autoprefixer": "^9.7.6",
+        "eslint-plugin-react": "^7.19.0",
+        "js-cookie": "^2.2.1",
+        "ms": "^2.1.2",
+        "next": "^9.0.7",
+        "next-cookie": "^2.2.2",
+        "postcss-import": "^12.0.1",
+        "postcss-loader": "^3.0.0",
+        "react": "^16.8.6",
+        "react-dom": "^16.8.6",
+        "react-hook-form": "^5.3.1",
+        "ts-node": "^8.8.2"
+    },
+    "scripts": {
+        "dev": "next",
+        "build": "next build",
+        "start": "next start",
+        "lint": "eslint '**/*.ts*' && prettier -c '**/*.ts*'",
+        "fix": "eslint --fix '**/*.ts*'; prettier --write '**/*.ts*'",
+        "storybook": "start-storybook -p 6006 -c .storybook"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.9.0",
+        "@storybook/react": "^5.3.18",
+        "@types/node": "^13.9.8",
+        "@types/react": "^16.9.34",
+        "@typescript-eslint/eslint-plugin": "^2.27.0",
+        "@typescript-eslint/parser": "^2.27.0",
+        "babel-loader": "^8.1.0",
+        "babel-preset-react-app": "^9.1.2",
+        "eslint": "^6.8.0",
+        "jest": "^25.2.4",
+        "prettier": "^2.0.2",
+        "tailwindcss": "^1.0.4",
+        "ts-jest": "^25.3.1",
+        "typescript": "^3.8.3"
+    },
+    "resolutions": {
+        "lodash": "^4.17.13"
+    },
+    "lint-staged": {
+        "*.{ts,tsx,js,jsx}": [
+            "prettier --write",
+            "eslint --fix",
+            "jest --bail --findRelatedTests"
+        ],
+        "*.{json,md}": [
+            "prettier --write"
+        ]
+    }
 }
