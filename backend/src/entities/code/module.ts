@@ -25,7 +25,7 @@ export class Module extends AbstractPythonNode {
     childClasses: Promise<Class[]>;
 
     @Field((type) => [Module], { nullable: "items" })
-    @OneToMany((type) => Module, (module) => module.subModules, {
+    @OneToMany((type) => Module, (module) => module.parentModule, {
         nullable: true,
     })
     subModules: Promise<Module[]>;
@@ -36,8 +36,11 @@ export class Module extends AbstractPythonNode {
     })
     parentModule: Promise<Module>;
 
-    @Field((type) => Module, { nullable: false })
-    @ManyToOne((type) => Module, {
+    @Column({ nullable: true })
+    parentModuleId: number;
+
+    @Field((type) => File, { nullable: false })
+    @ManyToOne((type) => File, {
         nullable: false,
     })
     file: Promise<File>;

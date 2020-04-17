@@ -1,4 +1,4 @@
-import { Resolver, Mutation, InputType, Arg, Field } from "type-graphql";
+import { Resolver, Query, Mutation, InputType, Arg, Field } from "type-graphql";
 import { EntityManager, DeepPartial } from "typeorm";
 import { Inject } from "typedi";
 import { InjectManager } from "typeorm-typedi-extensions";
@@ -66,6 +66,16 @@ export class CodeResolver {
         );
     }
 
+    @Query((type) => [Module], { nullable: false })
+    async rootModules() {
+        return await this.manager.find(Module, { parentModuleId: null });
+    }
+
+    @Query((type) => Module, { nullable: true })
+    async module(@Arg("name") name: string) {
+        return await this.manager.findOne(Module, { name: name });
+    }
+
     static createFunction(
         manager: EntityManager,
         functionInput: FunctionInput,
@@ -107,6 +117,17 @@ export class CodeResolver {
     @Mutation((_) => Module, { nullable: false })
     async createModule(@Arg("module") module: ModuleInput): Promise<Module> {
         return await this.manager.transaction(async (manager) => {
+            let parentModuleId: number | null = null;
+            if (module.parentModuleName) {
+                parentModuleId = (
+                    await manager.findOne(Module, {
+                        name: module.parentModuleName,
+                    })
+                )?.id;
+                if (parentModuleId == null) {
+                    throw new PublicError("parent module does not exist");
+                }
+            }
             const file = await manager.findOne(File, module.fileId);
             if (!file) throw new PublicError("could not find file");
 
@@ -116,6 +137,7 @@ export class CodeResolver {
                     startLine: 1,
                     endLine: module.lines,
                     fileId: file.id,
+                    parentModuleId,
                 })
             );
 

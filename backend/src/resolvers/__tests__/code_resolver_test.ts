@@ -3,7 +3,7 @@ import { connectTypeOrm } from "../../connect";
 import { Container } from "typedi";
 import { EntityManager, getManager } from "typeorm";
 import { UploadService } from "../../services/upload";
-import { File } from "../../entities";
+import { File, Module } from "../../entities";
 import { plainToClass } from "class-transformer";
 
 describe("setting up dummy file", () => {
@@ -65,12 +65,13 @@ describe("setting up dummy file", () => {
             ],
             fileId: file.id,
             lines: 20,
-            name: "test_module2",
+            name: "test_module.test_module2",
+            parentModuleName: "test_module",
         });
 
         const module = await codeResolver.createModule(input);
         expect(module).toMatchObject({
-            name: "test_module2",
+            name: "test_module.test_module2",
             fileId: file.id,
             endLine: input.lines,
         });
@@ -84,5 +85,9 @@ describe("setting up dummy file", () => {
             { name: "TestClass", startLine: 3, endLine: 5 },
             { name: "TestClass", startLine: 3, endLine: 5 },
         ]);
+
+        expect(
+            await manager.findOne(Module, { name: "test_module" })
+        ).toMatchObject(await module.parentModule);
     });
 });

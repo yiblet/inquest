@@ -44,7 +44,10 @@ export async function createSQLiteServerSchema() {
     const context: Context = { user: defaultUser };
 
     // Create GraphQL server
-    return { schema: await buildSchema(), context };
+    return {
+        schema: await buildSchema(),
+        context,
+    };
 }
 
 export async function createSQLiteServer() {

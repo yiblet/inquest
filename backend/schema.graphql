@@ -35,6 +35,7 @@ type File {
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
+  content: String!
 }
 
 type Function {
@@ -61,7 +62,7 @@ type Module {
   name: String!
   startLine: Float!
   endLine: Float!
-  file: Module!
+  file: File!
   childFunctions: [Function]!
   childClasses: [Class]!
   subModules: [Module]!
@@ -118,6 +119,9 @@ type ProbeNotification {
 }
 
 type Query {
+  rootModules: [Module!]!
+  module(name: String!): Module
+  file(fileId: String!): File
   probe(key: String!): Probe
   recipe(recipeId: Int!): Recipe
   recipes: [Recipe!]!
