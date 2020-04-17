@@ -1,6 +1,5 @@
 import "../styles/style.css";
 import React, { useState } from "react";
-import Link from "next/link";
 import { createApolloClient } from "../services/apollo_client";
 import { ApolloProvider, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
@@ -28,6 +27,9 @@ const FILE_QUERY = gql`
     }
 `;
 
+const TEXT_COLOR = "rgb(170, 170, 170)";
+const BACKGROUND_COLOR = "rgb(232, 232, 232)";
+
 const FileTreeConnector = ({
     onPick,
 }: {
@@ -36,12 +38,11 @@ const FileTreeConnector = ({
     const { loading, error, data } = useQuery<ModulesQuery>(MODULES_QUERY);
     if (loading) return <div></div>;
     if (error) throw error;
-    console.log(data);
     return (
         <div
             style={{
                 minWidth: "10rem",
-                backgroundColor: "#f5f2f0",
+                backgroundColor: BACKGROUND_COLOR,
                 borderColor: "#cebfb6",
             }}
             className="bg-white h-screen overflow-y-auto border-r"
@@ -56,7 +57,7 @@ const CodeViewConnector = ({ fileId }: { fileId: string | null }) => {
         <div
             className="w-full h-screen"
             style={{
-                backgroundColor: "#f5f2f0",
+                backgroundColor: "white",
             }}
         ></div>
     );
@@ -72,7 +73,7 @@ const CodeViewConnector = ({ fileId }: { fileId: string | null }) => {
         <div
             className="w-full overflow-auto"
             style={{
-                backgroundColor: "#f5f2f0",
+                backgroundColor: BACKGROUND_COLOR,
             }}
         >
             <CodeView className="w-full" code={data.file.content} />

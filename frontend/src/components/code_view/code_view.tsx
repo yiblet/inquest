@@ -1,5 +1,20 @@
 import React from "react";
-import Prism from "prismjs";
+import dynamic from "next/dynamic";
+
+const AceEditor = dynamic(
+    async () => {
+        const ace = await import("react-ace");
+        // ace needs to be imported before ace/builds
+        await Promise.all([
+            import("ace-builds/src-noconflict/mode-python"),
+            import("ace-builds/src-noconflict/theme-github"),
+        ]);
+        return ace;
+    },
+    {
+        ssr: false,
+    }
+);
 
 export type CodeViewProps = {
     code: string;
@@ -7,35 +22,23 @@ export type CodeViewProps = {
 };
 
 export class CodeView extends React.Component<CodeViewProps> {
-    private ref: React.RefObject<HTMLElement>
-
-    constructor(props: CodeViewProps) {
-        super(props);
-        this.ref = React.createRef();
-    }
-
-    componentDidMount() {
-        this.highlight();
-    }
-
-    componentDidUpdate() {
-        this.highlight();
-    }
-
-    highlight = () => {
-        if (this.ref && this.ref.current) {
-            Prism.highlightElement(this.ref.current);
-        }
-    };
-
     render() {
         const { code } = this.props;
         return (
-            <pre className={"line-numbers " + (this.props.className ?? "")}>
-                <code ref={this.ref} className={`language-python`}>
-                    {code.trim()}
-                </code>
-            </pre>
+            <div className="w-full h-full">
+                <AceEditor
+                    mode="python"
+                    theme="github"
+                    name="code"
+                    fontSize="1rem"
+                    width="100%"
+                    height="100%"
+                    highlightActiveLine={false}
+                    readOnly={true}
+                    value={code}
+                    editorProps={{ $blockScrolling: true }}
+                />
+            </div>
         );
     }
 }
