@@ -3,10 +3,11 @@ import Prism from "prismjs";
 
 export type CodeViewProps = {
     code: string;
+    className?: string;
 };
 
 export class CodeView extends React.Component<CodeViewProps> {
-    private ref: React.RefObject<HTMLElement>;
+    private ref: React.RefObject<HTMLElement>
 
     constructor(props: CodeViewProps) {
         super(props);
@@ -30,12 +31,9 @@ export class CodeView extends React.Component<CodeViewProps> {
     render() {
         const { code } = this.props;
         return (
-            <pre className={"line-numbers"}>
+            <pre className={"line-numbers " + (this.props.className ?? "")}>
                 <code ref={this.ref} className={`language-python`}>
                     {code.trim()}
-                    <div>
-                        <span>Test Code</span>
-                    </div>
                 </code>
             </pre>
         );
