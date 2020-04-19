@@ -1,6 +1,6 @@
 import "../styles/style.css";
 import React from "react";
-import { withAuth } from "../services/auth";
+import { withAuth } from "../utils/auth";
 import Link from "next/link";
 
 function Dashboard() {

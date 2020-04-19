@@ -1,33 +1,59 @@
 import React from "react";
-import dynamic from "next/dynamic";
-
-const AceEditor = dynamic(
-    async () => {
-        const ace = await import("react-ace");
-        // ace needs to be imported before ace/builds
-        await Promise.all([
-            import("ace-builds/src-noconflict/mode-python"),
-            import("ace-builds/src-noconflict/theme-github"),
-        ]);
-        return ace;
-    },
-    {
-        ssr: false,
-    }
-);
+import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-python";
+import "ace-builds/src-noconflict/theme-github";
+import { Floater, Position } from "./floater";
 
 export type CodeViewProps = {
     code: string;
     className?: string;
 };
 
-export class CodeView extends React.Component<CodeViewProps> {
+export type CodeViewState = {
+    position: Position;
+};
+
+export type Editor = AceAjax.Editor;
+
+export class CodeView extends React.Component<CodeViewProps, CodeViewState> {
+    state = {
+        position: null,
+    };
+
+    private ref: React.RefObject<AceEditor>;
+
+    constructor(props: CodeViewProps) {
+        super(props);
+        this.ref = React.createRef();
+        this.onMouseMove.bind(this);
+    }
+
+    get editor(): Editor | null {
+        return (this.ref?.current?.editor as Editor) ?? null;
+    }
+
+    onMouseMove = ({ clientX, clientY }: MouseEvent) => {
+        this.setState({ position: { left: clientX + 20, top: clientY } });
+    };
+
+    componentDidMount() {
+        this.editor?.on("mousemove", this.onMouseMove);
+    }
+
+    componentWillUnmount() {
+        this.editor?.off("mousemove", this.onMouseMove);
+    }
+
     render() {
         const { code } = this.props;
         return (
             <div className="w-full h-full">
+                <Floater position={this.state.position}>
+                    <div className="w-20 h-20 bg-black"></div>
+                </Floater>
                 <AceEditor
                     mode="python"
+                    ref={this.ref}
                     theme="github"
                     name="code"
                     fontSize="1rem"
@@ -37,6 +63,16 @@ export class CodeView extends React.Component<CodeViewProps> {
                     readOnly={true}
                     value={code}
                     editorProps={{ $blockScrolling: true }}
+                    markers={[
+                        {
+                            startRow: 1,
+                            startCol: 1,
+                            endRow: 2,
+                            endCol: 2,
+                            className: "bg-gray-400",
+                            type: "text",
+                        },
+                    ]}
                 />
             </div>
         );

@@ -15,9 +15,9 @@ export const auth = (ctx: NextPageContext) => {
     const token = cookie.get<string>("token");
     // If there's no token, it means the user is not logged in.
     if (!token) {
-        if (typeof window === "undefined") {
-            ctx.res.writeHead(302, { Location: "/login" });
-            ctx.res.end();
+        if (!process.browser) {
+            ctx.res?.writeHead(302, { Location: "/login" });
+            ctx.res?.end();
         } else {
             Router.push("/login");
         }
@@ -36,7 +36,7 @@ export function withAuth<P>(
     WrappedComponent: NextComponentType<NextPageContext, {}, P>
 ) {
     const Wrapper = (props: P) => {
-        const syncLogout = (event: { key: string }) => {
+        const syncLogout = (event: StorageEvent) => {
             if (event.key === "logout") {
                 console.info("logged out from storage!");
                 Router.push("/login");

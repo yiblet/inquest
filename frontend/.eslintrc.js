@@ -29,5 +29,7 @@ module.exports = {
         quotes: [2, "double"],
         "@typescript-eslint/no-unused-vars": [1, { args: "none" }],
         "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "react/prop-types": "off",
     },
 };

@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { CodeView } from "./code_view";
+import { Floater } from "./floater";
 
 export default { title: "stories" };
 
@@ -35,8 +36,18 @@ setup(
 
 export const TestCodeBlock = () => {
     return (
-        <div>
+        <div style={{ width: 500, height: 500 }}>
             <CodeView code={CODE} />
+        </div>
+    );
+};
+
+export const TestFloater = () => {
+    return (
+        <div className="relative" style={{ width: 500, height: 500 }}>
+            <Floater position={{ left: 200, top: 5 }}>
+                <div className="w-20 h-20 bg-black"></div>
+            </Floater>
         </div>
     );
 };

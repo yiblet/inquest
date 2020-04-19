@@ -3,7 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { login } from "../services/auth";
+import { login } from "../utils/auth";
 
 const INPUT_STYLE = "bg-gray-200 placeholder-gray-700 text-lg text-md my-2 p-2";
 

@@ -1,13 +1,19 @@
 import "../styles/style.css";
 import React, { useState } from "react";
-import { createApolloClient } from "../services/apollo_client";
+import { createApolloClient } from "../utils/apollo_client";
 import { ApolloProvider, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { ModulesQuery } from "../generated/ModulesQuery";
 import { FileQuery } from "../generated/FileQuery";
 import { FileTree } from "../components/file_tree/file_tree";
 import { Module } from "../components/file_tree/module";
-import { CodeView } from "../components/code_view/code_view";
+import dynamic from "next/dynamic";
+import { CodeViewProps } from "../components/code_view/code_view";
+
+const CodeView = dynamic<CodeViewProps>(
+    import("../components/code_view/code_view").then((mod) => mod.CodeView),
+    { ssr: false }
+);
 
 const MODULES_QUERY = gql`
     query ModulesQuery {
@@ -38,6 +44,7 @@ const FileTreeConnector = ({
     const { loading, error, data } = useQuery<ModulesQuery>(MODULES_QUERY);
     if (loading) return <div></div>;
     if (error) throw error;
+    if (!data) throw new Error("failed to retrieve data");
     return (
         <div
             style={{
@@ -69,10 +76,14 @@ const CodeViewConnector = ({ fileId }: { fileId: string | null }) => {
     });
     if (loading) return emptyView;
     if (error) throw error;
+    if (!data || !data.file)
+        throw new Error("failed to retrieve file information");
+
     return (
         <div
             className="w-full overflow-auto"
             style={{
+                color: TEXT_COLOR,
                 backgroundColor: BACKGROUND_COLOR,
             }}
         >
