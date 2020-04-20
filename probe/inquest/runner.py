@@ -152,8 +152,12 @@ subscription probeNotification {
       key
       desiredSet {
         id
-        module
-        function
+        function {
+          name
+          module {
+            name
+          }
+        }
         statement
       }
     }

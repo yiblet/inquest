@@ -7,10 +7,23 @@ from inquest.probe import TRACE_COLUMNS, TRACE_WITH_ERROR_COLUMNS, Probe
 from inquest.test.probe_test_module.test_imported_module import sample
 
 
+def flatten_trace(trace):
+    return {
+        "module": trace['function']['module']['name'],
+        "function": trace['function']['name'],
+        "statement": trace['statement'],
+        "id": trace['id'],
+    }
+
+
 def create_trace(module, function, statement, id) -> Dict[str, str]:
     return {
-        "module": module,
-        "function": function,
+        "function": {
+            "name": function,
+            "module": {
+                "name": module,
+            }
+        },
         "statement": statement,
         "id": id,
     }
@@ -87,7 +100,9 @@ def test_on_function_changes(capsys):
             assert sample(2, 1) == 3
             traces = probe.traces[TRACE_COLUMNS].set_index('id')
             assert all(
-                traces == pd.DataFrame(desired_state).set_index('id')
+                traces == pd
+                .DataFrame([flatten_trace(trace)
+                            for trace in desired_state]).set_index('id')
             ), "traces is not set as the input desired_set"
             assert capsys.readouterr().out == f"{output}\n"
 

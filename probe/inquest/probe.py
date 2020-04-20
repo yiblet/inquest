@@ -126,9 +126,15 @@ class Probe(contextlib.ExitStack):
         #      function which was re-exported in 2 different paths
         desired_set = [
             {
-                **trace, "module":
+                "id":
+                    trace["id"],
+                "function":
+                    trace["function"]['name'],
+                "statement":
+                    trace['statement'],
+                "module":
                     convert_relative_import_to_absolute_import(
-                        trace['module'],
+                        trace['function']['module']['name'],
                         self.package,
                         add_level=True,
                     )
