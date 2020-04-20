@@ -46,7 +46,7 @@ export class RecipeResolver {
     ): Promise<Recipe> {
         const recipe = this.recipeRepository.create({
             ...recipeInput,
-            authorId: user.id,
+            authorId: user?.id,
         });
         return await this.recipeRepository.save(recipe);
     }
@@ -86,9 +86,11 @@ export class RecipeResolver {
     }
 
     @FieldResolver()
-    async author(@Root() recipe: Recipe): Promise<User> {
-        return await this.userRepository.findOne(recipe.authorId, {
-            cache: 1000,
-        });
+    async author(@Root() recipe: Recipe): Promise<User | undefined> {
+        return;
+        recipe.authorId &&
+            (await this.userRepository.findOne(recipe.authorId, {
+                cache: 1000,
+            }));
     }
 }

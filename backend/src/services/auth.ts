@@ -132,7 +132,7 @@ export class AuthService {
                 },
                 (err, token: { id?: string }) => {
                     if (err) return reject(err);
-                    const id = parseInt(token?.id);
+                    const id = parseInt(token.id ?? "");
                     if (!id || isNaN(id))
                         return reject(new PublicError("missing id value"));
                     resolve(id);
@@ -149,7 +149,7 @@ export class AuthService {
 }
 
 export function getAuthToken(req: express.Request) {
-    const authorization: string | null = req.get("authorization");
+    const authorization: string | undefined = req.get("authorization");
     if (!authorization) throw new PublicError("failed to get authorization");
     const auth = authorization.split(" ");
     if (auth.length !== 2)

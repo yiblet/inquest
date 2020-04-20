@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, InputType, Arg, Field } from "type-graphql";
-import { EntityManager, DeepPartial } from "typeorm";
+import { EntityManager, DeepPartial, IsNull } from "typeorm";
 import { Inject } from "typedi";
 import { InjectManager } from "typeorm-typedi-extensions";
 
@@ -26,7 +26,7 @@ class NodeInputWithLines extends NodeInput {
 @InputType()
 export class FunctionInput extends NodeInputWithLines {
     @Field({ nullable: true })
-    metadata: string;
+    metadata?: string;
 }
 
 @InputType()
@@ -42,7 +42,7 @@ export class ModuleInput extends NodeInput {
     @Field((type) => [ClassInput], { nullable: false })
     childClasses: ClassInput[];
     @Field({ nullable: true })
-    parentModuleName: string;
+    parentModuleName?: string;
     @Field({ nullable: false })
     fileId: string;
     @Field({ nullable: false })
@@ -67,8 +67,8 @@ export class CodeResolver {
     }
 
     @Query((type) => [Module], { nullable: false })
-    async rootModules() {
-        return await this.manager.find(Module, { parentModuleId: null });
+    async rootModules(): Promise<Module[]> {
+        return await this.manager.find(Module, { parentModuleId: IsNull() });
     }
 
     @Query((type) => Module, { nullable: true })
@@ -117,7 +117,7 @@ export class CodeResolver {
     @Mutation((_) => Module, { nullable: false })
     async createModule(@Arg("module") module: ModuleInput): Promise<Module> {
         return await this.manager.transaction(async (manager) => {
-            let parentModuleId: number | null = null;
+            let parentModuleId: number | undefined = undefined;
             if (module.parentModuleName) {
                 parentModuleId = (
                     await manager.findOne(Module, {

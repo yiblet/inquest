@@ -56,7 +56,7 @@ export class TraceLogStatus {
 
     @Field({ nullable: true })
     @Column({ nullable: true })
-    message: string;
+    message?: string;
 
     @Field((type) => Probe, { nullable: false })
     @ManyToOne((type) => Probe, { nullable: false })

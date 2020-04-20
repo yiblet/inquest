@@ -79,11 +79,11 @@ export class TraceLog {
      */
     @Field((type) => Trace, { nullable: true })
     @ManyToOne((type) => Trace, { nullable: true })
-    trace: Promise<Trace>;
+    trace: Promise<Trace | undefined>;
 
     @Index()
     @Column({ nullable: true })
-    traceId: string;
+    traceId?: string;
 
     /**
      * the respective probe
@@ -91,11 +91,11 @@ export class TraceLog {
      */
     @Field((type) => Probe, { nullable: true })
     @ManyToOne((type) => Probe, { nullable: true })
-    probe: Promise<Probe>;
+    probe: Promise<Probe | undefined>;
 
     @Index()
     @Column({ nullable: true })
-    probeId: string;
+    probeId?: string;
 
     /**
      * the status of each probe in enacting this change to the trace state

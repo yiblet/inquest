@@ -135,15 +135,18 @@ export async function createApp() {
         wrapAsync(async (req, res) => {
             const uploadService = Container.get(UploadService);
             let file: UploadedFile;
-            const data = req.files?.data;
-            if (!data) {
+            if (!req.files) {
                 throw new PublicError("must pass in file");
             }
+            const data = req.files.data;
 
-            if (Array.isArray(req.files.data)) {
-                file = req.files.data[0];
+            if (Array.isArray(data)) {
+                if (data.length !== 1) {
+                    throw new PublicError("must pass in exactly one file");
+                }
+                file = data[0];
             } else {
-                file = req.files.data;
+                file = data;
             }
             const fileResult = await uploadService.upload(file.name, file.data);
             res.status(200).send({

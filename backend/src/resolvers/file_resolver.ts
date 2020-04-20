@@ -2,7 +2,7 @@ import { Resolver, FieldResolver, Root, Arg, Query } from "type-graphql";
 import { Inject } from "typedi";
 import { StorageService } from "../services/storage";
 
-import { File } from "../entities";
+import { File, Module } from "../entities";
 import { EntityManager } from "typeorm";
 import { InjectManager } from "typeorm-typedi-extensions";
 
@@ -16,7 +16,7 @@ export class FileResolver {
     ) {}
 
     @Query((type) => File, { nullable: true })
-    async file(@Arg("fileId") fileId: string): Promise<File> {
+    async file(@Arg("fileId") fileId: string): Promise<File | undefined> {
         return await this.manager.findOne(File, fileId);
     }
 
@@ -25,5 +25,10 @@ export class FileResolver {
         return await StorageService.streamToString(
             await this.storageService.load(file.objectName)
         );
+    }
+
+    @FieldResolver((type) => Module, { nullable: true })
+    async module(@Root() file: File): Promise<Module | undefined> {
+        return await this.manager.findOne(Module, { fileId: file.id });
     }
 }

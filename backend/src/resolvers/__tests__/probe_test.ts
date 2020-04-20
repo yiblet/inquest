@@ -119,7 +119,9 @@ describe("testing server", () => {
             errors: undefined,
         });
 
-        const key: string = (await mutation).data.newProbe.key;
+        const key: string | null = (await mutation).data?.newProbe.key ?? null;
+        expect(key).toBeTruthy();
+        if (!key) throw new Error("key should be truthy");
 
         expect(
             await client.mutate({

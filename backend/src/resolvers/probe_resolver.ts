@@ -64,7 +64,7 @@ export class ProbeResolver {
                 key,
             },
         });
-        if (probe === null) {
+        if (probe == null) {
             throw new PublicError("probe does not exist");
         }
         probe.lastHeartbeat = new Date();

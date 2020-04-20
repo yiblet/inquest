@@ -5,6 +5,7 @@ import { EntityManager, getManager } from "typeorm";
 import { UploadService } from "../../services/upload";
 import { File, Module } from "../../entities";
 import { plainToClass } from "class-transformer";
+import { assertNotNull } from "../../utils";
 
 describe("setting up dummy file", () => {
     let manager: EntityManager;
@@ -87,7 +88,9 @@ describe("setting up dummy file", () => {
         ]);
 
         expect(
-            await manager.findOne(Module, { name: "test_module" })
-        ).toMatchObject(await module.parentModule);
+            assertNotNull(
+                await manager.findOne(Module, { name: "test_module" })
+            )
+        ).toMatchObject(assertNotNull(await module.parentModule));
     });
 });

@@ -32,8 +32,11 @@ export class TraceLogRepository extends Repository<TraceLog> {
             traceLog.traceSetId
         );
 
+        const newManager: EntityManager = manager;
+        // manager has to be reassigned to ensure
+        // that it stays not tull in the next line
         return relevantProbeIds.map((id) =>
-            manager.create(
+            newManager.create(
                 TraceLogStatus,
                 TraceLogStatus.newTraceLogstatus({
                     probeId: id,

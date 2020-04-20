@@ -36,6 +36,7 @@ type File {
   updatedAt: DateTime!
   name: String!
   content: String!
+  module: Module
 }
 
 type Function {
@@ -47,6 +48,7 @@ type Function {
   file: File!
   parentClass: Class
   module: Module
+  traces: [Trace!]!
 }
 
 input FunctionInput {
@@ -65,7 +67,7 @@ type Module {
   file: File!
   childFunctions: [Function]!
   childClasses: [Class]!
-  subModules: [Module]!
+  subModules: [Module!]!
   parentModule: Module
 }
 
@@ -164,8 +166,8 @@ type Trace {
   id: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  module: String!
-  function: String!
+  function: Function!
+  functionId: Float!
   statement: String!
   active: Boolean!
   traceSet: TraceSet!
@@ -219,8 +221,6 @@ type TraceSet {
 }
 
 input UpdateTraceInput {
-  module: String
-  function: String
   statement: String
   active: Boolean
   id: String!

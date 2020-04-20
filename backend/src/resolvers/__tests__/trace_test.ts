@@ -1,15 +1,25 @@
 import "reflect-metadata";
 import { createSQLiteServer } from "./../../connect";
+import { assertNotNull } from "../../utils";
 import { ApolloServer } from "apollo-server";
 import { getManager, EntityManager } from "typeorm";
 import { Container } from "typedi";
 import { ProbeRepository } from "../../repositories/probe_repository";
-import { Probe, TraceSet, TraceLog, Trace } from "../../entities";
+import {
+    Probe,
+    TraceSet,
+    TraceLog,
+    Function,
+    File,
+    Trace,
+    Module,
+} from "../../entities";
 import {
     createTestClient,
     ApolloServerTestClient,
 } from "apollo-server-testing";
 import gql from "graphql-tag";
+import { TraceResolver } from "../trace_resolver";
 
 const FIND_TRACE_SET = gql`
     query traceSetQuery($key: String!) {
@@ -42,8 +52,12 @@ const NEW_TRACE = gql`
                 traceSetKey: $key
             }
         ) {
-            module
-            function
+            function {
+                name
+                module {
+                    name
+                }
+            }
             statement
             traceSet {
                 key
@@ -61,6 +75,69 @@ describe("testing server", () => {
         server = await createSQLiteServer();
         client = createTestClient(server);
         manager = getManager();
+
+        const file = await manager.save(
+            manager.create(File, {
+                name: "test_file",
+                objectName: "test_object",
+            })
+        );
+
+        {
+            const module = await manager.save(
+                manager.create(Module, {
+                    name: "mod",
+                    startLine: 0,
+                    endLine: 100,
+                    fileId: file.id,
+                })
+            );
+
+            await manager.save(
+                manager.create(Function, {
+                    name: "func",
+                    moduleId: module.id,
+                    startLine: 4,
+                    endLine: 2,
+                    fileId: file.id,
+                })
+            );
+        }
+        {
+            const module = await manager.save(
+                manager.create(Module, {
+                    name: "mod2",
+                    startLine: 0,
+                    endLine: 100,
+                    fileId: file.id,
+                })
+            );
+
+            await manager.save(
+                manager.create(Function, {
+                    name: "func",
+                    moduleId: module.id,
+                    startLine: 4,
+                    endLine: 2,
+                    fileId: file.id,
+                })
+            );
+        }
+    });
+
+    it("should find function", async () => {
+        await expect(
+            manager.findOne(Module, { name: "mod" })
+        ).resolves.toMatchObject({});
+        await expect(
+            manager.findOne(Function, { name: "func" })
+        ).resolves.toMatchObject({});
+
+        await expect(
+            TraceResolver.findFunctionByName("mod", "func", manager)
+        ).resolves.toMatchObject({
+            name: "func",
+        });
     });
 
     afterAll(async () => {
@@ -142,8 +219,12 @@ describe("testing server", () => {
             ).toMatchObject({
                 data: {
                     newTrace: {
-                        module: "mod",
-                        function: "func",
+                        function: {
+                            module: {
+                                name: "mod",
+                            },
+                            name: "func",
+                        },
                         statement: "statement",
                     },
                 },
@@ -183,7 +264,7 @@ describe("testing server", () => {
                 })
             );
 
-            let probe = await manager.save(
+            const probe = await manager.save(
                 manager.create(Probe, {
                     traceSetId: traceSet.id,
                     lastHeartbeat: new Date(),
@@ -210,8 +291,12 @@ describe("testing server", () => {
             ).toMatchObject({
                 data: {
                     newTrace: {
-                        module: "mod",
-                        function: "func",
+                        function: {
+                            module: {
+                                name: "mod",
+                            },
+                            name: "func",
+                        },
                         statement: "statement",
                     },
                 },
@@ -232,21 +317,27 @@ describe("testing server", () => {
                 },
             });
 
+            expect(traceLog).toBeTruthy();
+            if (!traceLog) throw new Error("tracelog should be truthy");
+
             expect(await traceLog.traceLogStatuses).toMatchObject([
                 { probeId: 1, type: 0 },
             ]);
 
-            probe = await manager.findOne(Probe, {
+            const newProbe = await manager.findOne(Probe, {
                 where: {
                     id: probe.id,
                 },
                 relations: ["traceLogStatuses"],
             });
+            expect(newProbe).toBeTruthy();
+            if (!newProbe) throw new Error("probe should be truthy");
 
-            expect(probe).toMatchObject({
+            expect(newProbe).toMatchObject({
                 id: 1,
             });
-            expect(await probe.traceLogStatuses).toMatchObject([{}]);
+
+            expect(await newProbe.traceLogStatuses).toMatchObject([{}]);
         });
     });
 
@@ -267,14 +358,22 @@ describe("testing server", () => {
                     }
                 ) {
                     id
-                    module
-                    function
+                    function {
+                        name
+                        module {
+                            name
+                        }
+                    }
                     statement
                     traceSet {
                         key
                         desiredSet {
-                            module
-                            function
+                            function {
+                                name
+                                module {
+                                    name
+                                }
+                            }
                             statement
                         }
                     }
@@ -284,30 +383,34 @@ describe("testing server", () => {
 
         const UPDATE_TRACE_WITH_DESIRED_STATE = gql`
             mutation updateTrace(
-                $module: String
-                $function: String
                 $statement: String
                 $active: Boolean
                 $id: String!
             ) {
                 updateTrace(
                     updateTraceInput: {
-                        module: $module
-                        function: $function
                         statement: $statement
                         active: $active
                         id: $id
                     }
                 ) {
                     id
-                    module
-                    function
+                    function {
+                        name
+                        module {
+                            name
+                        }
+                    }
                     statement
                     traceSet {
                         key
                         desiredSet {
-                            module
-                            function
+                            function {
+                                name
+                                module {
+                                    name
+                                }
+                            }
                             statement
                         }
                     }
@@ -319,14 +422,22 @@ describe("testing server", () => {
             mutation deleteTrace($id: String!) {
                 deleteTrace(traceId: $id) {
                     id
-                    module
-                    function
+                    function {
+                        name
+                        module {
+                            name
+                        }
+                    }
                     statement
                     traceSet {
                         key
                         desiredSet {
-                            module
-                            function
+                            function {
+                                name
+                                module {
+                                    name
+                                }
+                            }
                             statement
                         }
                     }
@@ -357,19 +468,28 @@ describe("testing server", () => {
                     key: KEY,
                 },
             });
+            if (!mod1.data) throw new Error(`${mod1.errors}`);
             modId = mod1.data.newTrace.id;
             expect(mod1).toMatchObject({
                 data: {
                     newTrace: {
-                        module: "mod",
-                        function: "func",
+                        function: {
+                            module: {
+                                name: "mod",
+                            },
+                            name: "func",
+                        },
                         statement: "statement",
                         traceSet: {
                             key: KEY,
                             desiredSet: [
                                 {
-                                    module: "mod",
-                                    function: "func",
+                                    function: {
+                                        module: {
+                                            name: "mod",
+                                        },
+                                        name: "func",
+                                    },
                                     statement: "statement",
                                 },
                             ],
@@ -390,12 +510,17 @@ describe("testing server", () => {
                     key: KEY,
                 },
             });
+            if (!mod2.data) throw new Error(`${mod2.errors}`);
             mod2Id = mod2.data.newTrace.id;
             expect(mod2).toMatchObject({
                 data: {
                     newTrace: {
-                        module: "mod2",
-                        function: "func",
+                        function: {
+                            module: {
+                                name: "mod2",
+                            },
+                            name: "func",
+                        },
                         statement: "statement",
                         traceSet: {
                             key: KEY,
@@ -410,8 +535,9 @@ describe("testing server", () => {
         it("desired set should come out in reverse updated order", async () => {
             const traces = await manager.find(Trace, {
                 where: {
-                    traceSetId: (await manager.findOne(TraceSet, { key: KEY }))
-                        .id,
+                    traceSetId: assertNotNull(
+                        await manager.findOne(TraceSet, { key: KEY })
+                    ).id,
                     active: true,
                 },
                 order: {
@@ -438,15 +564,23 @@ describe("testing server", () => {
             ).toMatchObject({
                 data: {
                     updateTrace: {
-                        module: "mod2",
-                        function: "func",
+                        function: {
+                            module: {
+                                name: "mod2",
+                            },
+                            name: "func",
+                        },
                         statement: "statement",
                         traceSet: {
                             key: KEY,
                             desiredSet: [
                                 {
-                                    module: "mod",
-                                    function: "func",
+                                    function: {
+                                        module: {
+                                            name: "mod",
+                                        },
+                                        name: "func",
+                                    },
                                     statement: "statement",
                                 },
                             ],
@@ -469,15 +603,23 @@ describe("testing server", () => {
             ).toMatchObject({
                 data: {
                     updateTrace: {
-                        module: "mod",
-                        function: "func",
+                        function: {
+                            module: {
+                                name: "mod",
+                            },
+                            name: "func",
+                        },
                         statement: "statements",
                         traceSet: {
                             key: KEY,
                             desiredSet: [
                                 {
-                                    module: "mod",
-                                    function: "func",
+                                    function: {
+                                        module: {
+                                            name: "mod",
+                                        },
+                                        name: "func",
+                                    },
                                     statement: "statements",
                                 },
                             ],
@@ -493,7 +635,7 @@ describe("testing server", () => {
                 await client.mutate({
                     mutation: UPDATE_TRACE_WITH_DESIRED_STATE,
                     variables: {
-                        function: "funct",
+                        function: "func",
                         active: true,
                         id: mod2Id,
                     },
@@ -501,8 +643,12 @@ describe("testing server", () => {
             ).toMatchObject({
                 data: {
                     updateTrace: {
-                        module: "mod2",
-                        function: "funct",
+                        function: {
+                            module: {
+                                name: "mod2",
+                            },
+                            name: "func",
+                        },
                         statement: "statement",
                         traceSet: {
                             key: KEY,
@@ -525,8 +671,12 @@ describe("testing server", () => {
             ).toMatchObject({
                 data: {
                     deleteTrace: {
-                        module: "mod2",
-                        function: "funct",
+                        function: {
+                            module: {
+                                name: "mod2",
+                            },
+                            name: "func",
+                        },
                         statement: "statement",
                         traceSet: {
                             key: KEY,

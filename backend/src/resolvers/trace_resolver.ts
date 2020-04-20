@@ -7,21 +7,21 @@ import {
     PubSub,
     PubSubEngine,
 } from "type-graphql";
-import { Repository, EntityManager } from "typeorm";
-import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
-import { Trace, TraceLog, TraceSet, TraceLogStatus } from "../entities";
+import { EntityManager } from "typeorm";
+import { InjectManager } from "typeorm-typedi-extensions";
+import {
+    Trace,
+    TraceLog,
+    TraceSet,
+    TraceLogStatus,
+    Function,
+} from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
 import { TraceLogRepository } from "../repositories/trace_log_repository";
 import { PublicError } from "../utils";
 
 @InputType()
 class UpdateTraceInput {
-    @Field({ nullable: true })
-    module?: string;
-
-    @Field({ nullable: true })
-    function?: string;
-
     @Field({ nullable: true })
     statement?: string;
 
@@ -50,10 +50,6 @@ class NewTraceInput {
 @Resolver((of) => Trace)
 export class TraceResolver {
     constructor(
-        @InjectRepository(Trace)
-        private readonly traceRepository: Repository<Trace>,
-        @InjectRepository(TraceSet)
-        private readonly traceSetRepository: Repository<TraceSet>,
         @InjectManager()
         private readonly entityManager: EntityManager
     ) {}
@@ -141,7 +137,7 @@ export class TraceResolver {
             }
 
             // setting updates
-            for (const field of ["module", "statement", "function", "active"]) {
+            for (const field of ["statement", "active"]) {
                 if (updateTraceInput[field] != null) {
                     trace[field] = updateTraceInput[field];
                 }
@@ -183,10 +179,19 @@ export class TraceResolver {
                 throw new PublicError("could not find trace set");
             }
 
+            const func = await TraceResolver.findFunctionByName(
+                newTraceInput.module,
+                newTraceInput.function,
+                manager
+            );
+
+            if (func == null) {
+                throw new PublicError("could not find function");
+            }
+
             const trace = await traceRepository.save(
-                this.traceRepository.create({
-                    module: newTraceInput.module,
-                    function: newTraceInput.function,
+                traceRepository.create({
+                    functionId: func.id,
                     statement: newTraceInput.statement,
                     active: true,
                     traceSetId: traceSet.id,
@@ -207,5 +212,57 @@ export class TraceResolver {
             await pubsub.publish(traceSet.key, "new trace");
             return trace;
         });
+    }
+
+    static async findFunctionByName(
+        module: string,
+        func: string,
+        manager: EntityManager
+    ) {
+        const path = func.split(".");
+        if (path.length > 2) {
+            throw new PublicError(
+                "system does not support classes inside of classes"
+            );
+        }
+        if (path.length === 0) {
+            throw new Error("unexpected behavior of String.split");
+        }
+        if (path.length === 1) {
+            return manager
+                .createQueryBuilder(Function, "function")
+                .innerJoinAndSelect(
+                    "function.module",
+                    "module",
+                    "module.name = :name AND function.name = :funcName",
+                    {
+                        funcName: func,
+                        name: module,
+                    }
+                )
+                .getOne();
+        }
+
+        if (path.length === 2)
+            return manager
+                .createQueryBuilder(Function, "function")
+                .innerJoinAndSelect(
+                    "function.parentClass",
+                    "class",
+                    "class.name = :name and function.name = :funcName",
+                    {
+                        name: path[0],
+                        funcName: path[1],
+                    }
+                )
+                .innerJoinAndSelect(
+                    "class.module",
+                    "module",
+                    "module.name = :name",
+                    {
+                        name: module,
+                    }
+                )
+                .getOne();
     }
 }

@@ -11,6 +11,7 @@ import {
 } from "typeorm";
 
 import { TraceSet } from "./trace_set";
+import { Function } from "../code/function";
 
 /**
  * Trace
@@ -36,14 +37,14 @@ export class Trace {
     @DeleteDateColumn()
     readonly deletedAt: Date;
 
+    @Field((type) => Function, { nullable: false })
+    @ManyToOne((type) => Function, { nullable: false })
+    function: Promise<Function>;
+
     @Field({ nullable: false })
     @Index()
     @Column({ nullable: false })
-    module: string;
-
-    @Field({ nullable: false })
-    @Column({ nullable: false })
-    function: string;
+    functionId: number;
 
     @Field({ nullable: false })
     @Column({ nullable: false })

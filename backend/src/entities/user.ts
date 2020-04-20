@@ -20,7 +20,7 @@ export class PasswordValidity {
     @Field({ nullable: false })
     isValid: boolean;
 
-    private _errors?: string[];
+    private _errors: string[] | null;
 
     @Field((type) => [GraphQLString])
     get errors(): string[] {

@@ -9,7 +9,8 @@
         "incremental": true,
         "outDir": "./build",
         "sourceMap": true,
-        "target": "es6"
+        "target": "es6",
+        "strictNullChecks": true
     },
     "include": ["src/**/*.ts"]
 }

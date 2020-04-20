@@ -52,7 +52,9 @@ export class TraceSetResolver {
         name: "traceSet",
         description: "creates a traceSet with a given key",
     })
-    async findTraceSet(@Arg("traceSetKey") key: string): Promise<TraceSet> {
+    async findTraceSet(
+        @Arg("traceSetKey") key: string
+    ): Promise<TraceSet | undefined> {
         return await this.traceSetRepository.findOne({ key });
     }
 }

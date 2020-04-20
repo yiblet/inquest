@@ -35,5 +35,5 @@ export class Recipe {
     author: User;
 
     @RelationColumn()
-    authorId: number;
+    authorId?: number;
 }
