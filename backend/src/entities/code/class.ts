@@ -11,7 +11,7 @@ import { Module } from "./module";
 @Entity()
 @ObjectType()
 export class Class extends AbstractPythonNode {
-    @Field((type) => [Function], { nullable: "items" })
+    @Field((type) => [Function], { nullable: false })
     @OneToMany((type) => Function, (func) => func.parentClass)
     methods: Promise<Function[]>;
 

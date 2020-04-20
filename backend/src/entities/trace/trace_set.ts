@@ -33,7 +33,7 @@ export class TraceSet {
     @UpdateDateColumn()
     readonly updatedAt: Date;
 
-    @Field((type) => [TraceLog], { nullable: "items" })
+    @Field((type) => [TraceLog], { nullable: false })
     @OneToMany((type) => TraceLog, (log) => log.traceSet)
     traceLogs: Promise<TraceLog[]>;
 }

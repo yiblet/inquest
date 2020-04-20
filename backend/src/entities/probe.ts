@@ -42,7 +42,7 @@ export class Probe {
         return twoMinutesAgo >= this.lastHeartbeat;
     }
 
-    @Field((type) => [TraceLogStatus], { nullable: "items" })
+    @Field((type) => [TraceLogStatus], { nullable: false })
     @OneToMany(
         (type) => TraceLogStatus,
         (traceLogStatus) => traceLogStatus.probe

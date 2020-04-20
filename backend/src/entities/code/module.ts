@@ -10,7 +10,7 @@ import { Class } from "./class";
 @Entity()
 @ObjectType()
 export class Module extends AbstractPythonNode {
-    @Field((type) => [Function], { nullable: "items" })
+    @Field((type) => [Function], { nullable: false })
     @OneToMany((type) => Function, (func) => func.module)
     childFunctions: Promise<Function[]>;
 
@@ -19,7 +19,7 @@ export class Module extends AbstractPythonNode {
     @Column({ unique: true })
     readonly name: string;
 
-    @Field((type) => [Class], { nullable: "items" })
+    @Field((type) => [Class], { nullable: false })
     @OneToMany((type) => Class, (cls) => cls.module)
     childClasses: Promise<Class[]>;
 

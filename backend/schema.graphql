@@ -14,7 +14,7 @@ type Class {
   startLine: Float!
   endLine: Float!
   file: File!
-  methods: [Function]!
+  methods: [Function!]!
   module: Module!
 }
 
@@ -65,8 +65,8 @@ type Module {
   startLine: Float!
   endLine: Float!
   file: File!
-  childFunctions: [Function]!
-  childClasses: [Class]!
+  childFunctions: [Function!]!
+  childClasses: [Class!]!
   subModules: [Module!]!
   parentModule: Module
 }
@@ -111,7 +111,7 @@ type Probe {
   lastHeartbeat: DateTime!
   key: String!
   isAlive: Boolean!
-  traceLogStatuses: [TraceLogStatus]!
+  traceLogStatuses: [TraceLogStatus!]!
   traceSet: TraceSet!
 }
 
@@ -181,7 +181,7 @@ type TraceLog {
   traceSet: TraceSet!
   trace: Trace
   probe: Probe
-  traceLogStatuses: [TraceLogStatus]!
+  traceLogStatuses: [TraceLogStatus!]!
 }
 
 type TraceLogStatus {
@@ -214,7 +214,7 @@ type TraceSet {
   key: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  traceLogs: [TraceLog]!
+  traceLogs: [TraceLog!]!
 
   """the desired set according to this traceSet"""
   desiredSet: [Trace!]!

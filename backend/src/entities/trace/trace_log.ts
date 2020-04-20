@@ -101,7 +101,7 @@ export class TraceLog {
      * the status of each probe in enacting this change to the trace state
      * change
      */
-    @Field((type) => [TraceLogStatus], { nullable: "items" })
+    @Field((type) => [TraceLogStatus], { nullable: false })
     @OneToMany((type) => TraceLogStatus, (status) => status.traceLog)
     traceLogStatuses: Promise<TraceLogStatus[]>;
 
