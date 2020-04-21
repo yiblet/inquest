@@ -173,9 +173,13 @@ def _generate_print_instruction(
     @returns: the new instructions with the added call to print
     '''
     return [
-        Instr("LOAD_GLOBAL", "print"),
+        Instr("LOAD_GLOBAL", "__import__"),
+        Instr('LOAD_CONST', 'inquest.logging'),
+        Instr('CALL_FUNCTION', 1),
+        Instr('LOAD_ATTR', 'logging'),
+        Instr('LOAD_METHOD', 'log'),
         *load_arguments,
-        Instr("CALL_FUNCTION", num_arguments),
+        Instr("CALL_METHOD", num_arguments),
         Instr("POP_TOP"),
     ]
 
