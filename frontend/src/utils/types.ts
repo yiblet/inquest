@@ -1,3 +1,4 @@
+import React from "react";
 // eslint: disable=all
 export type PropsOf<
     F extends React.ComponentType<any>

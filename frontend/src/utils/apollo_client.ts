@@ -16,12 +16,9 @@ export function createApolloClient() {
             fetch,
         });
     } else {
-        const client = new SubscriptionClient(
-            "ws://localhost:4000/graphql",
-            {
-                reconnect: true,
-            }
-        );
+        const client = new SubscriptionClient("ws://localhost:4000/graphql", {
+            reconnect: true,
+        });
 
         link = new WebSocketLink(client);
     }

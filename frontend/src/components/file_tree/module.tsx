@@ -1,4 +1,3 @@
-import "../../styles/style.css";
 import React, { useContext } from "react";
 import gql from "graphql-tag";
 import { ModuleFragment } from "../../generated/ModuleFragment";

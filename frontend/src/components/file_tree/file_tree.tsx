@@ -1,4 +1,3 @@
-import "../../styles/style.css";
 import React from "react";
 import { ModuleFragment } from "../../generated/ModuleFragment";
 import { OnPick, OnPickContext } from "./on_pick_context";

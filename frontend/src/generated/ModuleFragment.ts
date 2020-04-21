@@ -31,7 +31,7 @@ export interface ModuleFragment {
   __typename: "Module";
   name: string;
   file: ModuleFragment_file;
-  subModules: (ModuleFragment_subModules | null)[];
-  childClasses: (ModuleFragment_childClasses | null)[];
-  childFunctions: (ModuleFragment_childFunctions | null)[];
+  subModules: ModuleFragment_subModules[];
+  childClasses: ModuleFragment_childClasses[];
+  childFunctions: ModuleFragment_childFunctions[];
 }

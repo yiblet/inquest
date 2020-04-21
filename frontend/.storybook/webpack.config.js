@@ -16,6 +16,9 @@ module.exports = ({ config }) => {
                 loader: "postcss-loader",
                 options: {
                     ident: "postcss",
+                    config: {
+                        path: "./.storybook",
+                    },
                     plugins: [
                         require("postcss-import"),
                         require("tailwindcss"),

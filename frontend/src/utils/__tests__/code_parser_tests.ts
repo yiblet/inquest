@@ -70,7 +70,7 @@ def friction(hehe)
 `;
 
     const parser = new CodeParser(code);
-    let res = parser.findFunctions();
+    const res = parser.findFunctions();
     expect(res).toMatchObject([
         { line: 1, name: "work" },
         { line: 2, name: "last" },
@@ -93,7 +93,7 @@ def friction(hehe)
 `;
 
     const parser = new CodeParser(code);
-    let res = parser.findFunctions();
+    const res = parser.findFunctions();
     expect(res).toMatchObject([
         { line: 2, name: "last" },
         { line: 9, name: "friction" },
@@ -104,7 +104,7 @@ def friction(hehe)
             line: 5,
             methods: [
                 {
-                    name: "work",
+                    name: "Test.work",
                     line: 6,
                 },
             ],
@@ -129,7 +129,7 @@ def friction(hehe)
 `;
 
     const parser = new CodeParser(code);
-    let res = parser.findFunctions();
+    const res = parser.findFunctions();
     expect(res).toMatchObject([
         { line: 2, name: "last" },
         { line: 9, name: "friction" },
@@ -140,7 +140,7 @@ def friction(hehe)
             line: 5,
             methods: [
                 {
-                    name: "work",
+                    name: "Test.work",
                     line: 6,
                 },
             ],
@@ -171,7 +171,7 @@ def friction(hehe)
 `;
 
     const parser = new CodeParser(code);
-    let res = parser.findFunctions();
+    const res = parser.findFunctions();
     expect(res).toMatchObject([
         { line: 2, name: "last" },
         { line: 15, name: "friction" },
@@ -182,15 +182,15 @@ def friction(hehe)
             line: 5,
             methods: [
                 {
-                    name: "work",
+                    name: "Test.work",
                     line: 6,
                 },
                 {
-                    name: "work2",
+                    name: "Test.work2",
                     line: 9,
                 },
                 {
-                    name: "__init__",
+                    name: "Test.__init__",
                     line: 12,
                 },
             ],

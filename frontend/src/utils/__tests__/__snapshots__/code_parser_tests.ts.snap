@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`first line code test 1`] = `
+exports["first line code test 1"] = `
 Array [
   16,
 ]
 `;
 
-exports[`simple code test 1`] = `
+exports["simple code test 1"] = `
 Array [
   14,
   36,
@@ -41,7 +41,7 @@ Array [
 ]
 `;
 
-exports[`weird name test 1`] = `
+exports["weird name test 1"] = `
 Array [
   16,
 ]

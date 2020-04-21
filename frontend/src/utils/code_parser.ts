@@ -8,9 +8,22 @@ function* allMatches(regex: RegExp, code: string) {
     }
 }
 
+export type FunctionPosition = {
+    name: string;
+    line: number;
+};
+
+export type ClassPosition = FunctionPosition & {
+    methods: FunctionPosition[];
+};
+
 export class CodeParser {
+    // auto initialized
     private functionRegex = /^def ([a-zA-Z0-9_]+)/gm;
     private classRegex = /^class ([a-zA-Z0-9_]+)/gm;
+    private functionPositions: FunctionPosition[] | null = null;
+    private classPositions: ClassPosition[] | null = null;
+
     public readonly newLineIdxs: ReadonlyArray<number>;
 
     constructor(public readonly code: string) {
@@ -64,8 +77,10 @@ export class CodeParser {
         };
     }
 
-    findFunctions() {
-        return Array.from(this.findFunctionsIterator());
+    findFunctions(): FunctionPosition[] {
+        if (!this.functionPositions)
+            this.functionPositions = Array.from(this.findFunctionsIterator());
+        return this.functionPositions;
     }
 
     private *findFunctionsIterator() {
@@ -78,8 +93,10 @@ export class CodeParser {
         }
     }
 
-    findClasses() {
-        return Array.from(this.findClassesIterator());
+    findClasses(): ClassPosition[] {
+        if (!this.classPositions)
+            this.classPositions = Array.from(this.findClassesIterator());
+        return this.classPositions;
     }
 
     private *findClassesIterator() {
@@ -96,7 +113,7 @@ export class CodeParser {
             for (const methodMatch of allMatches(methodRegex, this.code)) {
                 if (methodMatch.index >= endOfClass) continue;
                 methods.push({
-                    name: methodMatch[2].toString(),
+                    name: classMatch[1] + "." + methodMatch[2].toString(),
                     line: this.findLine(methodMatch.index),
                 });
             }

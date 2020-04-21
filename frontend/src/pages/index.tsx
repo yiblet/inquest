@@ -1,17 +1,17 @@
-import "../styles/style.css";
 import React, { useState } from "react";
 import { createApolloClient } from "../utils/apollo_client";
 import { ApolloProvider, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import { ModulesQuery } from "../generated/ModulesQuery";
-import { FileQuery } from "../generated/FileQuery";
 import { FileTree } from "../components/file_tree/file_tree";
 import { Module } from "../components/file_tree/module";
 import dynamic from "next/dynamic";
-import { CodeViewProps } from "../components/code_view/code_view";
+import { CodeViewConnectorProps } from "../connectors/code_view.connector";
 
-const CodeView = dynamic<CodeViewProps>(
-    import("../components/code_view/code_view").then((mod) => mod.CodeView),
+const CodeViewConnector = dynamic<CodeViewConnectorProps>(
+    import("../connectors/code_view.connector").then(
+        (mod) => mod.CodeViewConnector
+    ),
     { ssr: false }
 );
 
@@ -24,16 +24,6 @@ const MODULES_QUERY = gql`
     ${Module.fragment}
 `;
 
-const FILE_QUERY = gql`
-    query FileQuery($fileId: String!) {
-        file(fileId: $fileId) {
-            name
-            content
-        }
-    }
-`;
-
-const TEXT_COLOR = "rgb(170, 170, 170)";
 const BACKGROUND_COLOR = "rgb(232, 232, 232)";
 
 const FileTreeConnector = ({
@@ -59,42 +49,9 @@ const FileTreeConnector = ({
     );
 };
 
-const CodeViewConnector = ({ fileId }: { fileId: string | null }) => {
-    const emptyView = (
-        <div
-            className="w-full h-screen"
-            style={{
-                backgroundColor: "white",
-            }}
-        ></div>
-    );
-    if (!fileId) {
-        return emptyView;
-    }
-    const { loading, error, data } = useQuery<FileQuery>(FILE_QUERY, {
-        variables: { fileId },
-    });
-    if (loading) return emptyView;
-    if (error) throw error;
-    if (!data || !data.file)
-        throw new Error("failed to retrieve file information");
-
-    return (
-        <div
-            className="w-full overflow-auto"
-            style={{
-                color: TEXT_COLOR,
-                backgroundColor: BACKGROUND_COLOR,
-            }}
-        >
-            <CodeView className="w-full" code={data.file.content} />
-        </div>
-    );
-};
-
 // TODO this flickers on changes
 export default function Index() {
-    const [fileId, setFileId] = useState<string | null>(null);
+    const [fileId, setFileId] = useState<string | undefined>(undefined);
     return (
         <ApolloProvider client={createApolloClient()}>
             <div className="flex">

@@ -31,9 +31,9 @@ export interface ModulesQuery_rootModules {
   __typename: "Module";
   name: string;
   file: ModulesQuery_rootModules_file;
-  subModules: (ModulesQuery_rootModules_subModules | null)[];
-  childClasses: (ModulesQuery_rootModules_childClasses | null)[];
-  childFunctions: (ModulesQuery_rootModules_childFunctions | null)[];
+  subModules: ModulesQuery_rootModules_subModules[];
+  childClasses: ModulesQuery_rootModules_childClasses[];
+  childFunctions: ModulesQuery_rootModules_childFunctions[];
 }
 
 export interface ModulesQuery {

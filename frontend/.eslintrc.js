@@ -30,6 +30,8 @@ module.exports = {
         "@typescript-eslint/no-unused-vars": [1, { args: "none" }],
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/ban-ts-ignore": "off",
         "react/prop-types": "off",
+        "react/no-unescaped-entities": "off",
     },
 };
