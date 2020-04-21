@@ -1,9 +1,10 @@
-import { getRepository, Column, ColumnOptions } from "typeorm";
+import { getRepository, getManager, Column, ColumnOptions } from "typeorm";
 
-import { Recipe, Rate, User } from "./entities";
+import { Recipe, Rate, User, TraceSet } from "./entities";
 import { hash } from "bcrypt";
 
 export async function seedDatabase() {
+    const manager = getManager();
     const recipeRepository = getRepository(Recipe);
     const ratingsRepository = getRepository(Rate);
     const userRepository = getRepository(User);
@@ -16,6 +17,12 @@ export async function seedDatabase() {
         password: await hash("s#cr3tp4ssw0rd", 10),
     });
     await userRepository.save(defaultUser);
+
+    await manager.save(
+        manager.create(TraceSet, {
+            key: "default",
+        })
+    );
 
     const recipes = recipeRepository.create([
         {

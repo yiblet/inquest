@@ -207,7 +207,7 @@ def enable(
         frame = inspect.stack()[1]
         mod = inspect.getmodule(frame[0])
         package = mod.__name__
-    probe = ProbeRunner(package, "trace_set", True)
+    probe = ProbeRunner(package, "default", True)
     probe.setName('inquest probe')
     probe.setDaemon(daemon)
     probe.start()
