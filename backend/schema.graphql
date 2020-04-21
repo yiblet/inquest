@@ -83,6 +83,7 @@ input ModuleInput {
 type Mutation {
   fileUpload(file: Upload!): File!
   createModule(module: ModuleInput!): Module!
+  publishLog(content: String!, traceSetKey: String!): String!
   heartbeat(key: String!): Probe!
   newProbe(traceSetKey: String!): Probe!
   addRecipe(recipe: RecipeInput!): Recipe!
@@ -159,6 +160,7 @@ input RecipeInput {
 }
 
 type Subscription {
+  listenLog(traceSetKey: String!): String!
   probeNotification(traceSetKey: String!): ProbeNotification!
 }
 

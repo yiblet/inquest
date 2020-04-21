@@ -13,6 +13,7 @@ import { InjectRepository } from "typeorm-typedi-extensions";
 import { GraphQLString } from "graphql";
 import { Probe, TraceSet } from "../entities";
 import { PublicError } from "../utils";
+import { genProbeTopic } from "../topics";
 
 @ObjectType()
 export class ProbeNotification {
@@ -91,7 +92,7 @@ export class ProbeResolver {
     }
 
     @Subscription((type) => ProbeNotification, {
-        topics: ({ args }) => args.traceSetKey,
+        topics: ({ args }) => genProbeTopic(args.traceSetKey),
     })
     async probeNotification(
         @Root() message: string,

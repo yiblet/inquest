@@ -27,9 +27,9 @@ lint: lint-generated
 
 lint-generated: SHELL:=/bin/bash
 lint-generated: build
-	cmp --silent <(python3 scripts/make_entities.py src/entities) src/entities/index.ts
-	cmp --silent <(python3 scripts/make_resolvers.py src/resolvers) src/resolvers/index.ts
-	cmp --silent <(yarn run --silent schema:js) schema.graphql
+	diff <(python3 scripts/make_entities.py src/entities) src/entities/index.ts
+	diff <(python3 scripts/make_resolvers.py src/resolvers) src/resolvers/index.ts
+	diff <(yarn run --silent schema:js) schema.graphql
 
 fix: fix-generated
 	@yarn fix

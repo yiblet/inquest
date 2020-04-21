@@ -19,6 +19,7 @@ import {
 import { ProbeRepository } from "../repositories/probe_repository";
 import { TraceLogRepository } from "../repositories/trace_log_repository";
 import { PublicError } from "../utils";
+import { genProbeTopic } from "../topics";
 
 @InputType()
 class UpdateTraceInput {
@@ -114,7 +115,7 @@ export class TraceResolver {
                 )
             );
 
-            await pubsub.publish(traceSet.key, "delete trace");
+            await pubsub.publish(genProbeTopic(traceSet.key), "delete trace");
             return trace;
         });
     }
@@ -157,7 +158,7 @@ export class TraceResolver {
                     })
                 )
             );
-            await pubsub.publish(traceSet.key, "update trace");
+            await pubsub.publish(genProbeTopic(traceSet.key), "update trace");
             return trace;
         });
     }
@@ -209,7 +210,7 @@ export class TraceResolver {
                     })
                 )
             );
-            await pubsub.publish(traceSet.key, "new trace");
+            await pubsub.publish(genProbeTopic(traceSet.key), "new trace");
             return trace;
         });
     }
