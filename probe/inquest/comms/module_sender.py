@@ -17,14 +17,7 @@ class ModuleSender(ClientConsumer):
         super().__init__()
         self.package = package
         self.sender = FileSender(url)
-
-    async def __aenter__(self):
-        await super().__aenter__()
-        await self.enter_async_context(self.sender)
-        return self
-
-    async def _send_module(self, module: ModuleInfo, file_id: int):
-        query = gql(
+        self.query = gql(
             """
 mutation createModuleMutation($input: ModuleInput!) {
   createModule(module: $input) {
@@ -42,12 +35,19 @@ mutation createModuleMutation($input: ModuleInput!) {
 }
             """
         )
+
+    async def __aenter__(self):
+        await super().__aenter__()
+        await self.enter_async_context(self.sender)
+        return self
+
+    async def _send_module(self, module: ModuleInfo, file_id: int):
         params = {
             "input": convert_module_info(module, file_id),
         }
         LOGGER.debug("input params %s", params)
 
-        result = await self.client.execute(query, variable_values=params)
+        result = await self.client.execute(self.query, variable_values=params)
         result = result.to_dict()
         log_result(LOGGER, result)
 

@@ -51,13 +51,14 @@ class ProbeRunner(threading.Thread):
                 trace_set_key=self.trace_set_key,
                 package=self.package,
             ),
-            LogSender()
+            LogSender(trace_set_key=self.trace_set_key)
         ]
 
         if self.send_modules:
             consumers.append(
                 ModuleSender(
-                    url=f'http://{self.endpoint}/upload', package=self.package
+                    url=f'http://{self.endpoint}/upload',
+                    package=self.package,
                 )
             )
         return consumers
