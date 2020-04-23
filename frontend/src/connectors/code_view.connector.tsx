@@ -10,10 +10,9 @@ import { NewTraceMutation } from "../generated/NewTraceMutation";
 import { UpdateTraceMutation } from "../generated/UpdateTraceMutation";
 import { DeleteTraceMutation } from "../generated/DeleteTraceMutation";
 import { createLogger } from "../utils/logger";
+import { List } from "immutable";
 
 const logger = createLogger(["CodeViewConnector"]);
-const TEXT_COLOR = "rgb(170, 170, 170)";
-const BACKGROUND_COLOR = "rgb(232, 232, 232)";
 
 const TRACE_FRAGMENT = gql`
     fragment TraceFragment on Trace {
@@ -102,10 +101,12 @@ const DELETE_TRACE = gql`
 /**
  * parseExistingTraces converts query data into the internal ExistingTrace representation
  */
-const parseExistingTraces = (queryResult: CodeViewQuery): ExistingTrace[] => {
+const parseExistingTraces = (
+    queryResult: CodeViewQuery
+): List<ExistingTrace> => {
     if (!queryResult.file?.module)
         throw new Error("couldn't find associated module");
-    const res = [
+    const res = List([
         ...queryResult.file.module.childFunctions.flatMap((func) =>
             func.traces.map((trace) => {
                 return {
@@ -128,7 +129,7 @@ const parseExistingTraces = (queryResult: CodeViewQuery): ExistingTrace[] => {
                 })
             )
         ),
-    ];
+    ]);
     return res;
 };
 
@@ -205,18 +206,8 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
         },
     };
 
-    logger.debug(`traces: size=${props.traces.length}`);
-    return (
-        <div
-            className="w-full h-full overflow-auto"
-            style={{
-                color: TEXT_COLOR,
-                backgroundColor: BACKGROUND_COLOR,
-            }}
-        >
-            <CodeView className="w-full" {...props} />
-        </div>
-    );
+    logger.debug(`traces: size=${props.traces.size}`);
+    return <CodeView  {...props} />;
 };
 
 export type CodeViewConnectorProps = PropsOf<typeof CodeViewConnector>;

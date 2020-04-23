@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { ExistingTrace } from "./utils";
 import { PropsOf } from "../../utils/types";
 import { createLogger } from "../../utils/logger";
+import { ImmSet, List } from "../../utils/collections";
 
 export function TraceViewer(props: {
     trace: ExistingTrace;
@@ -10,7 +11,7 @@ export function TraceViewer(props: {
     onDelete: () => any;
 }) {
     return (
-        <form>
+        <div>
             <div className="inline-block my-2 mr-2 font-mono placeholder-black">
                 <span className="text-green-700">logging "</span>
                 {props.trace.trace}
@@ -28,7 +29,7 @@ export function TraceViewer(props: {
             >
                 delete
             </button>
-        </form>
+        </div>
     );
 }
 
@@ -37,18 +38,21 @@ export function TraceEditor(props: {
     onBack: () => any;
     onSubmit: (trace: string) => any;
 }) {
-    const { handleSubmit, register } = useForm();
+    const { handleSubmit, register } = useForm({
+        defaultValues: {
+            trace: props.trace.trace,
+        },
+    });
     const submit = (values: { trace: string }) => {
         props.onSubmit(values.trace);
     };
     return (
-        <>
+        <div className="flex">
             <form onSubmit={handleSubmit(submit)}>
                 <input
                     className="my-2 mr-2 bg-green-300 placeholder-black"
                     type="text"
                     name="trace"
-                    value={props.trace.trace}
                     required
                     placeholder="new log string"
                     ref={register({ required: true })}
@@ -63,7 +67,7 @@ export function TraceEditor(props: {
             >
                 back
             </button>
-        </>
+        </div>
     );
 }
 
@@ -90,49 +94,43 @@ export function TraceCreator(props: { onCreate: (trace: string) => any }) {
 
 export function Traces(props: {
     tag: string;
-    traces: ExistingTrace[];
+    traces: List<ExistingTrace>;
     onDelete: (trace: ExistingTrace) => any;
     onEdit: (trace: ExistingTrace, traceStatement: string) => any;
     onCreate: (traceStatement: string) => any;
 }) {
     const logger = createLogger([props.tag]);
-    logger.debug(`rerender size=${props.traces.length}`);
+    logger.debug(`rerender size=${props.traces.size}`);
 
-    const [editing, setState] = useState(new Set<string>());
-    useEffect(() => setState(new Set()), [props.tag]);
+    const [editing, setState] = useState(ImmSet<string>());
+    useEffect(() => setState(ImmSet()), [props.tag]);
 
     return (
         <div className="flex flex-col w-full h-full bg-green-200 pl-2">
-            {props.traces
-                .filter((trace) => !editing.has(trace.id))
-                .map((trace) => (
-                    <TraceViewer
-                        trace={trace}
-                        key={trace.id}
-                        onEdit={() => {
-                            setState((state) => {
-                                state.add(trace.id);
-                                return state;
-                            });
-                        }}
-                        onDelete={() => props.onDelete(trace)}
-                    />
-                ))}
-            {props.traces
-                .filter((trace) => editing.has(trace.id))
-                .map((trace) => (
+            {props.traces.map((trace: ExistingTrace) =>
+                editing.has(trace.id) ? (
                     <TraceEditor
                         trace={trace}
                         key={trace.id}
                         onBack={() =>
-                            setState((state) => {
-                                state.delete(trace.id);
-                                return state;
-                            })
+                            setState((state) => state.delete(trace.id))
                         }
-                        onSubmit={(statement) => props.onEdit(trace, statement)}
+                        onSubmit={(statement) => {
+                            props.onEdit(trace, statement);
+                            setState((state) => state.delete(trace.id));
+                        }}
                     />
-                ))}
+                ) : (
+                    <TraceViewer
+                        trace={trace}
+                        key={trace.id}
+                        onEdit={() => {
+                            setState((state) => state.add(trace.id));
+                        }}
+                        onDelete={() => props.onDelete(trace)}
+                    />
+                )
+            )}
             <TraceCreator onCreate={props.onCreate} />
         </div>
     );

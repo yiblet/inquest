@@ -6,7 +6,7 @@ type Parameters<T extends (...args: any[]) => any> = T extends (
 
 export function debounce<T extends (...args: any[]) => void>(
     func: T,
-    waitTime: number = 250
+    waitTime = 250
 ): (...funcArgs: Parameters<T>) => void {
     let time: number | null = null;
     return (...args: Parameters<T>): void => {

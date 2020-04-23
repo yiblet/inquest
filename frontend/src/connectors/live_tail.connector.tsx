@@ -1,8 +1,9 @@
 import { gql, useSubscription } from "@apollo/client";
 import { LiveTailSubscription } from "../generated/LiveTailSubscription";
 import { config } from "../config";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LiveTail } from "../components/live_tail/live_tail";
+import { List } from "immutable";
 
 const LIVE_TAIL_SUBSCRIPTION = gql`
     subscription LiveTailSubscription($traceSetKey: String!) {
@@ -18,7 +19,9 @@ export function LiveTailConnector() {
         }
     );
 
-    const [logs, setLogs] = useState<string[]>([]);
-    if (data) setLogs((logs) => [...logs, data.listenLog]);
+    const [logs, setLogs] = useState<List<string>>(List());
+    useEffect(() => {
+        data?.listenLog && setLogs((logs) => logs.push(data.listenLog));
+    }, [data?.listenLog, setLogs]);
     return <LiveTail logs={logs} />;
 }
