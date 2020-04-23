@@ -29,7 +29,6 @@ export default function Signup() {
                 },
                 body: new URLSearchParams(values).toString(),
             });
-            console.log(resp);
             if (resp.status === 400)
                 setMessage((await resp.json())?.message || "internal error");
             else {

@@ -7,6 +7,7 @@ import { FileTree } from "../components/file_tree/file_tree";
 import { Module } from "../components/file_tree/module";
 import dynamic from "next/dynamic";
 import { CodeViewConnectorProps } from "../connectors/code_view.connector";
+import { LiveTailConnector } from "../connectors/live_tail.connector";
 
 const CodeViewConnector = dynamic<CodeViewConnectorProps>(
     import("../connectors/code_view.connector").then(
@@ -49,15 +50,39 @@ const FileTreeConnector = ({
     );
 };
 
-// TODO this flickers on changes
-export default function Index() {
-    const [fileId, setFileId] = useState<string | undefined>(undefined);
-    return (
+function withApollo<P>(Comp: React.ComponentType<P>): React.ComponentType<P> {
+    return (props: P) => (
         <ApolloProvider client={createApolloClient()}>
-            <div className="flex">
-                <FileTreeConnector onPick={setFileId} />
-                <CodeViewConnector fileId={fileId} />
-            </div>
+            <Comp {...props} />
         </ApolloProvider>
     );
 }
+
+function TestButton() {
+    let [state, setState] = useState(0);
+    return (
+        <button onClick={(_) => setState((state) => state + 1)}>
+            Test Button: {state}
+        </button>
+    );
+}
+
+// TODO this flickers on changes
+function Index() {
+    const [fileId, setFileId] = useState<string | undefined>(undefined);
+    return (
+        <div className="flex max-h-screen overflow-none">
+            <FileTreeConnector onPick={setFileId} />
+            <div className="w-full">
+                <div style={{ height: "50%" }}>
+                    <CodeViewConnector fileId={fileId} />
+                </div>
+                <div style={{ height: "50%" }}>
+                    <LiveTailConnector />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default withApollo(Index);

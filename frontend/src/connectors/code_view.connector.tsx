@@ -9,7 +9,9 @@ import { config } from "../config";
 import { NewTraceMutation } from "../generated/NewTraceMutation";
 import { UpdateTraceMutation } from "../generated/UpdateTraceMutation";
 import { DeleteTraceMutation } from "../generated/DeleteTraceMutation";
+import { createLogger } from "../utils/logger";
 
+const logger = createLogger(["CodeViewConnector"]);
 const TEXT_COLOR = "rgb(170, 170, 170)";
 const BACKGROUND_COLOR = "rgb(232, 232, 232)";
 
@@ -156,6 +158,8 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
     const [updateTrace] = useMutation<UpdateTraceMutation>(UPDATE_TRACE);
     const [deleteTrace] = useMutation<DeleteTraceMutation>(DELETE_TRACE);
 
+    logger.debug("rerender");
+
     if (loading) return emptyView;
     if (error) throw error;
     if (!data || !data.file)
@@ -165,6 +169,7 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
         traces: parseExistingTraces(data),
         code: data.file.content,
         onCreate: async (funcName, traceStatement) => {
+            logger.debug("on create was called");
             if (!data.file?.module?.name) {
                 throw new Error("cannot not find module name");
             }
@@ -176,9 +181,11 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
                     key: config.traceSet,
                 },
             });
+            await refetch();
             if (result.errors) throw result.errors;
         },
         onEdit: async (trace: ExistingTrace, traceStatement) => {
+            logger.debug("on delete was called");
             const update = await updateTrace({
                 variables: {
                     statement: traceStatement,
@@ -188,6 +195,7 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
             if (update.errors) throw update.errors;
         },
         onDelete: async (trace: ExistingTrace) => {
+            logger.debug("on delete was called");
             await deleteTrace({
                 variables: {
                     id: trace.id,
@@ -197,9 +205,10 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
         },
     };
 
+    logger.debug(`traces: size=${props.traces.length}`);
     return (
         <div
-            className="w-full overflow-auto"
+            className="w-full h-full overflow-auto"
             style={{
                 color: TEXT_COLOR,
                 backgroundColor: BACKGROUND_COLOR,
