@@ -59,8 +59,4 @@ export class Probe {
     @Index()
     @Column({ nullable: false })
     traceSetId: number;
-
-    heartbeat() {
-        this.lastHeartbeat = new Date();
-    }
 }

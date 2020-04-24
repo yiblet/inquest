@@ -5,6 +5,7 @@ import {
     Root,
     Query,
     Arg,
+    Ctx,
     Mutation,
     Subscription,
 } from "type-graphql";
@@ -14,6 +15,7 @@ import { GraphQLString } from "graphql";
 import { Probe, TraceSet } from "../entities";
 import { PublicError } from "../utils";
 import { genProbeTopic } from "../topics";
+import { Context } from "../context";
 
 @ObjectType()
 export class ProbeNotification {
@@ -57,17 +59,9 @@ export class ProbeResolver {
     }
 
     @Mutation((returns) => Probe)
-    async heartbeat(
-        @Arg("key", (_) => GraphQLString) key: string
-    ): Promise<Probe> {
-        const probe = await this.probeRepository.findOne({
-            where: {
-                key,
-            },
-        });
-        if (probe == null) {
-            throw new PublicError("probe does not exist");
-        }
+    async heartbeat(@Ctx() context: Context): Promise<Probe> {
+        if (!context.probe) throw new PublicError("probe must be logged in");
+        const probe = context.probe;
         probe.lastHeartbeat = new Date();
         return await this.probeRepository.save(probe);
     }

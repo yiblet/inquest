@@ -148,9 +148,7 @@ export class AuthService {
     }
 }
 
-export function getAuthToken(req: express.Request) {
-    const authorization: string | undefined = req.get("authorization");
-    if (!authorization) throw new PublicError("failed to get authorization");
+function parseAuth(authorization: string) {
     const auth = authorization.split(" ");
     if (auth.length !== 2)
         throw new PublicError("invalid authorization format");
@@ -158,12 +156,36 @@ export function getAuthToken(req: express.Request) {
     if (type !== "Basic") {
         throw new PublicError("authorization must be basic auth");
     }
-    const loginToken = new Buffer(base64string.trim(), "base64").toString(
-        "ascii"
+
+    const loginToken = Buffer.from(base64string.trim(), "base64").toString(
+        "utf8"
     );
     const loginTokenSplit = loginToken.split(":");
     if (loginTokenSplit.length !== 2)
         throw new PublicError("invalid authorization login format");
-    const [, loginTokenPass] = loginTokenSplit;
+    return loginTokenSplit;
+}
+
+/**
+ * returns the probekey
+ */
+export function getProbeAuth(authorization: string) {
+    const loginTokenSplit = parseAuth(authorization);
+    const [account] = loginTokenSplit;
+    if (!account.startsWith("probe_"))
+        throw new PublicError("invalid account type");
+    return account.substring("probe_".length);
+}
+
+/**
+ * returns the user token
+ */
+export function getUserAuthToken(req: express.Request) {
+    const authorization: string | undefined = req.get("authorization");
+    if (!authorization) throw new PublicError("failed to get authorization");
+    const loginTokenSplit = parseAuth(authorization);
+    const [account, loginTokenPass] = loginTokenSplit;
+    if (!account.startsWith("user_"))
+        throw new PublicError("invalid account type");
     return loginTokenPass;
 }

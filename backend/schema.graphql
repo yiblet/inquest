@@ -83,8 +83,8 @@ input ModuleInput {
 type Mutation {
   fileUpload(file: Upload!): File!
   createModule(module: ModuleInput!): Module!
-  publishLog(content: String!, traceSetKey: String!): String!
-  heartbeat(key: String!): Probe!
+  publishLog(content: String!): String!
+  heartbeat: Probe!
   newProbe(traceSetKey: String!): Probe!
   addRecipe(recipe: RecipeInput!): Recipe!
   rate(rate: RateInput!): Recipe!
@@ -132,6 +132,7 @@ type Query {
   """creates a traceSet with a given key"""
   traceSet(traceSetKey: String!): TraceSet
   me: User
+  liveProbes: [Probe!]
 }
 
 type Rate {

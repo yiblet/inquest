@@ -4,10 +4,15 @@ import { ApolloServer } from "apollo-server";
 import { Container } from "typedi";
 import * as TypeORM from "typeorm";
 import * as TypeGraphQL from "type-graphql";
-import { ALL_ENTITIES } from "./entities";
+import { ALL_ENTITIES, Probe } from "./entities";
 import { ALL_RESOLVERS } from "./resolvers";
 import { Context } from "./context";
 import { seedDatabase } from "./helpers";
+import * as WebSocket from "ws";
+import { ConnectionContext } from "subscriptions-transport-ws";
+import { getProbeAuth } from "./services/auth";
+import { getManager } from "typeorm";
+import { PublicError } from "./utils";
 
 /**
  * build TypeGraphQL executable schema
@@ -39,14 +44,33 @@ export async function createSQLiteServerSchema() {
     await connectTypeOrm();
     // seed database with some data
     const { defaultUser } = await seedDatabase();
+    const manager = getManager();
 
     // create mocked context
-    const context: Context = { user: defaultUser };
+    const context = ({ req, res, connection }) => {
+        if (connection) return connection.context;
+        return { user: defaultUser };
+    };
 
     // Create GraphQL server
     return {
         schema: await buildSchema(),
         context,
+        subscriptions: {
+            path: "/graphql",
+            onConnect: async (
+                connectionParams,
+                websocket: WebSocket,
+                context: ConnectionContext
+            ): Promise<Context> => {
+                const authorization = context.request.headers.authorization;
+                if (!authorization) return {};
+                const key = getProbeAuth(authorization);
+                const probe = await manager.findOne(Probe, { key });
+                if (!probe) throw new PublicError("unauthorized");
+                return { probe };
+            },
+        },
     };
 }
 

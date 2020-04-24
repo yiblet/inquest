@@ -1,5 +1,6 @@
-import { User } from "./entities";
+import { User, Probe } from "./entities";
 
 export type Context = {
     user?: User;
+    probe?: Probe;
 };

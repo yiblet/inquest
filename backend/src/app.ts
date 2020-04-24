@@ -11,7 +11,7 @@ import {
     AuthService,
     LoginInfo,
     SignupInfo,
-    getAuthToken,
+    getUserAuthToken,
 } from "./services/auth";
 import { UploadService } from "./services/upload";
 import cors from "cors";
@@ -121,7 +121,7 @@ export async function createApp() {
     app.post(
         "/refresh",
         wrapAsync(async (req, res) => {
-            const token = getAuthToken(req);
+            const token = getUserAuthToken(req);
             const user = await authService.verify(token);
             const newToken = await authService.genToken(user);
             res.status(200).send({
@@ -159,7 +159,7 @@ export async function createApp() {
         res.redirect("/");
     });
 
-    const server = new ApolloServer({ ...schema, subscriptions: "/graphql" });
+    const server = new ApolloServer({ ...schema });
     server.applyMiddleware({ app, path: "/graphql" });
     const httpServer = createServer(app);
     server.installSubscriptionHandlers(httpServer);

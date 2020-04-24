@@ -6,12 +6,13 @@ import {
     Subscription,
     PubSub,
     PubSubEngine,
+    Ctx,
 } from "type-graphql";
 import { EntityManager } from "typeorm";
 import { InjectManager } from "typeorm-typedi-extensions";
-import { TraceSet } from "../entities";
 import { PublicError } from "../utils";
 import { genLogTopic } from "../topics";
+import { Context } from "../context";
 
 @Resolver()
 export class LiveTailResolver {
@@ -22,21 +23,14 @@ export class LiveTailResolver {
 
     @Mutation((type) => String, { nullable: false })
     async publishLog(
-        @Arg("traceSetKey") traceSetKey: string,
         @Arg("content") content: string,
+        @Ctx() context: Context,
         @PubSub() pubsub: PubSubEngine
     ): Promise<string> {
-        const tail = await this.manager.findOne(TraceSet, {
-            cache: 1000,
-            where: {
-                key: traceSetKey,
-            },
-        });
-
-        if (!tail)
-            throw new PublicError("traceSetKey doesn't resolve to a valid key");
-
-        await pubsub.publish(genLogTopic(traceSetKey), content);
+        const probe = context.probe;
+        if (!probe) throw new PublicError("probe must be authorized");
+        const tail = await probe.traceSet;
+        await pubsub.publish(genLogTopic(tail.key), content);
         return content;
     }
 
