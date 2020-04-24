@@ -32,6 +32,7 @@ export function FileTree({
     const line = partial(Line, { onPick, currentFileId });
     return (
         <>
+            <div className="text-md font-semibold text-gray-800">Modules</div>
             {modules.map((module) => (
                 <Module {...module} line={line} key={module.name} />
             ))}

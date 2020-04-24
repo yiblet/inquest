@@ -207,7 +207,7 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
     };
 
     logger.debug(`traces: size=${props.traces.size}`);
-    return <CodeView  {...props} />;
+    return <CodeView {...props} />;
 };
 
 export type CodeViewConnectorProps = PropsOf<typeof CodeViewConnector>;
