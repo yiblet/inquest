@@ -52,6 +52,49 @@ mutation TraceFailureMutation($message: String!, $traceId: String!) {
         ).to_dict()
         log_result(LOGGER, result)
 
+    async def update_state(self, desired_set):
+        errors = self.probe.new_desired_state(desired_set)
+        if errors is not None:
+            for (module, function), error in errors.items():
+                if isinstance(error, TraceException):
+                    await self._send_exception(error)
+                else:
+                    LOGGER.error(
+                        'error in %s:%s %s',
+                        module,
+                        function,
+                        error,
+                    )
+
+    async def _send_initial(self):
+        query = gql(
+            '''\
+query InitialProbeInfo {
+  thisProbe {
+    traceSet {
+      key
+      desiredSet {
+        id
+        function {
+          name
+          module {
+            name
+          }
+        }
+        statement
+      }
+    }
+  }
+}
+    '''
+        )
+
+        result = await self.client.execute(query)
+        result = result.to_dict()
+        if 'data' in result:
+            desired_set = result['data']['thisProbe']['traceSet']['desiredSet']
+            await self.update_state(desired_set)
+
     async def main(self):
         # Request subscription
         subscription = gql(
@@ -77,21 +120,12 @@ subscription probeNotification {
         ''' % (self.trace_set_key)
         )
 
+        await self._send_initial()
+
         async for result in self.client.subscribe(subscription):
             result: OrderedDict = result.to_dict()
             log_result(LOGGER, result)
             if 'data' in result:
                 desired_set = result['data']['probeNotification']['traceSet'][
                     'desiredSet']
-                errors = self.probe.new_desired_state(desired_set)
-                if errors is not None:
-                    for (module, function), error in errors.items():
-                        if isinstance(error, TraceException):
-                            await self._send_exception(error)
-                        else:
-                            LOGGER.error(
-                                'error in %s:%s %s',
-                                module,
-                                function,
-                                error,
-                            )
+                await self.update_state(desired_set)

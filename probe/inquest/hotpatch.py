@@ -212,7 +212,7 @@ def _generate_instructions(
             if not is_valid_segment:
                 error = (
                     f"segment '{segment}' is not valid; segments must " +
-                    f"be exclusively these argument literals: {tuple(args_set)}"
+                    f"be exclusively these argument literals: {', '.join(args_set)}"
                 )
                 raise ValueError(error)
 

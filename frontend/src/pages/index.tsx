@@ -110,16 +110,16 @@ function withApollo<P>(Comp: React.ComponentType<P>): React.ComponentType<P> {
 function Index() {
     const [fileId, setFileId] = useState<string | null>(null);
     return (
-        <div className="flex max-h-screen overflow-none">
+        <div className="flex h-screen overflow-none">
             <SideBar>
                 <LiveProbesConnector />
                 <FileTreeConnector onPick={setFileId} currentFileId={fileId} />
             </SideBar>
-            <div className="w-full">
-                <div style={{ height: "50%" }}>
+            <div className="w-full h-full grid grid-cols-2">
+                <div>
                     <CodeViewConnector fileId={fileId || undefined} />
                 </div>
-                <div style={{ height: "50%" }}>
+                <div className="overflow-auto">
                     <LiveTailConnector />
                 </div>
             </div>

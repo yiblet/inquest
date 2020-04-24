@@ -21,10 +21,12 @@ export class UserResolver {
     async liveProbes(): Promise<Probe[]> {
         const qb = this.manager
             .createQueryBuilder(Probe, "probe")
-            .where("probe.lastHeartbeat > datetime(:date)", {
-                date: new Date(Date.now() - 90 * 1000).toISOString(),
-            });
-        console.log(qb.getSql());
+            .where(
+                "probe.lastHeartbeat > datetime(:date) AND probe.closed = false",
+                {
+                    date: new Date(Date.now() - 90 * 1000).toISOString(),
+                }
+            );
         return await qb.getMany();
     }
 }

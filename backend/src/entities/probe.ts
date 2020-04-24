@@ -34,6 +34,10 @@ export class Probe {
     @Column({ nullable: false })
     lastHeartbeat: Date;
 
+    @Field({ nullable: false })
+    @Column({ nullable: false, default: false })
+    closed: boolean;
+
     @Field()
     @Index({ unique: true })
     @Column({ nullable: false, unique: true })
@@ -44,7 +48,7 @@ export class Probe {
     isAlive(): boolean {
         // TODO make this smarter
         const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-        return twoMinutesAgo >= this.lastHeartbeat;
+        return !this.closed && twoMinutesAgo >= this.lastHeartbeat;
     }
 
     @Field((type) => [TraceLogStatus], { nullable: false })

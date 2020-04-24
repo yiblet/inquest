@@ -11,7 +11,7 @@ import { seedDatabase } from "./helpers";
 import * as WebSocket from "ws";
 import { ConnectionContext } from "subscriptions-transport-ws";
 import { getProbeAuth } from "./services/auth";
-import { getManager } from "typeorm";
+import { getManager, EntityManager } from "typeorm";
 import { PublicError } from "./utils";
 
 /**
@@ -39,6 +39,18 @@ export async function connectTypeOrm() {
     });
 }
 
+async function authorizeProbe(
+    manager: EntityManager,
+    context: ConnectionContext
+): Promise<Probe | undefined> {
+    const authorization = context.request.headers.authorization;
+    if (!authorization) return undefined;
+    const key = getProbeAuth(authorization);
+    const probe = await manager.findOne(Probe, { key });
+    if (!probe) throw new PublicError("unauthorized");
+    return probe;
+}
+
 // register 3rd party IOC container
 export async function createSQLiteServerSchema() {
     await connectTypeOrm();
@@ -63,12 +75,18 @@ export async function createSQLiteServerSchema() {
                 websocket: WebSocket,
                 context: ConnectionContext
             ): Promise<Context> => {
-                const authorization = context.request.headers.authorization;
-                if (!authorization) return {};
-                const key = getProbeAuth(authorization);
-                const probe = await manager.findOne(Probe, { key });
-                if (!probe) throw new PublicError("unauthorized");
+                const probe = await authorizeProbe(manager, context);
                 return { probe };
+            },
+            onDisconnect: async (
+                websocket: WebSocket,
+                context: ConnectionContext
+            ) => {
+                const probe = await authorizeProbe(manager, context);
+                if (probe) {
+                    probe.closed = true;
+                    await manager.save(probe);
+                }
             },
         },
     };

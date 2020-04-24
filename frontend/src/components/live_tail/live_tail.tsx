@@ -49,7 +49,7 @@ export function LiveTail({ logs }: { logs: List<string> }) {
 
     return (
         <div className="flex flex-col h-full w-full text-sm text-gray-300 bg-gray-900">
-            <form className="flex items-center p-2 border-white font-medium text-md border-b">
+            <form className="flex items-center p-2 border-gray-700 font-medium text-md border-b">
                 Filter:
                 <input
                     className="bg-gray-700 mx-2"

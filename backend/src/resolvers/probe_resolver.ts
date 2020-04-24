@@ -58,6 +58,11 @@ export class ProbeResolver {
         });
     }
 
+    @Query((returns) => Probe, { nullable: true })
+    thisProbe(@Ctx() context: Context) {
+        return retrieveProbe(context);
+    }
+
     @Mutation((returns) => Probe)
     async heartbeat(@Ctx() context: Context): Promise<Probe> {
         const probe = retrieveProbe(context);
