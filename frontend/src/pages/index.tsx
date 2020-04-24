@@ -44,11 +44,16 @@ const LiveProbesConnector: React.FC = () => {
     if (!data) throw new Error("failed to retrieve data");
     const numProbes = data.liveProbes?.length || 0;
 
-    const message = numProbes === 0
-        ? "No Probes"
-        : `${numProbes} Probe${numProbes == 1 ? "" : "s"}`;
+    const message =
+        numProbes === 0
+            ? "No Probes"
+            : `${numProbes} Probe${numProbes == 1 ? "" : "s"}`;
 
-    return <div className="text-md mb-4 font-semibold text-gray-800">{message}</div>;
+    return (
+        <div className="text-md mb-4 font-semibold text-gray-800">
+            {message}
+        </div>
+    );
 };
 
 const SideBar: React.FC<{}> = ({ children }) => {

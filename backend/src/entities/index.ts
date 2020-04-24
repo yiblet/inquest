@@ -7,6 +7,7 @@ import { Probe } from "./probe";
 import { Rate } from "./rate";
 import { Recipe } from "./recipe";
 import { Trace } from "./trace/trace";
+import { TraceFailure } from "./trace/trace_failure";
 import { TraceLog } from "./trace/trace_log";
 import { TraceLogStatus } from "./trace/trace_log_status";
 import { TraceSet } from "./trace/trace_set";
@@ -22,6 +23,7 @@ export const ALL_ENTITIES = [
     Rate,
     Recipe,
     Trace,
+    TraceFailure,
     TraceLog,
     TraceLogStatus,
     TraceSet,
@@ -39,6 +41,7 @@ export {
     Rate,
     Recipe,
     Trace,
+    TraceFailure,
     TraceLog,
     TraceLogStatus,
     TraceSet,

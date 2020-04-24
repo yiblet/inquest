@@ -7,11 +7,18 @@
 // GraphQL query operation: CodeViewQuery
 // ====================================================
 
+export interface CodeViewQuery_file_module_childFunctions_traces_currentFailures {
+  __typename: "TraceFailure";
+  message: string;
+}
+
 export interface CodeViewQuery_file_module_childFunctions_traces {
   __typename: "Trace";
   id: string;
   statement: string;
   active: boolean;
+  version: number;
+  currentFailures: CodeViewQuery_file_module_childFunctions_traces_currentFailures[];
 }
 
 export interface CodeViewQuery_file_module_childFunctions {
@@ -20,11 +27,18 @@ export interface CodeViewQuery_file_module_childFunctions {
   traces: CodeViewQuery_file_module_childFunctions_traces[];
 }
 
+export interface CodeViewQuery_file_module_childClasses_methods_traces_currentFailures {
+  __typename: "TraceFailure";
+  message: string;
+}
+
 export interface CodeViewQuery_file_module_childClasses_methods_traces {
   __typename: "Trace";
   id: string;
   statement: string;
   active: boolean;
+  version: number;
+  currentFailures: CodeViewQuery_file_module_childClasses_methods_traces_currentFailures[];
 }
 
 export interface CodeViewQuery_file_module_childClasses_methods {

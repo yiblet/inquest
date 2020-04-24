@@ -5,6 +5,19 @@ import { PropsOf } from "../../utils/types";
 import { createLogger } from "../../utils/logger";
 import { ImmSet, List } from "../../utils/collections";
 
+export function TraceFailure(props: ExistingTrace) {
+    if (props.currentFailures.length == 0) {
+        return <></>;
+    }
+    return (
+        <div>
+            {props.currentFailures.map((failure) => (
+                <div key={failure.message}>{failure.message}</div>
+            ))}
+        </div>
+    );
+}
+
 export function TraceViewer(props: {
     trace: ExistingTrace;
     onEdit: () => any;
@@ -12,23 +25,28 @@ export function TraceViewer(props: {
 }) {
     return (
         <div>
-            <div className="inline-block my-2 mr-2 font-mono placeholder-black">
-                <span className="text-green-700">logging "</span>
-                {props.trace.trace}
-                <span className="text-green-700">"</span>
+            <div>
+                <div className="inline-block my-2 mr-2 font-mono placeholder-black">
+                    <span className="text-green-700">logging "</span>
+                    {props.trace.statement}
+                    <span className="text-green-700">"</span>
+                </div>
+                <button
+                    onClick={props.onEdit}
+                    className="font-semibold text-black rounded mr-2"
+                >
+                    edit
+                </button>
+                <button
+                    onClick={props.onDelete}
+                    className="font-semibold text-red-700 text-black rounded mr-2"
+                >
+                    delete
+                </button>
             </div>
-            <button
-                onClick={props.onEdit}
-                className="font-semibold text-black rounded mr-2"
-            >
-                edit
-            </button>
-            <button
-                onClick={props.onDelete}
-                className="font-semibold text-red-700 text-black rounded mr-2"
-            >
-                delete
-            </button>
+            <div className="pl-4 bg-yellow-400">
+                <TraceFailure {...props.trace} />
+            </div>
         </div>
     );
 }
@@ -40,7 +58,7 @@ export function TraceEditor(props: {
 }) {
     const { handleSubmit, register } = useForm({
         defaultValues: {
-            trace: props.trace.trace,
+            trace: props.trace.statement,
         },
     });
     const submit = (values: { trace: string }) => {
@@ -52,6 +70,7 @@ export function TraceEditor(props: {
                 <input
                     className="my-2 mr-2 bg-green-300 placeholder-black"
                     type="text"
+                    autoComplete={"off"}
                     name="trace"
                     required
                     placeholder="new log string"
@@ -72,15 +91,20 @@ export function TraceEditor(props: {
 }
 
 export function TraceCreator(props: { onCreate: (trace: string) => any }) {
-    const { handleSubmit, register } = useForm();
+    const { handleSubmit, register, reset } = useForm();
     const submit = (values: { trace?: string }) => {
-        values.trace && props.onCreate(values.trace);
+        if (values.trace) {
+            props.onCreate(values.trace);
+            reset();
+        }
     };
     return (
         <form onSubmit={handleSubmit(submit)}>
             <input
                 className="my-2 mr-2 bg-green-300 placeholder-black"
+                type="text"
                 name="trace"
+                autoComplete={"off"}
                 required
                 placeholder="new log string"
                 ref={register({ required: true })}
@@ -106,7 +130,7 @@ export function Traces(props: {
     useEffect(() => setState(ImmSet()), [props.tag]);
 
     return (
-        <div className="flex flex-col w-full h-full bg-green-200 pl-2">
+        <div className="flex flex-col w-full h-full bg-green-200">
             {props.traces.map((trace: ExistingTrace) =>
                 editing.has(trace.id) ? (
                     <TraceEditor

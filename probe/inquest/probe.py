@@ -142,10 +142,12 @@ class Probe(contextlib.ExitStack):
         ]
 
         traces, final_code, errors = self._add_desired_set(desired_set)
+        LOGGER.debug('desired_set %s', list(traces.id))
 
         if errors != {}:
             return errors
 
+        # TODO figure out where to send errors when this fails
         # only after ensuring there are no errors at all do we set code objects
         for (module, function), code in final_code.items():
             function_obj = get_function_in_module(
@@ -210,7 +212,8 @@ class Probe(contextlib.ExitStack):
             try:
                 code = self._get_og_code(module, function)
                 fstrings = list(group['statement'])
-                embedded_code = embed_fstrings(code, fstrings)
+                ids = list(group['id'])
+                embedded_code = embed_fstrings(code, fstrings, ids)
                 new_code[(module, function)] = embedded_code
             except Exception as error:  # pylint: disable=all
                 errors[(module, function)] = error

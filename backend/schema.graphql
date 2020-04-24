@@ -88,6 +88,7 @@ type Mutation {
   newProbe(traceSetKey: String!): Probe!
   addRecipe(recipe: RecipeInput!): Recipe!
   rate(rate: RateInput!): Recipe!
+  newTraceFailure(message: String!, traceId: String!): TraceFailure!
   deleteTrace(traceId: String!): Trace!
   updateTrace(updateTraceInput: UpdateTraceInput!): Trace!
   newTrace(newTraceInput: NewTraceInput!): Trace!
@@ -113,6 +114,7 @@ type Probe {
   key: String!
   isAlive: Boolean!
   traceLogStatuses: [TraceLogStatus!]!
+  traceFailures: [TraceFailure!]!
   traceSet: TraceSet!
 }
 
@@ -173,7 +175,19 @@ type Trace {
   functionId: Float!
   statement: String!
   active: Boolean!
+  version: Float!
   traceSet: TraceSet!
+  traceFailures: [TraceFailure!]!
+  currentFailures: [TraceFailure!]!
+}
+
+type TraceFailure {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  message: String!
+  traceVersion: Float!
+  trace: Trace!
+  probe: Probe!
 }
 
 type TraceLog {

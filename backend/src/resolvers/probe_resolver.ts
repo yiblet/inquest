@@ -15,7 +15,7 @@ import { GraphQLString } from "graphql";
 import { Probe, TraceSet } from "../entities";
 import { PublicError } from "../utils";
 import { genProbeTopic } from "../topics";
-import { Context } from "../context";
+import { Context, retrieveProbe } from "../context";
 
 @ObjectType()
 export class ProbeNotification {
@@ -60,8 +60,7 @@ export class ProbeResolver {
 
     @Mutation((returns) => Probe)
     async heartbeat(@Ctx() context: Context): Promise<Probe> {
-        if (!context.probe) throw new PublicError("probe must be logged in");
-        const probe = context.probe;
+        const probe = retrieveProbe(context);
         probe.lastHeartbeat = new Date();
         return await this.probeRepository.save(probe);
     }

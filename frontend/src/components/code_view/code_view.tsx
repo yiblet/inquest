@@ -64,7 +64,7 @@ function constructLineMarkers(
             traces: tracesMap.get(func.name) ?? List<ExistingTrace>(),
             options: {
                 isWholeLine: true,
-                className: "bg-green-300", // TODO make the background color based on hsla + change the color on mouseHover
+                className: "cursor-pointer bg-green-300", // TODO make the background color based on hsla + change the color on mouseHover
             },
         }))
     );

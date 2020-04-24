@@ -12,9 +12,14 @@ import {
 
 import { TraceSet } from "./trace/trace_set";
 import { TraceLogStatus } from "./trace/trace_log_status";
+import { TraceFailure } from "./trace/trace_failure";
 
 /**
  * Probe
+ *
+ * quick lookup:
+ *  - numeric id
+ *
  * a running instance of an inquest probe
  * TODO probes should be connected to users
  * TODO probes should list which files are currently being logged
@@ -48,6 +53,10 @@ export class Probe {
         (traceLogStatus) => traceLogStatus.probe
     )
     traceLogStatuses: Promise<TraceLogStatus[]>;
+
+    @Field((type) => [TraceFailure], { nullable: false })
+    @OneToMany((type) => TraceFailure, (traceFailure) => traceFailure.probe)
+    traceFailures: Promise<TraceFailure[]>;
 
     /**
      * the respective TraceSet

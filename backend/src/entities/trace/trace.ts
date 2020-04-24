@@ -8,10 +8,12 @@ import {
     Column,
     Index,
     ManyToOne,
+    OneToMany,
 } from "typeorm";
 
 import { TraceSet } from "./trace_set";
 import { Function } from "../code/function";
+import { TraceFailure } from "./trace_failure";
 
 /**
  * Trace
@@ -54,10 +56,18 @@ export class Trace {
     @Column({ nullable: false })
     active: boolean;
 
+    @Field({ nullable: false })
+    @Column({ nullable: false, default: 0 })
+    version: number;
+
     @Column({ nullable: false })
     traceSetId: number;
 
     @Field((type) => TraceSet, { nullable: false })
     @ManyToOne((type) => TraceSet, { nullable: false })
     traceSet: Promise<TraceSet>;
+
+    @Field((type) => [TraceFailure], { nullable: false })
+    @OneToMany((type) => TraceFailure, (traceFailure) => traceFailure.trace)
+    traceFailures: Promise<TraceFailure[]>;
 }

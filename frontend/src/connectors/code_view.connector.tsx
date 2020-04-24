@@ -19,6 +19,10 @@ const TRACE_FRAGMENT = gql`
         id
         statement
         active
+        version
+        currentFailures {
+            message
+        }
     }
 `;
 
@@ -110,10 +114,8 @@ const parseExistingTraces = (
         ...queryResult.file.module.childFunctions.flatMap((func) =>
             func.traces.map((trace) => {
                 return {
-                    id: trace.id,
-                    active: trace.active,
+                    ...trace,
                     funcName: func.name,
-                    trace: trace.statement,
                 };
             })
         ),
@@ -121,10 +123,8 @@ const parseExistingTraces = (
             childClass.methods.flatMap((func) =>
                 func.traces.map((trace) => {
                     return {
-                        id: trace.id,
-                        active: trace.active,
+                        ...trace,
                         funcName: `${childClass.name}.${func.name}`,
-                        trace: trace.statement,
                     };
                 })
             )
@@ -152,6 +152,7 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
         CODE_VIEW_QUERY,
         {
             variables: { fileId },
+            pollInterval: 2000,
         }
     );
 

@@ -6,6 +6,9 @@ import {
     Field,
     PubSub,
     PubSubEngine,
+    Ctx,
+    Root,
+    FieldResolver,
 } from "type-graphql";
 import { EntityManager } from "typeorm";
 import { InjectManager } from "typeorm-typedi-extensions";
@@ -15,11 +18,13 @@ import {
     TraceSet,
     TraceLogStatus,
     Function,
+    TraceFailure,
 } from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
 import { TraceLogRepository } from "../repositories/trace_log_repository";
 import { PublicError } from "../utils";
 import { genProbeTopic } from "../topics";
+import { Context, retrieveProbe } from "../context";
 
 @InputType()
 class UpdateTraceInput {
@@ -52,7 +57,7 @@ class NewTraceInput {
 export class TraceResolver {
     constructor(
         @InjectManager()
-        private readonly entityManager: EntityManager
+        private readonly manager: EntityManager
     ) {}
 
     protected async createRelevantLogStatuses(
@@ -88,12 +93,46 @@ export class TraceResolver {
         return traceLog;
     }
 
+    @FieldResolver((returns) => [TraceFailure], { nullable: false })
+    async currentFailures(@Root() trace: Trace) {
+        return await this.manager.find(TraceFailure, {
+            traceId: trace.id,
+            traceVersion: trace.version,
+        });
+    }
+
+    @Mutation((returns) => TraceFailure)
+    async newTraceFailure(
+        @Arg("traceId") traceId: string,
+        @Arg("message") message: string,
+        @Ctx() context: Context
+    ): Promise<TraceFailure> {
+        return await this.manager.transaction(async (manager) => {
+            const probe = retrieveProbe(context);
+            const trace = await manager.getRepository(Trace).findOne({
+                where: { id: traceId },
+            });
+            if (trace == null) {
+                throw new PublicError("could not find trace with that id");
+            }
+
+            const failure = manager.create(TraceFailure, {
+                traceVersion: trace.version,
+                message,
+                traceId: trace.id,
+                probeId: probe.id,
+            });
+
+            return await manager.save(failure);
+        });
+    }
+
     @Mutation((returns) => Trace)
     async deleteTrace(
         @Arg("traceId") traceId: string,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await this.entityManager.transaction(async (manager) => {
+        return await this.manager.transaction(async (manager) => {
             const traceRepository = manager.getRepository(Trace);
             let trace = await traceRepository.findOne({
                 where: { id: traceId },
@@ -126,7 +165,7 @@ export class TraceResolver {
         @Arg("updateTraceInput") updateTraceInput: UpdateTraceInput,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await this.entityManager.transaction(async (manager) => {
+        return await this.manager.transaction(async (manager) => {
             const traceRepository = manager.getRepository(Trace);
 
             let trace = await traceRepository.findOne({
@@ -142,6 +181,10 @@ export class TraceResolver {
                 if (updateTraceInput[field] != null) {
                     trace[field] = updateTraceInput[field];
                 }
+            }
+
+            if (updateTraceInput.statement != null) {
+                trace.version++;
             }
 
             trace = await manager.save(trace);
@@ -168,7 +211,7 @@ export class TraceResolver {
         @Arg("newTraceInput") newTraceInput: NewTraceInput,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await this.entityManager.transaction(async (manager) => {
+        return await this.manager.transaction(async (manager) => {
             const traceRepository = manager.getRepository(Trace);
             const traceSetRepository = manager.getRepository(TraceSet);
 

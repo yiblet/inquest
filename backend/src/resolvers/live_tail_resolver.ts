@@ -10,9 +10,8 @@ import {
 } from "type-graphql";
 import { EntityManager } from "typeorm";
 import { InjectManager } from "typeorm-typedi-extensions";
-import { PublicError } from "../utils";
 import { genLogTopic } from "../topics";
-import { Context } from "../context";
+import { Context, retrieveProbe } from "../context";
 
 @Resolver()
 export class LiveTailResolver {
@@ -27,8 +26,7 @@ export class LiveTailResolver {
         @Ctx() context: Context,
         @PubSub() pubsub: PubSubEngine
     ): Promise<string> {
-        const probe = context.probe;
-        if (!probe) throw new PublicError("probe must be authorized");
+        const probe = retrieveProbe(context);
         const tail = await probe.traceSet;
         await pubsub.publish(genLogTopic(tail.key), content);
         return content;

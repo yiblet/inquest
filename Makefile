@@ -40,6 +40,13 @@ push: build-prod
 	@make -C probe push
 	@make -C backend push
 
+dev-frontend:
+	@(cd frontend; yarn run dev)
+
+dev-backend:
+	@(cd backend; yarn run start)
+
+
 version:
 	@echo $(TAG)
 
