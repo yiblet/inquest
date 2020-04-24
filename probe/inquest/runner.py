@@ -4,9 +4,8 @@ import logging
 import threading
 from typing import Optional
 
-from gql.transport.websockets import WebsocketsTransport
-
 from inquest.comms.client_provider import ClientProvider
+from inquest.comms.heartbeat import Heartbeat
 from inquest.comms.log_sender import LogSender
 from inquest.comms.module_sender import ModuleSender
 from inquest.comms.trace_set_subscriber import TraceSetSubscriber
@@ -51,7 +50,8 @@ class ProbeRunner(threading.Thread):
                 trace_set_key=self.trace_set_key,
                 package=self.package,
             ),
-            LogSender(trace_set_key=self.trace_set_key)
+            LogSender(trace_set_key=self.trace_set_key),
+            Heartbeat()
         ]
 
         if self.send_modules:
@@ -70,13 +70,11 @@ class ProbeRunner(threading.Thread):
         LOGGER.info('inquest daemon closed')
 
     async def _run_async(self):
-        transport = WebsocketsTransport(
-            url=f'ws://{self.endpoint}/graphql',
-            ssl=None,
-        )
+        url = f'ws://{self.endpoint}/graphql'
         async with ClientProvider(
-                transport,
-                self.client_consumers(),
+                trace_set_key=self.trace_set_key,
+                url=url,
+                consumers=self.client_consumers(),
         ) as provider:
             await provider.main()
 

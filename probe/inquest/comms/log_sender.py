@@ -20,8 +20,8 @@ class LogSender(ClientConsumer):
         self.log_queue: asyncio.Queue = None
         self.query = gql(
             """\
-mutation PublishLogMutation($content: String!, $traceSetKey: String!) {
-  publishLog(content: $content, traceSetKey: $traceSetKey)
+mutation PublishLogMutation($content: String!) {
+  publishLog(content: $content)
 }
                     """
         )
