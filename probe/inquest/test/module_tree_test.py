@@ -1,114 +1,35 @@
-import dataclasses
 import os
-import re
-import sys
 
-from ..module_tree import ClassInfo, ModuleInfo, ModuleTree
-from . import embed_fstring_test, probe_test
-from .embed_test_module import test_imported_module as embed_test_module
-from .probe_test_module import test_imported_module as probe_test_module
+from ..module_tree import ModuleTree
 
 
 def test_on_probe_test_module():
     tree = ModuleTree(__file__)
-    modules = {obj.module for obj in tree.modules()}
-    assert probe_test_module in modules
+    files = {file.name for file in tree.modules()}
+    assert __file__ in files
 
 
-def test_source_code_retrieval():
+def test_on_sample_module():
+    sample = os.path.join(os.path.dirname(__file__), "sample.py")
+    tree = ModuleTree(sample)
+    files = {file.name: file for file in tree.modules()}
+    assert sample in files
+    assert set(func.name for func in files[sample].functions) == {
+        'async_sample_with_decorator', 'sample', 'sample_with_decorator',
+        'async_sample'
+    }
 
-    def assert_lines(loc, module):
-        dirname = os.path.dirname(__file__)
-        lines = open(f'{dirname}/{loc}').readlines()
-        tree_lines = ModuleTree.get_module_source(module)
-        assert "".join(lines) == "".join(tree_lines)
-
-    loc = 'probe_test_module/test_imported_module.py'
-    assert_lines(loc, probe_test_module)
-
-    loc = 'probe_test.py'
-    assert_lines(loc, probe_test)
-
-    loc = 'embed_fstring_test.py'
-    assert_lines(loc, embed_fstring_test)
-
-
-def test_module_info():
-
-    def assert_module(module):
-        module_info = ModuleInfo(module=module)
-        lines = open(f'{module_info.file}').readlines()
-        assert len(lines) == module_info.end_line
-        assert 0 == module_info.start_line
-
-        for function in module_info.functions:
-            class_name = function.function.__name__
-            regex = re.compile(r"(async )?def %s\(" % class_name)
-            found = False
-            for idx, line in enumerate(lines):
-                if regex.match(line):
-                    # getsource includes accompanying decorators
-                    if idx > 0 and lines[idx - 1].startswith("@"):
-                        inc = 0
-                    else:
-                        inc = 1
-                    help_text = "lines do not match on %s" % class_name
-                    assert idx + inc == function.start_line, help_text
-                    found = True
-                    break
-            if not found:
-                assert False, "match not found %s" % class_name
-
-        for class_info in module_info.classes:
-            class_name = class_info.class_object.__name__
-            regex = re.compile(r"class %s(\(.*\))?:" % class_name)
-            found = False
-            for idx, line in enumerate(lines):
-                if regex.match(line):
-                    # getsource DOES NOT include
-                    # accompanying decorators for classes
-                    help_text = "lines do not match on %s" % class_name
-                    assert idx + 1 == class_info.start_line, help_text
-                    found = True
-            if not found:
-                assert False, "match not found on %s" % class_name
-
-    assert_module(probe_test_module)
-    assert_module(probe_test)
-    assert_module(embed_fstring_test)
-    assert_module(embed_test_module)
-    assert_module(sys.modules[__name__])  # test on this module
-
-
-def test_embed_module():
-
-    module_info = ModuleInfo(module=embed_test_module)
-    assert len(module_info.classes) == 2
-
-
-def test_classes():
-    class_info = ClassInfo(
-        class_object=SampleClass,
-        parent_module=sys.modules[__name__],
+    classes = set(cls.name for cls in files[sample].classes)
+    methods = set(
+        f'{cls.name}.{met.name}' for cls in files[sample].classes
+        for met in cls.methods
     )
-    assert class_info.start_line == 108
-    assert class_info.end_line == 110
-
-    class_info = ClassInfo(
-        class_object=SampleDataClass,
-        parent_module=sys.modules[__name__],
-    )
-    assert class_info.start_line == 113
-    assert class_info.end_line == 115
-
-
-# test classes
-
-
-class SampleClass:
-    pass
-
-
-@dataclasses.dataclass
-class SampleDataClass:
-    test: str
+    assert classes == {'TestClassWithDecorator', 'TestClass'}
+    assert methods == {
+        'TestClassWithDecorator.async_sample',
+        'TestClassWithDecorator.sample_with_decorator', 'TestClass.sample',
+        'TestClass.async_sample', 'TestClassWithDecorator.sample',
+        'TestClass.async_sample_with_decorator',
+        'TestClassWithDecorator.async_sample_with_decorator',
+        'TestClass.sample_with_decorator'
+    }

@@ -28,7 +28,7 @@ mutation PublishLogMutation($content: String!) {
 
     async def __aenter__(self):
         await super().__aenter__()
-        self.log_queue = janus.Queue(loop=asyncio.get_event_loop())
+        self.log_queue = janus.Queue()
         self.enter_context(with_callback(self.log_callback))
         return self
 
