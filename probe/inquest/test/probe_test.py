@@ -1,3 +1,4 @@
+import os
 from typing import Dict
 
 import pandas as pd
@@ -9,19 +10,19 @@ from inquest.test.probe_test_module.test_imported_module import sample
 
 def flatten_trace(trace):
     return {
-        "module": trace['function']['module']['name'],
+        "module": trace['function']['file']['name'],
         "function": trace['function']['name'],
         "statement": trace['statement'],
         "id": trace['id'],
     }
 
 
-def create_trace(module, function, statement, id) -> Dict[str, str]:
+def create_trace(file, function, statement, id) -> Dict[str, str]:
     return {
         "function": {
             "name": function,
-            "module": {
-                "name": module,
+            "file": {
+                "name": file,
             }
         },
         "statement": statement,
@@ -30,11 +31,12 @@ def create_trace(module, function, statement, id) -> Dict[str, str]:
 
 
 def test_on_function_simple(capsys):
-    with Probe(__name__) as probe:
+    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
+               __name__) as probe:
         result = probe.new_desired_state(
             [
                 create_trace(
-                    '.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg1}',
                     "1",
@@ -50,11 +52,12 @@ def test_on_function_simple(capsys):
 
 
 def test_on_function(capsys):
-    with Probe(__name__) as probe:
+    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
+               __name__) as probe:
         result = probe.new_desired_state(
             [
                 create_trace(
-                    '.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg1}',
                     "1",
@@ -69,13 +72,13 @@ def test_on_function(capsys):
         result = probe.new_desired_state(
             [
                 create_trace(
-                    '.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg1}',
                     "1",
                 ),
                 create_trace(
-                    '.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg2}',
                     "2",
@@ -91,7 +94,8 @@ def test_on_function(capsys):
 
 
 def test_on_function_changes(capsys):
-    with Probe(__name__) as probe:
+    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
+               __name__) as probe:
 
         def assert_desired_state(desired_state, output):
             result = probe.new_desired_state(desired_state)
@@ -110,13 +114,13 @@ def test_on_function_changes(capsys):
         assert_desired_state(
             [
                 create_trace(
-                    '.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg1}',
                     "1",
                 ),
                 create_trace(
-                    '.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg2}',
                     "2",
@@ -127,7 +131,7 @@ def test_on_function_changes(capsys):
         assert_desired_state(
             [
                 create_trace(
-                    '.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg2}',
                     "2",
@@ -138,7 +142,7 @@ def test_on_function_changes(capsys):
         assert_desired_state(
             [
                 create_trace(
-                    '.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg2}',
                     "3",
@@ -149,7 +153,7 @@ def test_on_function_changes(capsys):
         assert_desired_state(
             [
                 create_trace(
-                    'inquest.test.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg2} haha',
                     "3",
@@ -161,7 +165,7 @@ def test_on_function_changes(capsys):
         assert_desired_state(
             [
                 create_trace(
-                    'inquest.test.probe_test_module.test_imported_module',
+                    'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg2}',
                     "3",
@@ -176,120 +180,3 @@ def test_on_function_changes(capsys):
     assert sample(2, 1) == 3
     captured = capsys.readouterr()
     assert capsys.readouterr().out == ""
-
-
-def test_failed_imports(capsys):
-    with Probe(__name__) as probe:
-
-        def assert_modules(modules, failures):
-            result = probe.new_desired_state(
-                [
-                    create_trace(
-                        module,
-                        'sample',
-                        '{arg1}',
-                        "1",
-                    ) for module in modules
-                ]
-            )
-            for module in failures:
-                assert (
-                    convert_relative_import_to_absolute_import(
-                        module,
-                        __name__,
-                        add_level=True,
-                    ), 'sample'
-                ) in result
-            assert sample(2, 1) == 3
-            assert capsys.readouterr().out == ""
-
-        # testing duplicate
-        assert_modules(
-            [
-                '.probe_test_module.x',
-            ],
-            [
-                '.probe_test_module.x',
-            ],
-        )
-        assert_modules(
-            [
-                '.probe_test_module.x',
-                '.probe_test_module.test_imported_module',
-            ],
-            [
-                '.probe_test_module.x',
-            ],
-        )
-        assert_modules(
-            [
-                '.probe_test_module.x',
-                '.probe_test_module.y',
-            ],
-            [
-                '.probe_test_module.x',
-                '.probe_test_module.y',
-            ],
-        )
-        assert_modules(
-            [
-                'arbitrary.absolute.import',
-                '.probe_test_module.y',
-            ], [
-                'arbitrary.absolute.import',
-                '.probe_test_module.y',
-            ]
-        )
-
-
-def test_failed_strings(capsys):
-    with Probe(__name__) as probe:
-
-        def make_assertions(modules, failures):
-            result = probe.new_desired_state(
-                [
-                    create_trace(
-                        module,
-                        'sample',
-                        statement,
-                        "1",
-                    ) for module, statement in modules
-                ]
-            )
-            for module in failures:
-                assert (
-                    convert_relative_import_to_absolute_import(
-                        module,
-                        __name__,
-                        add_level=True,
-                    ), 'sample'
-                ) in result
-            assert sample(2, 1) == 3
-            assert capsys.readouterr().out == ""
-
-        # testing duplicate
-        make_assertions(
-            [
-                ('.probe_test_module.test_imported_module', '{arg3}'),
-            ],
-            [
-                '.probe_test_module.test_imported_module',
-            ],
-        )
-
-        make_assertions(
-            [
-                ('.probe_test_module.test_imported_module', '{'),
-            ],
-            [
-                '.probe_test_module.test_imported_module',
-            ],
-        )
-        make_assertions(
-            [
-                ('.probe_test_module.test_imported_module', '{arg1 + 2}'),
-            ],
-            [
-                '.probe_test_module.test_imported_module',
-            ],
-        )

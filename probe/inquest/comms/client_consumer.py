@@ -4,6 +4,8 @@ from gql import AsyncClient
 
 
 class ClientConsumer(contextlib.AsyncExitStack):
+    # whether or not this consumer needs to be run at initialization
+    initialization = False
 
     def __init__(self):
         super().__init__()

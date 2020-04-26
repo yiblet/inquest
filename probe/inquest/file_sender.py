@@ -19,9 +19,9 @@ class FileSender(contextlib.AsyncExitStack):
         self.session = await self.enter_async_context(aiohttp.ClientSession())
         return self
 
-    async def send_file(self, filename: str) -> Dict:
+    async def send_file(self, relative_name: str, filename: str) -> Dict:
         LOGGER.debug("sending file %s", filename)
-        data = {'data': open(filename, 'rb')}
+        data = {relative_name: open(filename, 'rb')}
         async with self.session.post(self.url, data=data) as resp:
             resp: aiohttp.ClientResponse = resp
             if resp.status != 200:

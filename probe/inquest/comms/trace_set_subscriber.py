@@ -6,7 +6,7 @@ from gql import gql
 from inquest.comms.client_consumer import ClientConsumer
 from inquest.comms.utils import log_result
 from inquest.hotpatch import TraceException
-from inquest.probe import Probe
+from inquest.probe import FunctionResolutionException, Probe, TraceSetException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -53,18 +53,32 @@ mutation TraceFailureMutation($message: String!, $traceId: String!) {
         log_result(LOGGER, result)
 
     async def update_state(self, desired_set):
-        errors = self.probe.new_desired_state(desired_set)
-        if errors is not None:
-            for (module, function), error in errors.items():
-                if isinstance(error, TraceException):
-                    await self._send_exception(error)
-                else:
-                    LOGGER.error(
-                        'error in %s:%s %s',
-                        module,
-                        function,
-                        error,
-                    )
+        try:
+            self.probe.new_desired_state(desired_set)
+        except Exception as errors:
+            if isinstance(errors, TraceSetException):
+                errors: TraceSetException = errors
+                for (module, function), error in errors.data.items():
+                    if isinstance(error, TraceException):
+                        await self._send_exception(error)
+                        LOGGER.warning("failed to add trace %s" % error)
+                    else:
+                        LOGGER.error(
+                            'error in %s:%s %s',
+                            module,
+                            function,
+                            error,
+                        )
+            elif isinstance(errors, FunctionResolutionException):
+                errors: FunctionResolutionException = errors
+                exc = TraceException(errors.trace_id, errors.exception)
+                await self._send_exception(exc)
+                LOGGER.warning("failed to resolve function %s" % exc)
+            else:
+                LOGGER.error(
+                    'unexpected in %s',
+                    errors,
+                )
 
     async def _send_initial(self):
         query = gql(
@@ -77,7 +91,7 @@ query InitialProbeInfo {
         id
         function {
           name
-          module {
+          file {
             name
           }
         }
@@ -108,7 +122,7 @@ subscription probeNotification {
         id
         function {
           name
-          module {
+          file {
             name
           }
         }

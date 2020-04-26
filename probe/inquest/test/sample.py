@@ -36,7 +36,6 @@ class TestClass():
         pass
 
 
-
 @functools.lru_cache()
 class TestClassWithDecorator():
 

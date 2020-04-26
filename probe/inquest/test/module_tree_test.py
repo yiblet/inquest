@@ -4,15 +4,15 @@ from ..module_tree import ModuleTree
 
 
 def test_on_probe_test_module():
-    tree = ModuleTree(__file__)
-    files = {file.name for file in tree.modules()}
+    tree = ModuleTree(*os.path.split(__file__))
+    files = {file.absolute_name for file in tree.modules()}
     assert __file__ in files
 
 
 def test_on_sample_module():
     sample = os.path.join(os.path.dirname(__file__), "sample.py")
-    tree = ModuleTree(sample)
-    files = {file.name: file for file in tree.modules()}
+    tree = ModuleTree(os.path.dirname(__file__), "sample.py")
+    files = {file.absolute_name: file for file in tree.modules()}
     assert sample in files
     assert set(func.name for func in files[sample].functions) == {
         'async_sample_with_decorator', 'sample', 'sample_with_decorator',

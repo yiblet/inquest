@@ -49,8 +49,8 @@ def convert_relative_import_to_absolute_import(
 
 @lru_cache(maxsize=128, typed=True)
 def _retrieve_module(
-        module_name: str,
-        package: str,
+    module_name: str,
+    package: str,
 ) -> types.ModuleType:
     '''
     resolves modules relative to packages
@@ -74,9 +74,9 @@ def _retrieve_module(
 
 @lru_cache(maxsize=512, typed=True)
 def _retrieve_function_or_method(
-        path: str,
-        module: types.ModuleType,
-        package: str,
+    path: str,
+    module: types.ModuleType,
+    package: str,
 ) -> Union[types.FunctionType, types.MethodType]:
     '''
     resolves function names or method names inside modules
@@ -108,9 +108,9 @@ def _retrieve_function_or_method(
 # by separating out _embed_function from embed_in_function we are now
 # able to test the crux of finding the right function's logic more thoroughly
 def get_function_in_module(
-        path: str,
-        package: str,
-        stack_depth: int = 1,
+    path: str,
+    package: str,
+    stack_depth: int = 1,
 ) -> Union[types.FunctionType, types.MethodType]:
     '''
     @param path: has format '<module_path>:<function_name>'
@@ -147,10 +147,10 @@ def get_function_in_module(
 
 
 def embed_in_function(
-        path: str,
-        fstring: str,
-        package: Optional[str] = None,
-        old_code: Optional[types.CodeType] = None,
+    path: str,
+    fstring: str,
+    package: Optional[str] = None,
+    old_code: Optional[types.CodeType] = None,
 ) -> types.CodeType:
     '''
     embeds a log statment at the path
@@ -171,8 +171,8 @@ def embed_in_function(
 
 
 def _generate_print_instruction(
-        load_arguments: List[Instr],
-        num_arguments: int = 1,
+    load_arguments: List[Instr],
+    num_arguments: int = 1,
 ) -> List[Instr]:
     '''
     @param load_arguments: the list of instructions to load the arguments in
@@ -193,9 +193,9 @@ def _generate_print_instruction(
 
 
 def _generate_instructions(
-        code: types.CodeType,
-        fstring: str,
-        trace_id: Optional[str] = None
+    code: types.CodeType,
+    fstring: str,
+    trace_id: Optional[str] = None
 ) -> List[Instr]:
     try:
         segments: List[Segment] = parse_fstring(fstring)
@@ -247,9 +247,9 @@ def embed_fstring(code: types.CodeType, fstring: str) -> types.CodeType:
 
 # TODO when one trace fails this will block all other traces of that line
 def embed_fstrings(
-        code: types.CodeType,
-        fstrings: List[str],
-        trace_ids: Optional[List[str]] = None
+    code: types.CodeType,
+    fstrings: List[str],
+    trace_ids: Optional[List[str]] = None
 ) -> types.CodeType:
     '''
     @param code: the code object to be modified

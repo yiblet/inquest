@@ -16,7 +16,7 @@ def work(value):
 
 def main():
     try:
-        enable()
+        enable(root="..", glob=["examples/**/*.py", "inquest/**/*.py"])
         LOGGER.info("starting the main loop")
         value = 0
         while True:

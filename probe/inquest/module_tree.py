@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import glob
+import os
 import types
 from dataclasses import dataclass
 from typing import List, Optional, Union
@@ -22,20 +23,19 @@ class ParsedAST:
 @dataclass
 class FileInfo(ParsedAST):
     name: str
+    absolute_name: str
     lines: int
     functions: List[FunctionInfo]
     classes: List[ClassInfo]
 
     def encode(self):
         return {
-            "name": self.name,
-            "lines": self.lines,
             "functions": [function.encode() for function in self.functions],
             "classes": [classObj.encode() for classObj in self.classes]
         }
 
     @staticmethod
-    def parse(ast_node: ast.Module, name: str, lines: int):
+    def parse(ast_node: ast.Module, name: str, absolute_name: str, lines: int):
         functions: List[Union[ast.FunctionDef, ast.AsyncFunctionDef]] = [
             FunctionInfo.parse(statement)
             for statement in ast_node.body
@@ -50,6 +50,7 @@ class FileInfo(ParsedAST):
         return FileInfo(
             name=name,
             lines=lines,
+            absolute_name=absolute_name,
             functions=functions,
             classes=classes,
         )
@@ -103,15 +104,35 @@ class ClassInfo(ParsedAST):
 
 class ModuleTree:
 
-    def __init__(self, glob_str: str, exclude: Optional[List[str]] = None):
+    def __init__(
+        self,
+        root_dir: str,
+        glob_str: Union[str, List[str]],
+        exclude: Optional[List[str]] = None
+    ):
+        self.root_dir = root_dir
         self.glob = glob_str
         self.exclude = exclude if exclude is not None else []
 
     def files(self):
-        files = set(glob.glob(self.glob, recursive=True))
+
+        if isinstance(self.glob, list):
+            files = set()
+            for glob_str in self.glob:
+                files.update(
+                    glob.glob(
+                        os.path.join(self.root_dir, glob_str), recursive=True
+                    )
+                )
+        else:
+            files = set(
+                glob.glob(
+                    os.path.join(self.root_dir, self.glob), recursive=True
+                )
+            )
         excludes = set()
         for exc in self.exclude:
-            excludes += set(glob.glob(exc, recursive=True))
+            excludes += set(glob.glob(os.path.join(exc), recursive=True))
         return sorted(
             file for file in (files - excludes) if file.endswith('.py')
         )
@@ -123,4 +144,9 @@ class ModuleTree:
                     opened_file.read(),
                     file,
                 )
-            yield FileInfo.parse(ast_node, file, len(file.splitlines()))
+            yield FileInfo.parse(
+                ast_node,
+                file[len(self.root_dir) + 1:],
+                file,
+                len(file.splitlines()),
+            )

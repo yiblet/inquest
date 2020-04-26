@@ -1,14 +1,13 @@
 import contextlib
 import logging
+import sys
 import types
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import pandas as pd
 
-from inquest.hotpatch import (
-    convert_relative_import_to_absolute_import, embed_fstrings,
-    get_function_in_module
-)
+from inquest.file_module_resolver import FileModuleResolver
+from inquest.hotpatch import embed_fstrings, get_function_in_module
 
 LOGGER = logging.getLogger(__name__)
 
@@ -33,6 +32,21 @@ TRACE_WITH_ERROR_COLUMNS = [
 ]
 
 
+class FunctionResolutionException(Exception):
+
+    def __init__(self, trace_id: str, message: str):
+        super().__init__(trace_id, message)
+        self.trace_id = trace_id
+        self.exception = message
+
+
+class TraceSetException(Exception):
+
+    def __init__(self, data: Dict):
+        self.data = data
+        super().__init__(data)
+
+
 class DiffResult(NamedTuple):
     to_be_removed: pd.DataFrame
     to_be_added: pd.DataFrame
@@ -45,8 +59,8 @@ def group_by_location(trace_df: pd.DataFrame):
 
 
 def diff_desired_set(
-        trace_df: pd.DataFrame,
-        desired_set_df: pd.DataFrame,
+    trace_df: pd.DataFrame,
+    desired_set_df: pd.DataFrame,
 ) -> DiffResult:
     merged = pd.merge(
         trace_df,
@@ -86,12 +100,15 @@ class Probe(contextlib.ExitStack):
     traces: pd.DataFrame
     code: Dict[FunctionPath, types.CodeType]
 
-    def __init__(self, package: str):
+    def __init__(self, root: str, package: str):
         super().__init__()
         self.package = package
         self.traces = pd.DataFrame(
             [],
             columns=TRACE_WITH_ERROR_COLUMNS,
+        )
+        self.module_resolver: FileModuleResolver = FileModuleResolver(
+            package, root
         )
         self.code = {}
 
@@ -118,34 +135,44 @@ class Probe(contextlib.ExitStack):
                   a dict mapping (function, module) to Exception is returned
         TODO make the error dict point directly to the problematic trace id
         '''
+        new_desired_set = []
+        for trace in desired_set:
+            trace_id = trace['id']
+            function_name = trace['function']['name']
+            try:
+                module = self.module_resolver.convert_filename_to_modulename(
+                    trace['function']['file']['name']
+                )
+            except Exception as exc:
+                raise FunctionResolutionException(trace_id, exc)
 
-        # converts module path to absolute path in order to ensure that
-        # there is only one way to point to the same function
-        # TODO fix this bug a different way
-        # TODO this fails when users make trace statements to the same
-        #      function which was re-exported in 2 different paths
-        desired_set = [
-            {
-                "id":
-                    trace["id"],
-                "function":
-                    trace["function"]['name'],
-                "statement":
-                    trace['statement'],
-                "module":
-                    convert_relative_import_to_absolute_import(
-                        trace['function']['module']['name'],
-                        self.package,
-                        add_level=True,
-                    )
-            } for trace in desired_set
-        ]
+            value = getattr(
+                sys.modules[module],
+                function_name,
+                None,
+            )
+            if value is None:
+                raise FunctionResolutionException(
+                    trace_id, Exception('could not find function')
+                )
 
+            new_desired_set.append(
+                {
+                    "id": trace_id,
+                    "function": function_name,
+                    "statement": trace['statement'],
+                    "module": module,
+                }
+            )
+
+        desired_set = new_desired_set
+
+        LOGGER.debug('input desired_set %s', desired_set)
         traces, final_code, errors = self._add_desired_set(desired_set)
-        LOGGER.debug('desired_set %s', list(traces.id))
+        LOGGER.debug('final desired_set %s', list(traces.id))
 
         if errors != {}:
-            return errors
+            raise TraceSetException(errors)
 
         # TODO figure out where to send errors when this fails
         # only after ensuring there are no errors at all do we set code objects
@@ -156,7 +183,6 @@ class Probe(contextlib.ExitStack):
             )
             function_obj.__code__ = code
         self.traces = traces
-        return None
 
     def _add_desired_set(self, desired_set: List[Dict[str, str]]):
         '''

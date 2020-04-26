@@ -25,7 +25,7 @@ class ClientProvider(contextlib.AsyncExitStack):
     ):
         super().__init__()
         self.url = url
-        self.consumers = consumers
+        self.consumers: List[ClientConsumer] = consumers
         self.headers = copy.copy(headers) if headers is not None else dict()
         self.trace_set_key = trace_set_key
         self.client = None
@@ -87,4 +87,20 @@ mutation NewProbeMutation($traceSetKey: String!) {
         return self
 
     async def main(self):
-        await asyncio.gather(*[consumer.main() for consumer in self.consumers])
+        # first run and complete the initialization consumers
+        await asyncio.gather(
+            *[
+                consumer.main()
+                for consumer in self.consumers
+                if consumer.initialization
+            ]
+        )
+
+        # then run and complete the main consumers
+        await asyncio.gather(
+            *[
+                consumer.main()
+                for consumer in self.consumers
+                if not consumer.initialization
+            ]
+        )

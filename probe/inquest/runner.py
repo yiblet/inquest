@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import logging
 import threading
-from typing import Optional
+from typing import List, Optional, Union
 
 from inquest.comms.client_provider import ClientProvider
 from inquest.comms.heartbeat import Heartbeat
@@ -32,16 +32,21 @@ class ProbeRunner(threading.Thread):
 
     def __init__(
         self,
+        root: str,
         package: str,
         trace_set_key: str,
-        send_modules: bool,
+        glob: Optional[Union[str, List[str]]],
+        exclude: Optional[List[str]],
     ):
         super().__init__()
         self.package = package
         self.trace_set_key = trace_set_key
-        self.send_modules = send_modules
+        self.send_modules = glob is not None
         self.endpoint = "localhost:4000"
-        self.probe = Probe(package)
+        self.root = root
+        self.probe = Probe(root, package)
+        self.glob = glob
+        self.exclude = exclude
 
     def client_consumers(self):
         consumers = [
@@ -58,7 +63,10 @@ class ProbeRunner(threading.Thread):
             consumers.append(
                 ModuleSender(
                     url=f'http://{self.endpoint}/upload',
+                    root=self.root,
                     package=self.package,
+                    glob=self.glob,
+                    exclude=self.exclude,
                 )
             )
         return consumers
@@ -71,10 +79,11 @@ class ProbeRunner(threading.Thread):
 
     async def _run_async(self):
         url = f'ws://{self.endpoint}/graphql'
+        consumers = self.client_consumers()
         async with ClientProvider(
                 trace_set_key=self.trace_set_key,
                 url=url,
-                consumers=self.client_consumers(),
+                consumers=consumers,
         ) as provider:
             await provider.main()
 
@@ -83,8 +92,12 @@ class ProbeRunner(threading.Thread):
 # TODO pass the send_modules value in as an argument
 # TODO make it possible to pass in an endpoint url
 def enable(
-        daemon: bool = True,
-        package: Optional[str] = None,
+    *,
+    root: str,
+    glob: Optional[Union[str, List[str]]] = None,
+    daemon: bool = True,
+    package: Optional[str] = None,
+    exclude: Optional[List[str]] = None,
 ) -> None:
     '''
     runs the probe in a separate thread
@@ -94,7 +107,7 @@ def enable(
         frame = inspect.stack()[1]
         mod = inspect.getmodule(frame[0])
         package = mod.__name__
-    probe = ProbeRunner(package, "default", True)
+    probe = ProbeRunner(root, package, "default", glob, exclude)
     probe.setName('inquest probe')
     probe.setDaemon(daemon)
     probe.start()
