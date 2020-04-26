@@ -1,74 +1,43 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import {
-    CodeParser,
-    FunctionPosition,
-    ClassPosition,
-} from "../../utils/code_parser";
 import * as monacoEditor from "monaco-editor/esm/vs/editor/editor.api";
 const MonacoEditor = dynamic(import("react-monaco-editor"), { ssr: false });
 import { ExistingTrace, Editor } from "./utils";
-import { Marker, MarkerProps } from "./marker";
+import { Marker } from "./marker";
 import { createLogger } from "../../utils/logger";
 import { Traces } from "./traces";
 import { debounce } from "../../utils/debounce";
-import { ImmMap, List } from "../../utils/collections";
+import { List } from "../../utils/collections";
+import { FunctionFragment } from "../../generated/FunctionFragment";
+import { CodeViewFragment } from "../../generated/CodeViewFragment";
 
 const logger = createLogger(["CodeView"]);
 
 export type CodeViewProps = {
-    code: string;
-    traces: List<ExistingTrace>;
+    fragment: CodeViewFragment;
     onEdit: (trace: ExistingTrace, traceStatement: string) => any;
     onDelete: (trace: ExistingTrace) => any;
-    onCreate: (funcName: string, traceStatement: string) => any;
+    onCreate: (func: FunctionFragment, traceStatement: string) => any;
 };
 
-export type CodeViewState = {
-    position: Position | null;
-    functions: FunctionPosition[];
-    classes: ClassPosition[];
-    decorations: string[];
-    markers?: ImmMap<number, MarkerProps>;
-};
-
-function constructLineMarkers(
-    traces: List<ExistingTrace>,
-    functions: FunctionPosition[],
-    classes: ClassPosition[]
-) {
-    const tracesMap: Map<string, List<ExistingTrace>> = traces.reduce(
-        (map: Map<string, List<ExistingTrace>>, trace) => {
-            map.set(
-                trace.funcName,
-                map.get(trace.funcName)?.push(trace) ?? List([trace])
-            );
-            return map;
-        },
-        new Map()
-    );
-
+function constructLineMarkers(fragment: CodeViewFragment) {
     return List(
         [
-            ...classes.flatMap((cls) =>
+            ...fragment.classes.flatMap((cls) =>
                 cls.methods.map((method) => ({
                     ...method,
                     name: method.name,
                 }))
             ),
-            ...functions,
-        ].map((func) => ({
+            ...fragment.functions,
+        ].map((func: FunctionFragment) => ({
             range: new monacoEditor.Range(func.line, 1, func.line, 1),
-            line: func.line,
-            name: func.name,
-            traces: tracesMap.get(func.name) ?? List<ExistingTrace>(),
+            func: func,
             options: {
                 isWholeLine: true,
                 className:
-                    (tracesMap
-                        .get(func.name)
-                        ?.flatMap((traces) => traces.currentFailures)?.size ||
-                        0) === 0
+                    func.traces.flatMap((traces) => traces.currentFailures)
+                        .length === 0
                         ? "bg-green-300"
                         : "bg-yellow-400", // TODO make the background color based on hsla + change the color on mouseHover
             },
@@ -100,33 +69,22 @@ const editorDidMount = (
     };
 };
 
-type MarkerData = {
-    name: string;
-    line: number;
-    visible: boolean;
-    traces: List<ExistingTrace>;
-};
-
 export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
-    const { code, traces, onEdit, onDelete, onCreate } = props;
-    const [functions, classes] = useMemo(() => {
-        const parser = new CodeParser(code);
-        return [parser.findFunctions(), parser.findClasses()];
-    }, [code]);
-
+    const { fragment, onEdit, onDelete, onCreate } = props;
     const [editor, setEditor] = useState<Editor | null>(null);
 
-    logger.info(`traces: size=${traces.size}`);
+    logger.debug("rerender");
+
     const lineMarkers = useMemo(() => {
-        return constructLineMarkers(traces, functions, classes);
-    }, [constructLineMarkers, traces, functions, classes]);
+        return constructLineMarkers(fragment);
+    }, [constructLineMarkers, fragment]);
     useEffect(() => {
         if (!editor) return;
         const res = editor.deltaDecorations([], lineMarkers.toArray());
         return () => {
             editor.deltaDecorations(res, []);
         };
-    }, [code, editor, lineMarkers]);
+    }, [fragment.content, editor, lineMarkers]);
 
     const [visibleLine, setVisibleLine] = useState<number | null>(null);
 
@@ -140,40 +98,25 @@ export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
         [setEditor, setVisibleLine]
     );
 
-    const markers = useMemo(
-        () =>
-            lineMarkers.reduce(
-                (map, { line, name, traces }) =>
-                    map.set(line, {
-                        line,
-                        name,
-                        traces,
-                        visible: visibleLine !== null && visibleLine === line,
-                    }),
-                ImmMap<number, MarkerData>()
-            ),
-        [lineMarkers, visibleLine]
-    );
-
     let vals: React.ReactElement[] = [];
     if (editor)
-        vals = markers
+        vals = lineMarkers
             .valueSeq()
-            .map((marker) => {
+            .map(({ func }) => {
                 return (
                     <Marker
-                        key={`Trace:${marker.line}`}
-                        {...marker}
+                        key={`Trace:${func.line}`}
+                        name={func.id}
+                        line={func.line}
                         editor={editor}
+                        visible={visibleLine === func.line}
                     >
                         <Traces
-                            tag={`Trace:${marker.line}`}
-                            traces={marker.traces}
+                            tag={`Trace:${func.line}`}
+                            traces={List(func.traces)}
                             onDelete={onDelete}
                             onEdit={onEdit}
-                            onCreate={(statement) =>
-                                onCreate(marker.name, statement)
-                            }
+                            onCreate={(statement) => onCreate(func, statement)}
                         />
                     </Marker>
                 );
@@ -187,7 +130,7 @@ export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
                 height="100%"
                 language="python"
                 theme="vs-light"
-                value={code}
+                value={fragment.content}
                 options={{
                     minimap: {
                         enabled: false,

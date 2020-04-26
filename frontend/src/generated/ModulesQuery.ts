@@ -7,35 +7,29 @@
 // GraphQL query operation: ModulesQuery
 // ====================================================
 
-export interface ModulesQuery_rootModules_file {
-  __typename: "File";
+export interface ModulesQuery_rootDirectory_files_classes {
+  __typename: "ClassInfo";
+  name: string;
+}
+
+export interface ModulesQuery_rootDirectory_files_functions {
+  __typename: "FunctionInfo";
+  name: string;
+}
+
+export interface ModulesQuery_rootDirectory_files {
+  __typename: "FileInfo";
   id: string;
+  name: string;
+  classes: ModulesQuery_rootDirectory_files_classes[];
+  functions: ModulesQuery_rootDirectory_files_functions[];
 }
 
-export interface ModulesQuery_rootModules_subModules {
-  __typename: "Module";
-  name: string;
-}
-
-export interface ModulesQuery_rootModules_childClasses {
-  __typename: "Class";
-  name: string;
-}
-
-export interface ModulesQuery_rootModules_childFunctions {
-  __typename: "Function";
-  name: string;
-}
-
-export interface ModulesQuery_rootModules {
-  __typename: "Module";
-  name: string;
-  file: ModulesQuery_rootModules_file;
-  subModules: ModulesQuery_rootModules_subModules[];
-  childClasses: ModulesQuery_rootModules_childClasses[];
-  childFunctions: ModulesQuery_rootModules_childFunctions[];
+export interface ModulesQuery_rootDirectory {
+  __typename: "DirectoryInfo";
+  files: ModulesQuery_rootDirectory_files[];
 }
 
 export interface ModulesQuery {
-  rootModules: ModulesQuery_rootModules[];
+  rootDirectory: ModulesQuery_rootDirectory;
 }

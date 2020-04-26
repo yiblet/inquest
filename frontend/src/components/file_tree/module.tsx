@@ -1,43 +1,60 @@
 import React from "react";
 import gql from "graphql-tag";
-import { ModuleFragment } from "../../generated/ModuleFragment";
+import { DirectoryFragment } from "../../generated/DirectoryFragment";
+import { FileFragment } from "../../generated/FileFragment";
+import { SubdirectoryFragment } from "../../generated/SubdirectoryFragment";
 
-function removeNulls<T>(arr: (T | null | undefined)[]): T[] {
-    return arr.filter((val) => val !== null && val !== undefined) as T[];
-}
+export const FILE_FRAGMENT = gql`
+    fragment FileFragment on FileInfo {
+        id
+        name
+        classes {
+            name
+        }
+        functions {
+            name
+        }
+    }
+`;
 
 export type ModuleProps = {
-    line: React.ComponentType<{ id: string; text: string }>;
-} & ModuleFragment;
+    file: React.ComponentType<{ fragment: FileFragment }>;
+    subdirectory: React.ComponentType<{ fragment: SubdirectoryFragment }>;
+    fragment: DirectoryFragment;
+};
 
 export function Module(props: ModuleProps) {
-    const Line = props.line;
     return (
-        <div>
-            <Line text={props.name} id={props.file.id} />
-            <div className="pl-4">
-                {removeNulls(props.subModules).map((mod) => (
-                    <Line text={mod.name} id={mod.name} key={mod.name} />
-                ))}
-            </div>
+        <div className="pl-2">
+            {props.fragment.subDirectories.map((subdirectory) => (
+                <props.subdirectory
+                    fragment={subdirectory}
+                    key={subdirectory.id}
+                />
+            ))}
+            {props.fragment.files.map((file) => (
+                <props.file fragment={file} key={file.id} />
+            ))}
         </div>
     );
 }
 
-Module.fragment = gql`
-    fragment ModuleFragment on Module {
+export const SUBDIRECTORY_FRAGMENT = gql`
+    fragment SubdirectoryFragment on DirectoryInfo {
+        id
         name
-        file {
+    }
+`;
+
+export const DIRECTORY_FRAGMENT = gql`
+    fragment DirectoryFragment on DirectoryInfo {
+        subDirectories {
             id
-        }
-        subModules {
             name
         }
-        childClasses {
-            name
-        }
-        childFunctions {
-            name
+        files {
+            ...FileFragment
         }
     }
+    ${FILE_FRAGMENT}
 `;

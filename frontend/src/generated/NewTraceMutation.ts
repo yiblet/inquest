@@ -26,8 +26,7 @@ export interface NewTraceMutation {
 }
 
 export interface NewTraceMutationVariables {
-  module: string;
-  function: string;
+  functionId: string;
   statement: string;
   key: string;
 }

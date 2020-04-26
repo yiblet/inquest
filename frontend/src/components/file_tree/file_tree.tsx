@@ -1,41 +1,29 @@
 import React from "react";
-import { ModuleFragment } from "../../generated/ModuleFragment";
-import { Module } from "./module";
-import { partial } from "../../utils/partial";
+import { Module, ModuleProps } from "./module";
 
-type LineProps = {
-    id: string;
+export function Line({
+    text,
+    highlight,
+    onClick,
+}: {
     text: string;
-    onPick: (fileId: string) => any;
-    currentFileId: string | null;
-};
-
-function Line({ id, text, onPick, currentFileId }: LineProps) {
+    highlight?: boolean;
+    onClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => any;
+}) {
     let className = "hover:bg-gray-500 cursor-pointer";
-    if (currentFileId === id) className = className + " bg-gray-400";
+    if (highlight) className = className + " bg-gray-400";
     return (
-        <div className={className} onClick={(_) => onPick && onPick(id)}>
+        <div className={className} onClick={onClick}>
             {text}
         </div>
     );
 }
 
-export function FileTree({
-    onPick,
-    modules,
-    currentFileId,
-}: {
-    onPick: (fileId: string) => any;
-    currentFileId: string | null;
-    modules: ModuleFragment[];
-}) {
-    const line = partial(Line, { onPick, currentFileId });
+export function FileTree(props: ModuleProps) {
     return (
-        <>
+        <div>
             <div className="text-md font-semibold text-gray-800">Modules</div>
-            {modules.map((module) => (
-                <Module {...module} line={line} key={module.name} />
-            ))}
-        </>
+            <Module {...props} />
+        </div>
     );
 }

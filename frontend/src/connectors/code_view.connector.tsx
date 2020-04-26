@@ -10,7 +10,8 @@ import { NewTraceMutation } from "../generated/NewTraceMutation";
 import { UpdateTraceMutation } from "../generated/UpdateTraceMutation";
 import { DeleteTraceMutation } from "../generated/DeleteTraceMutation";
 import { createLogger } from "../utils/logger";
-import { List } from "immutable";
+import { FileFragment } from "../generated/FileFragment";
+import { FunctionFragment } from "../generated/FunctionFragment";
 
 const logger = createLogger(["CodeViewConnector"]);
 
@@ -26,45 +27,58 @@ const TRACE_FRAGMENT = gql`
     }
 `;
 
-const CODE_VIEW_QUERY = gql`
-    query CodeViewQuery($fileId: String!) {
-        file(fileId: $fileId) {
+const FUNCTION_FRAGMENT = gql`
+    fragment FunctionFragment on FunctionInfo {
+        id
+        line
+        name
+        traces {
+            ...TraceFragment
+        }
+    }
+
+    ${TRACE_FRAGMENT}
+`;
+
+const CODE_VIEW_FRAGMENT = gql`
+    fragment CodeViewFragment on FileInfo {
+        id
+        name
+        content
+        functions {
+            ...FunctionFragment
+        }
+        classes {
+            id
+            line
             name
-            content
-            module {
-                name
-                childFunctions {
-                    name
-                    traces {
-                        ...TraceFragment
-                    }
-                }
-                childClasses {
-                    name
-                    methods {
-                        name
-                        traces {
-                            ...TraceFragment
-                        }
-                    }
-                }
+            methods {
+                ...FunctionFragment
             }
         }
     }
-    ${TRACE_FRAGMENT}
+
+    ${FUNCTION_FRAGMENT}
+`;
+
+const CODE_VIEW_QUERY = gql`
+    query CodeViewQuery($fileId: String!) {
+        file(fileId: $fileId) {
+            ...CodeViewFragment
+        }
+    }
+    ${CODE_VIEW_FRAGMENT}
 `;
 
 const NEW_TRACE = gql`
     mutation NewTraceMutation(
-        $module: String!
-        $function: String!
+        $functionId: String!
         $statement: String!
         $key: String!
     ) {
         newTrace(
             newTraceInput: {
-                module: $module
-                function: $function
+                functionId: $functionId
                 statement: $statement
                 traceSetKey: $key
             }
@@ -103,40 +117,9 @@ const DELETE_TRACE = gql`
 `;
 
 /**
- * parseExistingTraces converts query data into the internal ExistingTrace representation
- */
-const parseExistingTraces = (
-    queryResult: CodeViewQuery
-): List<ExistingTrace> => {
-    if (!queryResult.file?.module)
-        throw new Error("couldn't find associated module");
-    const res = List([
-        ...queryResult.file.module.childFunctions.flatMap((func) =>
-            func.traces.map((trace) => {
-                return {
-                    ...trace,
-                    funcName: func.name,
-                };
-            })
-        ),
-        ...queryResult.file.module.childClasses.flatMap((childClass) =>
-            childClass.methods.flatMap((func) =>
-                func.traces.map((trace) => {
-                    return {
-                        ...trace,
-                        funcName: `${childClass.name}.${func.name}`,
-                    };
-                })
-            )
-        ),
-    ]);
-    return res;
-};
-
-/**
  * CodeViewConnector maps data from the graphql queries and mutations back into the CodeView
  */
-export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
+export const CodeViewConnector = ({ file }: { file?: FileFragment }) => {
     const emptyView = (
         <div
             className="w-full h-screen"
@@ -145,13 +128,13 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
             }}
         ></div>
     );
-    if (!fileId) {
+    if (!file) {
         return emptyView;
     }
     const { loading, error, data, refetch } = useQuery<CodeViewQuery>(
         CODE_VIEW_QUERY,
         {
-            variables: { fileId },
+            variables: { fileId: file.id },
             pollInterval: 2000,
         }
     );
@@ -168,17 +151,12 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
         throw new Error("failed to retrieve file information");
 
     const props: CodeViewProps = {
-        traces: parseExistingTraces(data),
-        code: data.file.content,
-        onCreate: async (funcName, traceStatement) => {
+        fragment: data.file,
+        onCreate: async (func: FunctionFragment, traceStatement) => {
             logger.debug("on create was called");
-            if (!data.file?.module?.name) {
-                throw new Error("cannot not find module name");
-            }
             const result = await newTrace({
                 variables: {
-                    module: data.file.module.name,
-                    function: funcName,
+                    functionId: func.id,
                     statement: traceStatement,
                     key: config.traceSet,
                 },
@@ -207,7 +185,6 @@ export const CodeViewConnector = ({ fileId }: { fileId?: string }) => {
         },
     };
 
-    logger.debug(`traces: size=${props.traces.size}`);
     return <CodeView {...props} />;
 };
 

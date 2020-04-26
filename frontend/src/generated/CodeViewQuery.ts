@@ -7,64 +7,65 @@
 // GraphQL query operation: CodeViewQuery
 // ====================================================
 
-export interface CodeViewQuery_file_module_childFunctions_traces_currentFailures {
+export interface CodeViewQuery_file_functions_traces_currentFailures {
   __typename: "TraceFailure";
   message: string;
 }
 
-export interface CodeViewQuery_file_module_childFunctions_traces {
+export interface CodeViewQuery_file_functions_traces {
   __typename: "Trace";
   id: string;
   statement: string;
   active: boolean;
   version: number;
-  currentFailures: CodeViewQuery_file_module_childFunctions_traces_currentFailures[];
+  currentFailures: CodeViewQuery_file_functions_traces_currentFailures[];
 }
 
-export interface CodeViewQuery_file_module_childFunctions {
-  __typename: "Function";
+export interface CodeViewQuery_file_functions {
+  __typename: "FunctionInfo";
+  id: string;
+  line: number;
   name: string;
-  traces: CodeViewQuery_file_module_childFunctions_traces[];
+  traces: CodeViewQuery_file_functions_traces[];
 }
 
-export interface CodeViewQuery_file_module_childClasses_methods_traces_currentFailures {
+export interface CodeViewQuery_file_classes_methods_traces_currentFailures {
   __typename: "TraceFailure";
   message: string;
 }
 
-export interface CodeViewQuery_file_module_childClasses_methods_traces {
+export interface CodeViewQuery_file_classes_methods_traces {
   __typename: "Trace";
   id: string;
   statement: string;
   active: boolean;
   version: number;
-  currentFailures: CodeViewQuery_file_module_childClasses_methods_traces_currentFailures[];
+  currentFailures: CodeViewQuery_file_classes_methods_traces_currentFailures[];
 }
 
-export interface CodeViewQuery_file_module_childClasses_methods {
-  __typename: "Function";
+export interface CodeViewQuery_file_classes_methods {
+  __typename: "FunctionInfo";
+  id: string;
+  line: number;
   name: string;
-  traces: CodeViewQuery_file_module_childClasses_methods_traces[];
+  traces: CodeViewQuery_file_classes_methods_traces[];
 }
 
-export interface CodeViewQuery_file_module_childClasses {
-  __typename: "Class";
+export interface CodeViewQuery_file_classes {
+  __typename: "ClassInfo";
+  id: string;
+  line: number;
   name: string;
-  methods: CodeViewQuery_file_module_childClasses_methods[];
-}
-
-export interface CodeViewQuery_file_module {
-  __typename: "Module";
-  name: string;
-  childFunctions: CodeViewQuery_file_module_childFunctions[];
-  childClasses: CodeViewQuery_file_module_childClasses[];
+  methods: CodeViewQuery_file_classes_methods[];
 }
 
 export interface CodeViewQuery_file {
-  __typename: "File";
+  __typename: "FileInfo";
+  id: string;
   name: string;
   content: string;
-  module: CodeViewQuery_file_module | null;
+  functions: CodeViewQuery_file_functions[];
+  classes: CodeViewQuery_file_classes[];
 }
 
 export interface CodeViewQuery {

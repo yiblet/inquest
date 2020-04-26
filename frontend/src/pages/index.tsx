@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { createApolloClient } from "../utils/apollo_client";
 import { ApolloProvider, useQuery } from "@apollo/client";
 import gql from "graphql-tag";
-import { ModulesQuery } from "../generated/ModulesQuery";
-import { FileTree } from "../components/file_tree/file_tree";
-import { Module } from "../components/file_tree/module";
 import dynamic from "next/dynamic";
 import { CodeViewConnectorProps } from "../connectors/code_view.connector";
 import { LiveTailConnector } from "../connectors/live_tail.connector";
 import { LiveProbesQuery } from "../generated/LiveProbesQuery";
+import { FileFragment } from "../generated/FileFragment";
+import { FileTreeConnector } from "../components/file_tree.connector";
 
 const CodeViewConnector = dynamic<CodeViewConnectorProps>(
     import("../connectors/code_view.connector").then(
@@ -16,15 +15,6 @@ const CodeViewConnector = dynamic<CodeViewConnectorProps>(
     ),
     { ssr: false }
 );
-
-const MODULES_QUERY = gql`
-    query ModulesQuery {
-        rootModules {
-            ...ModuleFragment
-        }
-    }
-    ${Module.fragment}
-`;
 
 const LIVE_PROBES_QUERY = gql`
     query LiveProbesQuery {
@@ -69,34 +59,6 @@ const SideBar: React.FC<{}> = ({ children }) => {
     );
 };
 
-const FileTreeConnector = ({
-    onPick,
-    currentFileId,
-}: {
-    currentFileId: string | null;
-    onPick: (fileId: string) => void;
-}) => {
-    const [initalized, setInitialized] = useState(false);
-    const { loading, error, data } = useQuery<ModulesQuery>(MODULES_QUERY);
-    useEffect(() => {
-        if (!initalized && data && data.rootModules.length !== 0) {
-            onPick(data.rootModules[0].file.id);
-            setInitialized(true);
-        }
-    }, [initalized, data]);
-
-    if (loading) return <div></div>;
-    if (error) throw error;
-    if (!data) throw new Error("failed to retrieve data");
-    return (
-        <FileTree
-            onPick={onPick}
-            modules={data.rootModules}
-            currentFileId={currentFileId}
-        />
-    );
-};
-
 function withApollo<P>(Comp: React.ComponentType<P>): React.ComponentType<P> {
     return function WithApollo(props: P) {
         return (
@@ -108,16 +70,19 @@ function withApollo<P>(Comp: React.ComponentType<P>): React.ComponentType<P> {
 }
 
 function Index() {
-    const [fileId, setFileId] = useState<string | null>(null);
+    const [fileFragment, setFileFragment] = useState<FileFragment | null>(null);
     return (
         <div className="flex h-screen overflow-none">
             <SideBar>
                 <LiveProbesConnector />
-                <FileTreeConnector onPick={setFileId} currentFileId={fileId} />
+                <FileTreeConnector
+                    onPick={setFileFragment}
+                    currentFile={fileFragment}
+                />
             </SideBar>
             <div className="w-full h-full grid grid-cols-2">
                 <div>
-                    <CodeViewConnector fileId={fileId || undefined} />
+                    <CodeViewConnector file={fileFragment || undefined} />
                 </div>
                 <div className="overflow-auto">
                     <LiveTailConnector />
