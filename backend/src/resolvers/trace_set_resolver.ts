@@ -6,7 +6,7 @@ import {
     Arg,
     Query,
 } from "type-graphql";
-import { Repository, EntityManager } from "typeorm";
+import { Repository, EntityManager, Not, IsNull } from "typeorm";
 import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
 import { Trace, TraceSet } from "../entities";
 
@@ -26,6 +26,7 @@ export class TraceSetResolver {
         return await this.entityManager.find(Trace, {
             where: {
                 traceSetId: traceSet.id,
+                functionId: Not(IsNull()),
                 active: true,
             },
             order: {

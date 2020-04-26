@@ -9,6 +9,7 @@
         "incremental": true,
         "outDir": "./build",
         "sourceMap": true,
+        "lib": ["esnext"],
         "target": "es6",
         "strictNullChecks": true
     },

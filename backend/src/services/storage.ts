@@ -43,6 +43,11 @@ export class StorageService {
         return await this.client.putObject(config.storage.bucket, name, data);
     }
 
+    async remove(name: string) {
+        await this.start();
+        return await this.client.removeObject(config.storage.bucket, name);
+    }
+
     constructor() {
         this.client = new Client({
             ...config.storage.client,

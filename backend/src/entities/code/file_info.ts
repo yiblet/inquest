@@ -6,14 +6,24 @@ import {
     UpdateDateColumn,
     Index,
     Column,
+    ManyToOne,
 } from "typeorm";
+import { DirectoryInfo } from "./directory_info";
 
 /**
- * File
+ * FileInfo
+ * file information
+ *
+ * id: string
+ * required fields:
+ *  - name
+ *  - objectName
+ *
+ * TODO count the number of lines on each file
  */
 @Entity()
 @ObjectType()
-export class File {
+export class FileInfo {
     @Field({ nullable: false })
     @PrimaryGeneratedColumn("uuid")
     readonly id: string;
@@ -27,10 +37,20 @@ export class File {
     readonly updatedAt: Date;
 
     @Field({ nullable: false })
-    @Index()
+    @Index({ unique: true })
     @Column()
     readonly name: string;
 
     @Column()
-    readonly objectName: string;
+    objectName: string;
+
+    @Field((type) => DirectoryInfo, { nullable: false })
+    @ManyToOne((type) => DirectoryInfo, {
+        nullable: false,
+        onDelete: "CASCADE",
+    })
+    parentDirectory: Promise<DirectoryInfo>;
+
+    @Column({ nullable: false })
+    parentDirectoryId: string;
 }

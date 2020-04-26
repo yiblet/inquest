@@ -1,96 +1,99 @@
-import { ModuleInput, CodeResolver } from "../code_resolver";
+import { CodeResolver, FileContentInput } from "../code_resolver";
 import { connectTypeOrm } from "../../connect";
 import { Container } from "typedi";
 import { EntityManager, getManager } from "typeorm";
 import { UploadService } from "../../services/upload";
-import { File, Module } from "../../entities";
+import { FileInfo } from "../../entities";
 import { plainToClass } from "class-transformer";
-import { assertNotNull } from "../../utils";
+import { FileResolver } from "../file_resolver";
+import { StorageService } from "../../services/storage";
+import { DirectoryInfoRepository } from "../../repositories/directory_info_repository";
 
 describe("setting up dummy file", () => {
     let manager: EntityManager;
-    let file: File;
+    let rootDirId: string;
     beforeAll(async () => {
         await connectTypeOrm();
         manager = getManager();
-        file = await manager.save(
-            manager.create(File, {
-                name: "test",
-                objectName: "test",
-            })
-        );
+        const dirRepo = manager.getCustomRepository(DirectoryInfoRepository);
+        rootDirId = (await dirRepo.genRootDir()).id;
     });
 
     it("should create a new module", async () => {
+        const file = await manager.save(
+            manager.create(FileInfo, {
+                name: "test1",
+                objectName: "test",
+                parentDirectoryId: rootDirId,
+            })
+        );
         const codeResolver = new CodeResolver(
             manager,
             Container.get(UploadService)
         );
 
-        const input = plainToClass(ModuleInput, {
-            childFunctions: [],
-            childClasses: [],
+        const input = plainToClass(FileContentInput, {
+            functions: [],
+            classes: [],
             fileId: file.id,
-            lines: 20,
-            name: "test_module",
         });
 
-        await expect(codeResolver.createModule(input)).resolves.toMatchObject({
-            name: "test_module",
-            fileId: file.id,
-            endLine: input.lines,
-        });
+        await expect(codeResolver.newFileContent(input)).resolves.toMatchObject(
+            {
+                id: file.id,
+                name: "test1",
+                objectName: "test",
+            }
+        );
     });
 
     it("should create a complex module", async () => {
+        const file = await manager.save(
+            manager.create(FileInfo, {
+                name: "test2",
+                objectName: "test",
+                parentDirectoryId: rootDirId,
+            })
+        );
         const codeResolver = new CodeResolver(
             manager,
             Container.get(UploadService)
         );
 
-        const input = plainToClass(ModuleInput, {
-            childFunctions: [
-                { name: "test_function", startLine: 3, endLine: 5 },
-                { name: "test_function2", startLine: 3, endLine: 5 },
+        const fileResolver = new FileResolver(
+            manager,
+            Container.get(StorageService)
+        );
+
+        const input = plainToClass(FileContentInput, {
+            functions: [
+                { name: "test_function", line: 3 },
+                { name: "test_function2", line: 3 },
             ],
-            childClasses: [
-                { name: "TestClass", startLine: 3, endLine: 5, methods: [] },
+            classes: [
+                { name: "TestClass", line: 3, methods: [] },
                 {
                     name: "TestClass",
-                    startLine: 3,
-                    endLine: 5,
-                    methods: [
-                        { name: "test_method", startLine: 4, endLine: 6 },
-                    ],
+                    line: 3,
+                    methods: [{ name: "test_method", line: 5 }],
                 },
             ],
             fileId: file.id,
-            lines: 20,
-            name: "test_module.test_module2",
-            parentModuleName: "test_module",
         });
 
-        const module = await codeResolver.createModule(input);
+        const module = await codeResolver.newFileContent(input);
         expect(module).toMatchObject({
-            name: "test_module.test_module2",
-            fileId: file.id,
-            endLine: input.lines,
+            id: file.id,
         });
 
-        await expect(module.childFunctions).resolves.toMatchObject([
-            { name: "test_function", startLine: 3, endLine: 5 },
-            { name: "test_function2", startLine: 3, endLine: 5 },
+        await expect(fileResolver.functions(file)).resolves.toMatchObject([
+            { name: "test_function", line: 3 },
+            { name: "test_function2", line: 3 },
         ]);
 
-        await expect(module.childClasses).resolves.toMatchObject([
-            { name: "TestClass", startLine: 3, endLine: 5 },
-            { name: "TestClass", startLine: 3, endLine: 5 },
+        await expect(fileResolver.classes(file)).resolves.toMatchObject([
+            { name: "TestClass", line: 3 },
+            { name: "TestClass", line: 3 },
         ]);
-
-        expect(
-            assertNotNull(
-                await manager.findOne(Module, { name: "test_module" })
-            )
-        ).toMatchObject(assertNotNull(await module.parentModule));
     });
 });

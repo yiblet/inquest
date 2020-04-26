@@ -34,10 +34,12 @@ lint-generated: build
 fix: fix-generated
 	@yarn fix
 
-fix-generated: SHELL:=/bin/bash
-fix-generated: build
+fix-python-generated:
 	python3 scripts/make_entities.py src/entities > src/entities/index.ts
 	python3 scripts/make_resolvers.py src/resolvers > src/resolvers/index.ts
+
+fix-generated: SHELL:=/bin/bash
+fix-generated: python-generated build
 	yarn run --silent schema:js > schema.graphql
 
 
@@ -80,7 +82,7 @@ push: build-prod
 version:
 	@echo $(TAG)
 
-.PHONY: clean image-clean build-prod push test build
+.PHONY: clean image-clean build-prod push test build python-generated
 
 clean:
 	rm -rf node_modules/

@@ -9,17 +9,16 @@ import {
     Probe,
     TraceSet,
     TraceLog,
-    Function,
-    File,
+    FunctionInfo,
+    FileInfo,
     Trace,
-    Module,
 } from "../../entities";
 import {
     createTestClient,
     ApolloServerTestClient,
 } from "apollo-server-testing";
 import gql from "graphql-tag";
-import { TraceResolver } from "../trace_resolver";
+import { DirectoryInfoRepository } from "../../repositories/directory_info_repository";
 
 const FIND_TRACE_SET = gql`
     query traceSetQuery($key: String!) {
@@ -39,24 +38,19 @@ export const NEW_TRACE_SET = gql`
 
 const NEW_TRACE = gql`
     mutation newTrace(
-        $module: String!
-        $function: String!
+        $functionId: String!
         $statement: String!
         $key: String!
     ) {
         newTrace(
             newTraceInput: {
-                module: $module
-                function: $function
+                functionId: $functionId
                 statement: $statement
                 traceSetKey: $key
             }
         ) {
             function {
                 name
-                module {
-                    name
-                }
             }
             statement
             traceSet {
@@ -70,74 +64,38 @@ describe("testing server", () => {
     let server: ApolloServer;
     let client: ApolloServerTestClient;
     let manager: EntityManager;
+    let func1: FunctionInfo;
+    let func2: FunctionInfo;
     beforeAll(async () => {
         Container.reset();
         server = await createSQLiteServer();
         client = createTestClient(server);
         manager = getManager();
+        const dirRepo = manager.getCustomRepository(DirectoryInfoRepository);
+        const rootDirId = (await dirRepo.genRootDir()).id;
 
         const file = await manager.save(
-            manager.create(File, {
+            manager.create(FileInfo, {
                 name: "test_file",
                 objectName: "test_object",
+                parentDirectoryId: rootDirId,
             })
         );
 
-        {
-            const module = await manager.save(
-                manager.create(Module, {
-                    name: "mod",
-                    startLine: 0,
-                    endLine: 100,
-                    fileId: file.id,
-                })
-            );
-
-            await manager.save(
-                manager.create(Function, {
-                    name: "func",
-                    moduleId: module.id,
-                    startLine: 4,
-                    endLine: 2,
-                    fileId: file.id,
-                })
-            );
-        }
-        {
-            const module = await manager.save(
-                manager.create(Module, {
-                    name: "mod2",
-                    startLine: 0,
-                    endLine: 100,
-                    fileId: file.id,
-                })
-            );
-
-            await manager.save(
-                manager.create(Function, {
-                    name: "func",
-                    moduleId: module.id,
-                    startLine: 4,
-                    endLine: 2,
-                    fileId: file.id,
-                })
-            );
-        }
-    });
-
-    it("should find function", async () => {
-        await expect(
-            manager.findOne(Module, { name: "mod" })
-        ).resolves.toMatchObject({});
-        await expect(
-            manager.findOne(Function, { name: "func" })
-        ).resolves.toMatchObject({});
-
-        await expect(
-            TraceResolver.findFunctionByName("mod", "func", manager)
-        ).resolves.toMatchObject({
-            name: "func",
-        });
+        func1 = await manager.save(
+            manager.create(FunctionInfo, {
+                name: "func1",
+                line: 4,
+                fileId: file.id,
+            })
+        );
+        func2 = await manager.save(
+            manager.create(FunctionInfo, {
+                name: "func2",
+                line: 4,
+                fileId: file.id,
+            })
+        );
     });
 
     afterAll(async () => {
@@ -210,8 +168,7 @@ describe("testing server", () => {
                 await client.mutate({
                     mutation: NEW_TRACE,
                     variables: {
-                        module: "mod",
-                        function: "func",
+                        functionId: func1.id,
                         statement: "statement",
                         key: "test_key",
                     },
@@ -220,10 +177,7 @@ describe("testing server", () => {
                 data: {
                     newTrace: {
                         function: {
-                            module: {
-                                name: "mod",
-                            },
-                            name: "func",
+                            name: "func1",
                         },
                         statement: "statement",
                     },
@@ -282,8 +236,7 @@ describe("testing server", () => {
                 await client.mutate({
                     mutation: NEW_TRACE,
                     variables: {
-                        module: "mod",
-                        function: "func",
+                        functionId: func1.id,
                         statement: "statement",
                         key: traceSet.key,
                     },
@@ -292,10 +245,7 @@ describe("testing server", () => {
                 data: {
                     newTrace: {
                         function: {
-                            module: {
-                                name: "mod",
-                            },
-                            name: "func",
+                            name: "func1",
                         },
                         statement: "statement",
                     },
@@ -344,15 +294,13 @@ describe("testing server", () => {
     describe("desired state tests", () => {
         const NEW_TRACE_WITH_DESIRED_STATE = gql`
             mutation newTrace(
-                $module: String!
-                $function: String!
+                $functionId: String!
                 $statement: String!
                 $key: String!
             ) {
                 newTrace(
                     newTraceInput: {
-                        module: $module
-                        function: $function
+                        functionId: $functionId
                         statement: $statement
                         traceSetKey: $key
                     }
@@ -360,9 +308,6 @@ describe("testing server", () => {
                     id
                     function {
                         name
-                        module {
-                            name
-                        }
                     }
                     statement
                     traceSet {
@@ -370,9 +315,6 @@ describe("testing server", () => {
                         desiredSet {
                             function {
                                 name
-                                module {
-                                    name
-                                }
                             }
                             statement
                         }
@@ -397,9 +339,6 @@ describe("testing server", () => {
                     id
                     function {
                         name
-                        module {
-                            name
-                        }
                     }
                     statement
                     traceSet {
@@ -407,9 +346,6 @@ describe("testing server", () => {
                         desiredSet {
                             function {
                                 name
-                                module {
-                                    name
-                                }
                             }
                             statement
                         }
@@ -424,9 +360,6 @@ describe("testing server", () => {
                     id
                     function {
                         name
-                        module {
-                            name
-                        }
                     }
                     statement
                     traceSet {
@@ -434,9 +367,6 @@ describe("testing server", () => {
                         desiredSet {
                             function {
                                 name
-                                module {
-                                    name
-                                }
                             }
                             statement
                         }
@@ -462,8 +392,7 @@ describe("testing server", () => {
             const mod1 = await client.mutate({
                 mutation: NEW_TRACE_WITH_DESIRED_STATE,
                 variables: {
-                    module: "mod",
-                    function: "func",
+                    functionId: func1.id,
                     statement: "statement",
                     key: KEY,
                 },
@@ -474,10 +403,7 @@ describe("testing server", () => {
                 data: {
                     newTrace: {
                         function: {
-                            module: {
-                                name: "mod",
-                            },
-                            name: "func",
+                            name: "func1",
                         },
                         statement: "statement",
                         traceSet: {
@@ -485,10 +411,7 @@ describe("testing server", () => {
                             desiredSet: [
                                 {
                                     function: {
-                                        module: {
-                                            name: "mod",
-                                        },
-                                        name: "func",
+                                        name: "func1",
                                     },
                                     statement: "statement",
                                 },
@@ -504,8 +427,7 @@ describe("testing server", () => {
             const mod2 = await client.mutate({
                 mutation: NEW_TRACE_WITH_DESIRED_STATE,
                 variables: {
-                    module: "mod2",
-                    function: "func",
+                    functionId: func2.id,
                     statement: "statement",
                     key: KEY,
                 },
@@ -516,10 +438,7 @@ describe("testing server", () => {
                 data: {
                     newTrace: {
                         function: {
-                            module: {
-                                name: "mod2",
-                            },
-                            name: "func",
+                            name: "func2",
                         },
                         statement: "statement",
                         traceSet: {
@@ -565,10 +484,7 @@ describe("testing server", () => {
                 data: {
                     updateTrace: {
                         function: {
-                            module: {
-                                name: "mod2",
-                            },
-                            name: "func",
+                            name: "func2",
                         },
                         statement: "statement",
                         traceSet: {
@@ -576,10 +492,7 @@ describe("testing server", () => {
                             desiredSet: [
                                 {
                                     function: {
-                                        module: {
-                                            name: "mod",
-                                        },
-                                        name: "func",
+                                        name: "func1",
                                     },
                                     statement: "statement",
                                 },
@@ -604,10 +517,7 @@ describe("testing server", () => {
                 data: {
                     updateTrace: {
                         function: {
-                            module: {
-                                name: "mod",
-                            },
-                            name: "func",
+                            name: "func1",
                         },
                         statement: "statements",
                         traceSet: {
@@ -615,10 +525,7 @@ describe("testing server", () => {
                             desiredSet: [
                                 {
                                     function: {
-                                        module: {
-                                            name: "mod",
-                                        },
-                                        name: "func",
+                                        name: "func1",
                                     },
                                     statement: "statements",
                                 },
@@ -635,7 +542,6 @@ describe("testing server", () => {
                 await client.mutate({
                     mutation: UPDATE_TRACE_WITH_DESIRED_STATE,
                     variables: {
-                        function: "func",
                         active: true,
                         id: mod2Id,
                     },
@@ -644,10 +550,7 @@ describe("testing server", () => {
                 data: {
                     updateTrace: {
                         function: {
-                            module: {
-                                name: "mod2",
-                            },
-                            name: "func",
+                            name: "func2",
                         },
                         statement: "statement",
                         traceSet: {
@@ -672,10 +575,7 @@ describe("testing server", () => {
                 data: {
                     deleteTrace: {
                         function: {
-                            module: {
-                                name: "mod2",
-                            },
-                            name: "func",
+                            name: "func2",
                         },
                         statement: "statement",
                         traceSet: {
@@ -705,7 +605,7 @@ describe("testing server", () => {
                 await client.mutate({
                     mutation: UPDATE_TRACE_WITH_DESIRED_STATE,
                     variables: {
-                        function: "func",
+                        statement: "func",
                         id: mod2Id,
                     },
                 })

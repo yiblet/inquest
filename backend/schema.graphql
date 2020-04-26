@@ -1,27 +1,25 @@
 type AbstractPythonNode {
+  id: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
-  startLine: Float!
-  endLine: Float!
-  file: File!
+  line: Int!
+  file: FileInfo!
 }
 
-type Class {
+type ClassInfo {
+  id: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
-  startLine: Float!
-  endLine: Float!
-  file: File!
-  methods: [Function!]!
-  module: Module!
+  line: Int!
+  file: FileInfo!
+  methods: [FunctionInfo!]!
 }
 
 input ClassInput {
   name: String!
-  startLine: Float!
-  endLine: Float!
+  line: Float!
   methods: [FunctionInput!]!
 }
 
@@ -30,59 +28,53 @@ The javascript `Date` as string. Type represents date and time as the ISO Date s
 """
 scalar DateTime
 
-type File {
+type DirectoryInfo {
   id: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
-  content: String!
-  module: Module
+  subDirectories: [DirectoryInfo!]!
+  parentDirectory: DirectoryInfo
+  files: [FileInfo!]!
 }
 
-type Function {
+input FileContentInput {
+  functions: [FunctionInput!]!
+  classes: [ClassInput!]!
+  fileId: String!
+}
+
+type FileInfo {
+  id: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
-  startLine: Float!
-  endLine: Float!
-  file: File!
-  parentClass: Class
-  module: Module
+  parentDirectory: DirectoryInfo!
+  content: String!
+  functions: [FunctionInfo!]!
+  classes: [ClassInfo!]!
+}
+
+type FunctionInfo {
+  id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  line: Int!
+  file: FileInfo!
+  parentClass: ClassInfo
   traces: [Trace!]!
+  isMethod: Boolean!
 }
 
 input FunctionInput {
   name: String!
-  startLine: Float!
-  endLine: Float!
+  line: Float!
   metadata: String
 }
 
-type Module {
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  name: String!
-  startLine: Float!
-  endLine: Float!
-  file: File!
-  childFunctions: [Function!]!
-  childClasses: [Class!]!
-  subModules: [Module!]!
-  parentModule: Module
-}
-
-input ModuleInput {
-  name: String!
-  childFunctions: [FunctionInput!]!
-  childClasses: [ClassInput!]!
-  parentModuleName: String
-  fileId: String!
-  lines: Float!
-}
-
 type Mutation {
-  fileUpload(file: Upload!): File!
-  createModule(module: ModuleInput!): Module!
+  newFileContent(fileInput: FileContentInput!): FileInfo!
   publishLog(content: String!): String!
   heartbeat: Probe!
   newProbe(traceSetKey: String!): Probe!
@@ -98,8 +90,7 @@ type Mutation {
 }
 
 input NewTraceInput {
-  module: String!
-  function: String!
+  functionId: String!
   statement: String!
   traceSetKey: String!
 }
@@ -111,6 +102,7 @@ type PasswordValidity {
 
 type Probe {
   lastHeartbeat: DateTime!
+  closed: Boolean!
   key: String!
   isAlive: Boolean!
   traceLogStatuses: [TraceLogStatus!]!
@@ -124,10 +116,11 @@ type ProbeNotification {
 }
 
 type Query {
-  rootModules: [Module!]!
-  module(name: String!): Module
-  file(fileId: String!): File
+  rootDirectory: DirectoryInfo!
+  directory(directoryId: String!): DirectoryInfo
+  file(name: String, fileId: String): FileInfo
   probe(key: String!): Probe
+  thisProbe: Probe
   recipe(recipeId: Int!): Recipe
   recipes: [Recipe!]!
 
@@ -171,8 +164,8 @@ type Trace {
   id: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  function: Function!
-  functionId: Float!
+  function: FunctionInfo
+  functionId: String
   statement: String!
   active: Boolean!
   version: Float!
@@ -242,9 +235,6 @@ input UpdateTraceInput {
   active: Boolean
   id: String!
 }
-
-"""The `Upload` scalar type represents a file upload."""
-scalar Upload
 
 type User {
   id: ID!

@@ -8,15 +8,17 @@ import {
     Column,
 } from "typeorm";
 
-import { File } from "./file";
+import { FileInfo } from "./file_info";
+import { GraphQLInt } from "graphql";
 
 /**
  * AbstractPythonNode
  */
 @ObjectType()
 export abstract class AbstractPythonNode {
-    @PrimaryGeneratedColumn()
-    readonly id: number;
+    @Field({ nullable: false })
+    @PrimaryGeneratedColumn("uuid")
+    readonly id: string;
 
     @Field({ nullable: false })
     @CreateDateColumn()
@@ -30,17 +32,13 @@ export abstract class AbstractPythonNode {
     @Column({ nullable: false })
     readonly name: string;
 
-    @Field({ nullable: false })
-    @Column({ nullable: false })
-    readonly startLine: number;
+    @Field((type) => GraphQLInt, { nullable: false })
+    @Column({ nullable: false, type: "int" })
+    readonly line: number;
 
-    @Field({ nullable: false })
-    @Column({ nullable: false })
-    readonly endLine: number;
-
-    @Field((type) => File, { nullable: false })
-    @ManyToOne((type) => File, { nullable: false })
-    file: Promise<File>;
+    @Field((type) => FileInfo, { nullable: false })
+    @ManyToOne((type) => FileInfo, { nullable: false, onDelete: "CASCADE" })
+    file: Promise<FileInfo>;
 
     @Index()
     @Column({ nullable: false })

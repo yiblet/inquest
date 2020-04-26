@@ -60,6 +60,7 @@
         "graphql": "^14.6.0",
         "graphql-tag": "^2.10.3",
         "graphql-upload": "^10.0.0",
+        "immutable": "^4.0.0-rc.12",
         "jsonwebtoken": "^8.5.1",
         "lint-staged": "^10.1.1",
         "lodash": "^4.17.15",

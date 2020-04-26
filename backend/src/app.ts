@@ -138,20 +138,25 @@ export async function createApp() {
             if (!req.files) {
                 throw new PublicError("must pass in file");
             }
-            const data = req.files.data;
 
-            if (Array.isArray(data)) {
-                if (data.length !== 1) {
-                    throw new PublicError("must pass in exactly one file");
+            for (const [encodedFilename, data] of Object.entries(req.files)) {
+                if (Array.isArray(data)) {
+                    if (data.length !== 1) {
+                        throw new PublicError("must pass in exactly one file");
+                    }
+                    file = data[0];
+                } else {
+                    file = data;
                 }
-                file = data[0];
-            } else {
-                file = data;
+                const fileResult = await uploadService.upload(
+                    decodeURIComponent(encodedFilename),
+                    file.data
+                );
+                res.status(200).send({
+                    fileId: fileResult.id,
+                });
+                break;
             }
-            const fileResult = await uploadService.upload(file.name, file.data);
-            res.status(200).send({
-                fileId: fileResult.id,
-            });
         })
     );
 

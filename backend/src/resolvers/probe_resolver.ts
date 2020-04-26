@@ -67,13 +67,16 @@ export class ProbeResolver {
     async heartbeat(@Ctx() context: Context): Promise<Probe> {
         const probe = retrieveProbe(context);
         probe.lastHeartbeat = new Date();
+        this.probeRepository.update(probe.id, {
+            lastHeartbeat: new Date(),
+        });
+        probe.traceSet = Promise.resolve(await probe.traceSet);
         return await this.probeRepository.save(probe);
     }
 
     @Mutation((returns) => Probe)
     async newProbe(@Arg("traceSetKey") key: string): Promise<Probe> {
         const traceSet = await this.traceSetRepository.findOne({
-            select: ["id"],
             where: {
                 key,
             },
@@ -81,12 +84,11 @@ export class ProbeResolver {
         if (traceSet == null) {
             throw new PublicError("could not find traceSet with given key");
         }
-        return await this.probeRepository.save(
-            this.probeRepository.create({
-                traceSetId: traceSet.id,
-                lastHeartbeat: new Date(),
-            })
-        );
+        const probe = this.probeRepository.create({
+            lastHeartbeat: new Date(),
+        });
+        probe.traceSet = Promise.resolve(traceSet);
+        return this.probeRepository.save(probe);
     }
 
     @Subscription((type) => ProbeNotification, {

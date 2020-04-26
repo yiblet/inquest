@@ -1,13 +1,12 @@
 import { Resolver, Query, Mutation, InputType, Arg, Field } from "type-graphql";
-import { EntityManager, DeepPartial, IsNull } from "typeorm";
+import { EntityManager } from "typeorm";
 import { Inject } from "typedi";
 import { InjectManager } from "typeorm-typedi-extensions";
 
-import { File, Module, Function, Class } from "../entities";
-import { GraphQLUpload, FileUpload } from "graphql-upload";
+import { FileInfo, FunctionInfo, DirectoryInfo, ClassInfo } from "../entities";
 import { UploadService } from "../services/upload";
-import { classToPlain } from "class-transformer";
-import { PublicError } from "../utils";
+import { PublicError, createTransaction } from "../utils";
+import { DirectoryInfoRepository } from "../repositories/directory_info_repository";
 
 @InputType({ isAbstract: true })
 abstract class NodeInput {
@@ -16,11 +15,9 @@ abstract class NodeInput {
 }
 
 @InputType({ isAbstract: true })
-class NodeInputWithLines extends NodeInput {
+abstract class NodeInputWithLines extends NodeInput {
     @Field({ nullable: false })
-    startLine: number;
-    @Field({ nullable: false })
-    endLine: number;
+    line: number;
 }
 
 @InputType()
@@ -36,131 +33,81 @@ export class ClassInput extends NodeInputWithLines {
 }
 
 @InputType() // introduces a bug with module names being unique
-export class ModuleInput extends NodeInput {
+export class FileContentInput {
     @Field((type) => [FunctionInput], { nullable: false })
-    childFunctions: FunctionInput[];
+    functions: FunctionInput[];
     @Field((type) => [ClassInput], { nullable: false })
-    childClasses: ClassInput[];
-    @Field({ nullable: true })
-    parentModuleName?: string;
+    classes: ClassInput[];
     @Field({ nullable: false })
     fileId: string;
-    @Field({ nullable: false })
-    lines: number;
 }
 
 @Resolver()
 export class CodeResolver {
+    private readonly directoryInfoRepository: DirectoryInfoRepository;
     constructor(
         @InjectManager()
         private readonly manager: EntityManager,
         @Inject((type) => UploadService)
         private readonly uploadService: UploadService
-    ) {}
-
-    @Mutation((_) => File, { nullable: false })
-    async fileUpload(@Arg("file", () => GraphQLUpload) fileUpload: FileUpload) {
-        return await this.uploadService.upload(
-            fileUpload.filename,
-            fileUpload.createReadStream()
+    ) {
+        this.directoryInfoRepository = manager.getCustomRepository(
+            DirectoryInfoRepository
         );
     }
 
-    @Query((type) => [Module], { nullable: false })
-    async rootModules(): Promise<Module[]> {
-        return await this.manager.find(Module, { parentModuleId: IsNull() });
+    @Query((type) => DirectoryInfo, { nullable: false })
+    async rootDirectory(): Promise<DirectoryInfo> {
+        return await this.directoryInfoRepository.genRootDir();
     }
 
-    @Query((type) => Module, { nullable: true })
-    async module(@Arg("name") name: string) {
-        return await this.manager.findOne(Module, { name: name });
+    @Query((type) => DirectoryInfo, { nullable: true })
+    async directory(
+        @Arg("directoryId") directoryId: string
+    ): Promise<DirectoryInfo | undefined> {
+        return await this.directoryInfoRepository.findOne(directoryId);
     }
 
-    static createFunction(
-        manager: EntityManager,
-        functionInput: FunctionInput,
-        extra: Partial<Function>
-    ): Function {
-        const functionPartial: DeepPartial<Function> = classToPlain(
-            functionInput
-        );
-        return manager.create(Function, { ...functionPartial, ...extra });
-    }
-
-    static async saveClass(
-        manager: EntityManager,
-        classInput: ClassInput,
-        extra: Partial<Class>
-    ): Promise<Class> {
-        const plain = classToPlain(classInput);
-        const classPartial: DeepPartial<Class> & typeof plain = {
-            ...plain,
-            ...extra,
-        };
-        const classObject = await manager.save(
-            manager.create(Class, classPartial)
-        );
-
-        classObject.methods = Promise.resolve(
-            await manager.save(
-                classInput.methods.map((input) =>
-                    CodeResolver.createFunction(manager, input, {
-                        fileId: classObject.fileId,
-                        parentClassId: classObject.id,
-                    })
-                )
-            )
-        );
-        return classObject;
-    }
-
-    @Mutation((_) => Module, { nullable: false })
-    async createModule(@Arg("module") module: ModuleInput): Promise<Module> {
-        return await this.manager.transaction(async (manager) => {
-            let parentModuleId: number | undefined = undefined;
-            if (module.parentModuleName) {
-                parentModuleId = (
-                    await manager.findOne(Module, {
-                        name: module.parentModuleName,
-                    })
-                )?.id;
-                if (parentModuleId == null) {
-                    throw new PublicError("parent module does not exist");
-                }
-            }
-            const file = await manager.findOne(File, module.fileId);
-            if (!file) throw new PublicError("could not find file");
-
-            const moduleObject: Module = await manager.save(
-                manager.create(Module, {
-                    name: module.name,
-                    startLine: 1,
-                    endLine: module.lines,
-                    fileId: file.id,
-                    parentModuleId,
-                })
-            );
-
-            await Promise.all([
-                Promise.all(
-                    module.childClasses.map((input) =>
-                        CodeResolver.saveClass(manager, input, {
+    @Mutation((type) => FileInfo, { nullable: false })
+    async newFileContent(@Arg("fileInput") fileInput: FileContentInput) {
+        return await createTransaction(this.manager, async (manager) => {
+            const file = await manager.findOne(FileInfo, fileInput.fileId);
+            if (file == null || file.id !== fileInput.fileId)
+                throw new PublicError("file not found");
+            const [classes] = await Promise.all([
+                manager.save(
+                    fileInput.classes.map((cls) =>
+                        manager.create(ClassInfo, {
+                            name: cls.name,
+                            line: cls.line,
                             fileId: file.id,
-                            moduleId: moduleObject.id,
                         })
                     )
                 ),
                 manager.save(
-                    module.childFunctions.map((input) =>
-                        CodeResolver.createFunction(manager, input, {
+                    fileInput.functions.map((func) =>
+                        manager.create(FunctionInfo, {
+                            name: func.name,
+                            line: func.line,
                             fileId: file.id,
-                            moduleId: moduleObject.id,
                         })
                     )
                 ),
             ]);
 
-            return moduleObject;
+            await manager.save(
+                classes.flatMap((cls, idx) =>
+                    fileInput.classes[idx].methods.map((func) =>
+                        manager.create(FunctionInfo, {
+                            name: func.name,
+                            line: func.line,
+                            fileId: file.id,
+                            parentClassId: cls.id,
+                        })
+                    )
+                )
+            );
+            return file;
         });
     }
 }

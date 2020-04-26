@@ -17,12 +17,12 @@ import {
     TraceLog,
     TraceSet,
     TraceLogStatus,
-    Function,
+    FunctionInfo,
     TraceFailure,
 } from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
 import { TraceLogRepository } from "../repositories/trace_log_repository";
-import { PublicError } from "../utils";
+import { PublicError, createTransaction } from "../utils";
 import { genProbeTopic } from "../topics";
 import { Context, retrieveProbe } from "../context";
 
@@ -41,10 +41,7 @@ class UpdateTraceInput {
 @InputType()
 class NewTraceInput {
     @Field({ nullable: false })
-    module: string;
-
-    @Field({ nullable: false })
-    function: string;
+    functionId: string;
 
     @Field({ nullable: false })
     statement: string;
@@ -107,7 +104,7 @@ export class TraceResolver {
         @Arg("message") message: string,
         @Ctx() context: Context
     ): Promise<TraceFailure> {
-        return await this.manager.transaction(async (manager) => {
+        return await createTransaction(this.manager, async (manager) => {
             const probe = retrieveProbe(context);
             const trace = await manager.getRepository(Trace).findOne({
                 where: { id: traceId },
@@ -132,7 +129,7 @@ export class TraceResolver {
         @Arg("traceId") traceId: string,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await this.manager.transaction(async (manager) => {
+        return await createTransaction(this.manager, async (manager) => {
             const traceRepository = manager.getRepository(Trace);
             let trace = await traceRepository.findOne({
                 where: { id: traceId },
@@ -165,7 +162,7 @@ export class TraceResolver {
         @Arg("updateTraceInput") updateTraceInput: UpdateTraceInput,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await this.manager.transaction(async (manager) => {
+        return await createTransaction(this.manager, async (manager) => {
             const traceRepository = manager.getRepository(Trace);
 
             let trace = await traceRepository.findOne({
@@ -211,7 +208,7 @@ export class TraceResolver {
         @Arg("newTraceInput") newTraceInput: NewTraceInput,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await this.manager.transaction(async (manager) => {
+        return await createTransaction(this.manager, async (manager) => {
             const traceRepository = manager.getRepository(Trace);
             const traceSetRepository = manager.getRepository(TraceSet);
 
@@ -223,10 +220,9 @@ export class TraceResolver {
                 throw new PublicError("could not find trace set");
             }
 
-            const func = await TraceResolver.findFunctionByName(
-                newTraceInput.module,
-                newTraceInput.function,
-                manager
+            const func = await this.manager.findOne(
+                FunctionInfo,
+                newTraceInput.functionId
             );
 
             if (func == null) {
@@ -256,57 +252,5 @@ export class TraceResolver {
             await pubsub.publish(genProbeTopic(traceSet.key), "new trace");
             return trace;
         });
-    }
-
-    static async findFunctionByName(
-        module: string,
-        func: string,
-        manager: EntityManager
-    ) {
-        const path = func.split(".");
-        if (path.length > 2) {
-            throw new PublicError(
-                "system does not support classes inside of classes"
-            );
-        }
-        if (path.length === 0) {
-            throw new Error("unexpected behavior of String.split");
-        }
-        if (path.length === 1) {
-            return manager
-                .createQueryBuilder(Function, "function")
-                .innerJoinAndSelect(
-                    "function.module",
-                    "module",
-                    "module.name = :name AND function.name = :funcName",
-                    {
-                        funcName: func,
-                        name: module,
-                    }
-                )
-                .getOne();
-        }
-
-        if (path.length === 2)
-            return manager
-                .createQueryBuilder(Function, "function")
-                .innerJoinAndSelect(
-                    "function.parentClass",
-                    "class",
-                    "class.name = :name and function.name = :funcName",
-                    {
-                        name: path[0],
-                        funcName: path[1],
-                    }
-                )
-                .innerJoinAndSelect(
-                    "class.module",
-                    "module",
-                    "module.name = :name",
-                    {
-                        name: module,
-                    }
-                )
-                .getOne();
     }
 }

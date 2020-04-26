@@ -9,10 +9,11 @@ import {
     Index,
     ManyToOne,
     OneToMany,
+    BeforeUpdate,
 } from "typeorm";
 
 import { TraceSet } from "./trace_set";
-import { Function } from "../code/function";
+import { FunctionInfo } from "../code/function_info";
 import { TraceFailure } from "./trace_failure";
 
 /**
@@ -39,14 +40,17 @@ export class Trace {
     @DeleteDateColumn()
     readonly deletedAt: Date;
 
-    @Field((type) => Function, { nullable: false })
-    @ManyToOne((type) => Function, { nullable: false })
-    function: Promise<Function>;
+    @Field((type) => FunctionInfo, { nullable: true })
+    @ManyToOne((type) => FunctionInfo, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
+    function: Promise<FunctionInfo | undefined>;
 
-    @Field({ nullable: false })
+    @Field({ nullable: true })
     @Index()
-    @Column({ nullable: false })
-    functionId: number;
+    @Column({ nullable: true })
+    functionId?: string;
 
     @Field({ nullable: false })
     @Column({ nullable: false })
@@ -70,4 +74,9 @@ export class Trace {
     @Field((type) => [TraceFailure], { nullable: false })
     @OneToMany((type) => TraceFailure, (traceFailure) => traceFailure.trace)
     traceFailures: Promise<TraceFailure[]>;
+
+    @BeforeUpdate()
+    deactivateIfOrphaned() {
+        if (this.active && this.functionId == null) this.active = false;
+    }
 }
