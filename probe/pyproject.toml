@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "inquest"
-version = "0.0.1"
+version = "0.2.0"
 description = ""
 authors = ["Shalom Yiblet <shalom.yiblet@gmail.com>"]
 license = "LGPL-3.0+"

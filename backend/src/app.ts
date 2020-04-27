@@ -59,8 +59,8 @@ export async function createApp() {
     app.use(
         cors({
             origin: [
-                "http://localhost:4000",
-                "http://localhost:3000",
+                `http://${config.server.host}:${config.server.port}`,
+                `http://${config.frontend.host}:${config.frontend.port}`,
                 /yiblet\.com$/,
             ],
             credentials: true,

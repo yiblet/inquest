@@ -32,9 +32,12 @@ class ProbeRunner(threading.Thread):
 
     def __init__(
         self,
+        *,
         root: str,
         package: str,
         trace_set_key: str,
+        host: str,
+        port: int,
         glob: Optional[Union[str, List[str]]],
         exclude: Optional[List[str]],
     ):
@@ -42,7 +45,7 @@ class ProbeRunner(threading.Thread):
         self.package = package
         self.trace_set_key = trace_set_key
         self.send_modules = glob is not None
-        self.endpoint = "localhost:4000"
+        self.endpoint = f"{host}:{port}"
         self.root = root
         self.probe = Probe(root, package)
         self.glob = glob
@@ -67,8 +70,7 @@ class ProbeRunner(threading.Thread):
                     package=self.package,
                     glob=self.glob,
                     exclude=self.exclude,
-                )
-            )
+                ))
         return consumers
 
     def run(self):
@@ -89,11 +91,11 @@ class ProbeRunner(threading.Thread):
 
 
 # TODO pass the TraceSet Key in as an argument
-# TODO pass the send_modules value in as an argument
-# TODO make it possible to pass in an endpoint url
 def enable(
     *,
     root: str,
+    host: str = "localhost",
+    port: int = 4000,
     glob: Optional[Union[str, List[str]]] = None,
     daemon: bool = True,
     package: Optional[str] = None,
@@ -107,7 +109,15 @@ def enable(
         frame = inspect.stack()[1]
         mod = inspect.getmodule(frame[0])
         package = mod.__name__
-    probe = ProbeRunner(root, package, "default", glob, exclude)
+    probe = ProbeRunner(
+        root=root,
+        package=package,
+        trace_set_key="default",
+        host=host,
+        port=port,
+        glob=glob,
+        exclude=exclude,
+    )
     probe.setName('inquest probe')
     probe.setDaemon(daemon)
     probe.start()

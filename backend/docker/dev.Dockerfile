@@ -12,7 +12,6 @@ RUN make test
 FROM tester AS runner
 WORKDIR /app
 
-USER 1001
 ENTRYPOINT ["/usr/local/bin/yarn", "start"]
 
 LABEL name={NAME}

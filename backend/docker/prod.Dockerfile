@@ -7,7 +7,7 @@ RUN yarn install
 FROM builder AS runner
 WORKDIR /app
 COPY . .
-USER 1001
+
 ENTRYPOINT ["/usr/local/bin/yarn", "start"]
 
 LABEL name={NAME}

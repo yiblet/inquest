@@ -2,7 +2,14 @@ import "./env";
 
 // TODO productionize use a more featured configuration management solution
 export const config = {
-    server: { port: parseInt(process.env.BACKEND_PORT || "4000") },
+    server: {
+        host: process.env.BACKEND_HOST || "localhost",
+        port: parseInt(process.env.BACKEND_PORT || "4000"),
+    },
+    frontend: {
+        host: process.env.FRONTEND_HOST || "localhost",
+        port: parseInt(process.env.FRONTEND_PORT || "3000"),
+    },
     auth: {
         secret: process.env.AUTH_SECRET || "auth_secret",
     },
@@ -16,11 +23,11 @@ export const config = {
     },
     storage: {
         client: {
-            endPoint: "127.0.0.1",
-            port: 9000,
+            endPoint: process.env.MINIO_HOST || "127.0.0.1",
+            port: parseInt(process.env.MINIO_PORT || "9000"),
             useSSL: false,
-            accessKey: "minio",
-            secretKey: "minio123",
+            accessKey: process.env.MINIO_ACCESS_KEY || "minio",
+            secretKey: process.env.MINIO_SECRET_KEY || "minio123",
         },
         bucket: "bucket",
         region: "us-east-1",
