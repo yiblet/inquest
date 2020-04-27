@@ -19,7 +19,9 @@
         "typescript": "^3.8.3"
     },
     "scripts": {
-        "start": "tsc && node build/commands/serve.js",
+        "build": "tsc",
+        "start": "yarn run build && yarn run start:js",
+        "start:js": "node build/commands/serve.js",
         "test": "tsc && jest build",
         "lint": "eslint 'src/**/*ts' && prettier -c 'src/**/*ts'",
         "fix": "eslint --fix 'src/**/*ts'; prettier --write 'src/**/*ts'",

@@ -7,8 +7,9 @@ RUN yarn install
 FROM builder AS runner
 WORKDIR /app
 COPY . .
+RUN yarn run build
 
-ENTRYPOINT ["/usr/local/bin/yarn", "start"]
+ENTRYPOINT ["/usr/local/bin/yarn", "start:js"]
 
 LABEL name={NAME}
 LABEL version={VERSION}
