@@ -39,7 +39,13 @@ function LiveTailLogViewer({
     );
 }
 
-export function LiveTail({ logs }: { logs: List<string> }) {
+export function LiveTail({
+    logs,
+    clearLogs,
+}: {
+    logs: List<string>;
+    clearLogs: () => void;
+}) {
     const [filter, setFilter] = useState("");
     const [scrollingEnabled, setScrollingEnabled] = useState(false);
 
@@ -49,24 +55,32 @@ export function LiveTail({ logs }: { logs: List<string> }) {
 
     return (
         <div className="flex flex-col h-full w-full text-sm text-gray-300 bg-gray-900">
-            <form className="flex items-center p-2 border-gray-700 font-medium text-md border-b">
-                Filter:
-                <input
-                    className="bg-gray-700 mx-2"
-                    type="text"
-                    value={filter}
-                    onChange={(event) => setFilter(event.target.value)}
-                />
-                Auto Scroll To Bottom:
-                <input
-                    className="bg-gray-700 mx-2"
-                    type="checkbox"
-                    checked={scrollingEnabled}
-                    onChange={(event) =>
-                        setScrollingEnabled(event.target.checked)
-                    }
-                />
-            </form>
+            <div className="flex justify-between items-center p-2 border-gray-700 font-medium text-md border-b">
+                <div className="flex items-center">
+                    Filter:
+                    <input
+                        className="bg-gray-700 mx-2"
+                        type="text"
+                        value={filter}
+                        onChange={(event) => setFilter(event.target.value)}
+                    />
+                    Auto Scroll To Bottom:
+                    <input
+                        className="bg-gray-700 mx-2"
+                        type="checkbox"
+                        checked={scrollingEnabled}
+                        onChange={(event) =>
+                            setScrollingEnabled(event.target.checked)
+                        }
+                    />
+                </div>
+                <button
+                    className="border rounded border-gray-500 hover:border-gray-200 mx-2 px-2"
+                    onClick={clearLogs}
+                >
+                    clear logs
+                </button>
+            </div>
             <LiveTailLogViewer scrollToBottom={scrollingEnabled} logs={logs} />
         </div>
     );

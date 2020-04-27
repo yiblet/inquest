@@ -1,7 +1,7 @@
 import { gql, useSubscription } from "@apollo/client";
 import { LiveTailSubscription } from "../generated/LiveTailSubscription";
 import { config } from "../config";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { LiveTail } from "../components/live_tail/live_tail";
 import { List } from "immutable";
 
@@ -23,5 +23,10 @@ export function LiveTailConnector() {
     useEffect(() => {
         data?.listenLog && setLogs((logs) => logs.push(data.listenLog));
     }, [data?.listenLog, setLogs]);
-    return <LiveTail logs={logs} />;
+    const clearLogs = useCallback(() => setLogs((logs) => List()), [
+        logs,
+        setLogs,
+    ]);
+
+    return <LiveTail logs={logs} clearLogs={clearLogs} />;
 }
