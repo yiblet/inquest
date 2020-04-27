@@ -3,7 +3,6 @@ import json
 import logging
 
 from gql import gql
-
 from inquest.comms.client_consumer import ClientConsumer
 
 LOGGER = logging.getLogger(__name__)
@@ -27,10 +26,13 @@ mutation HeartbeatMutation {
                     """
         )
 
+    async def _send_heartbeat(self):
+        return (await self.client.execute(self.query)).to_dict()
+
     async def main(self):
         while True:
             LOGGER.debug("heartbeat")
-            result = (await self.client.execute(self.query)).to_dict()
+            result = await self._send_heartbeat()
             if 'errors' in result:
                 LOGGER.warning(
                     "backend returned with errors: %s",

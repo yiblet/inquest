@@ -91,6 +91,9 @@ query InitialProbeInfo {
         id
         function {
           name
+          parentClass {
+            name
+          }
           file {
             name
           }
@@ -122,12 +125,16 @@ subscription probeNotification {
         id
         function {
           name
+          parentClass {
+            name
+          }
           file {
             name
           }
         }
         statement
       }
+
     }
   }
 }

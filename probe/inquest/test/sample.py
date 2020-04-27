@@ -21,7 +21,7 @@ async def async_sample_with_decorator():
 
 class TestClass():
 
-    def sample():
+    def sample(self, x):
         pass
 
     @functools.lru_cache()

@@ -124,6 +124,20 @@ class Probe(contextlib.ExitStack):
         if errors is not None:
             raise Exception(errors)
 
+    def find_obj(self, obj, dotpath: str):
+        idx = dotpath.find('.')
+        if idx == -1:
+            return getattr(
+                obj,
+                dotpath,
+                None,
+            )
+        else:
+            value = getattr(obj, dotpath[:idx], None)
+            if value is None:
+                return value
+            return self.find_obj(value, dotpath[idx + 1:])
+
     def new_desired_state(
         self,
         desired_set: List[Dict[str, str]],
@@ -138,7 +152,13 @@ class Probe(contextlib.ExitStack):
         new_desired_set = []
         for trace in desired_set:
             trace_id = trace['id']
+
             function_name = trace['function']['name']
+
+            if trace['function']['parentClass'] is not None:
+                parent_class_name = trace['function']['parentClass']['name']
+                function_name = f"{parent_class_name}.{function_name}"
+
             try:
                 module = self.module_resolver.convert_filename_to_modulename(
                     trace['function']['file']['name']
@@ -146,10 +166,9 @@ class Probe(contextlib.ExitStack):
             except Exception as exc:
                 raise FunctionResolutionException(trace_id, exc)
 
-            value = getattr(
+            value = self.find_obj(
                 sys.modules[module],
                 function_name,
-                None,
             )
             if value is None:
                 raise FunctionResolutionException(
