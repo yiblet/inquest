@@ -8,19 +8,19 @@
 // ====================================================
 
 export interface FileFragment_classes {
-  __typename: "ClassInfo";
-  name: string;
+  readonly __typename: "ClassInfo";
+  readonly name: string;
 }
 
 export interface FileFragment_functions {
-  __typename: "FunctionInfo";
-  name: string;
+  readonly __typename: "FunctionInfo";
+  readonly name: string;
 }
 
 export interface FileFragment {
-  __typename: "FileInfo";
-  id: string;
-  name: string;
-  classes: FileFragment_classes[];
-  functions: FileFragment_functions[];
+  readonly __typename: "FileInfo";
+  readonly id: string;
+  readonly name: string;
+  readonly classes: ReadonlyArray<FileFragment_classes>;
+  readonly functions: ReadonlyArray<FileFragment_functions>;
 }

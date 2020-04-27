@@ -44,13 +44,25 @@ export function LiveTail({
     clearLogs,
 }: {
     logs: List<string>;
-    clearLogs: () => void;
+    clearLogs?: () => void;
 }) {
     const [filter, setFilter] = useState("");
     const [scrollingEnabled, setScrollingEnabled] = useState(false);
 
     if (filter !== "") {
         logs = logs.filter((text) => text.search(filter) !== -1);
+    }
+
+    let clearLogsButton = <></>;
+    if (clearLogs) {
+        clearLogsButton = (
+            <button
+                className="border rounded border-gray-500 hover:border-gray-200 mx-2 px-2"
+                onClick={clearLogs}
+            >
+                clear logs
+            </button>
+        );
     }
 
     return (
@@ -74,12 +86,7 @@ export function LiveTail({
                         }
                     />
                 </div>
-                <button
-                    className="border rounded border-gray-500 hover:border-gray-200 mx-2 px-2"
-                    onClick={clearLogs}
-                >
-                    clear logs
-                </button>
+                {clearLogsButton}
             </div>
             <LiveTailLogViewer scrollToBottom={scrollingEnabled} logs={logs} />
         </div>

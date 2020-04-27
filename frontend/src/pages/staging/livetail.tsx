@@ -33,7 +33,6 @@ export default function LiveTailWithData() {
         <div className="h-screen">
             <LiveTail logs={List(lines)} />
             <button onClick={(_) => setRawData(data + rawData)}>
-                {" "}
                 Set Data
             </button>
         </div>

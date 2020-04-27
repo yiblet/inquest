@@ -8,31 +8,31 @@
 // ====================================================
 
 export interface DirectoryFragment_subDirectories {
-  __typename: "DirectoryInfo";
-  id: string;
-  name: string;
+  readonly __typename: "DirectoryInfo";
+  readonly id: string;
+  readonly name: string;
 }
 
 export interface DirectoryFragment_files_classes {
-  __typename: "ClassInfo";
-  name: string;
+  readonly __typename: "ClassInfo";
+  readonly name: string;
 }
 
 export interface DirectoryFragment_files_functions {
-  __typename: "FunctionInfo";
-  name: string;
+  readonly __typename: "FunctionInfo";
+  readonly name: string;
 }
 
 export interface DirectoryFragment_files {
-  __typename: "FileInfo";
-  id: string;
-  name: string;
-  classes: DirectoryFragment_files_classes[];
-  functions: DirectoryFragment_files_functions[];
+  readonly __typename: "FileInfo";
+  readonly id: string;
+  readonly name: string;
+  readonly classes: ReadonlyArray<DirectoryFragment_files_classes>;
+  readonly functions: ReadonlyArray<DirectoryFragment_files_functions>;
 }
 
 export interface DirectoryFragment {
-  __typename: "DirectoryInfo";
-  subDirectories: DirectoryFragment_subDirectories[];
-  files: DirectoryFragment_files[];
+  readonly __typename: "DirectoryInfo";
+  readonly subDirectories: ReadonlyArray<DirectoryFragment_subDirectories>;
+  readonly files: ReadonlyArray<DirectoryFragment_files>;
 }

@@ -47,7 +47,8 @@
         "lint": "eslint '**/*.ts*' && prettier -c '**/*.ts*'",
         "fix": "eslint --fix '**/*.ts*'; prettier --write '**/*.ts*'",
         "storybook": "start-storybook -p 6006 -c .storybook",
-        "codegen": "apollo codegen:generate --target=typescript  --localSchemaFile=schema.graphql --outputFlat src/generated"
+        "codegen": "apollo codegen:generate --target=typescript  --localSchemaFile=schema.graphql --outputFlat src/generated --useReadOnlyTypes --globalTypesFile=src/generated/globalTypes.d.ts"
+
     },
     "devDependencies": {
         "@babel/core": "^7.9.0",

@@ -8,35 +8,35 @@
 // ====================================================
 
 export interface FileTreeQuery_rootDirectory_subDirectories {
-  __typename: "DirectoryInfo";
-  id: string;
-  name: string;
+  readonly __typename: "DirectoryInfo";
+  readonly id: string;
+  readonly name: string;
 }
 
 export interface FileTreeQuery_rootDirectory_files_classes {
-  __typename: "ClassInfo";
-  name: string;
+  readonly __typename: "ClassInfo";
+  readonly name: string;
 }
 
 export interface FileTreeQuery_rootDirectory_files_functions {
-  __typename: "FunctionInfo";
-  name: string;
+  readonly __typename: "FunctionInfo";
+  readonly name: string;
 }
 
 export interface FileTreeQuery_rootDirectory_files {
-  __typename: "FileInfo";
-  id: string;
-  name: string;
-  classes: FileTreeQuery_rootDirectory_files_classes[];
-  functions: FileTreeQuery_rootDirectory_files_functions[];
+  readonly __typename: "FileInfo";
+  readonly id: string;
+  readonly name: string;
+  readonly classes: ReadonlyArray<FileTreeQuery_rootDirectory_files_classes>;
+  readonly functions: ReadonlyArray<FileTreeQuery_rootDirectory_files_functions>;
 }
 
 export interface FileTreeQuery_rootDirectory {
-  __typename: "DirectoryInfo";
-  subDirectories: FileTreeQuery_rootDirectory_subDirectories[];
-  files: FileTreeQuery_rootDirectory_files[];
+  readonly __typename: "DirectoryInfo";
+  readonly subDirectories: ReadonlyArray<FileTreeQuery_rootDirectory_subDirectories>;
+  readonly files: ReadonlyArray<FileTreeQuery_rootDirectory_files>;
 }
 
 export interface FileTreeQuery {
-  rootDirectory: FileTreeQuery_rootDirectory;
+  readonly rootDirectory: FileTreeQuery_rootDirectory;
 }

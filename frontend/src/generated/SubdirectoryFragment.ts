@@ -8,7 +8,7 @@
 // ====================================================
 
 export interface SubdirectoryFragment {
-  __typename: "DirectoryInfo";
-  id: string;
-  name: string;
+  readonly __typename: "DirectoryInfo";
+  readonly id: string;
+  readonly name: string;
 }

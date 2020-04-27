@@ -8,25 +8,25 @@
 // ====================================================
 
 export interface UpdateTraceMutation_updateTrace_currentFailures {
-  __typename: "TraceFailure";
-  message: string;
+  readonly __typename: "TraceFailure";
+  readonly message: string;
 }
 
 export interface UpdateTraceMutation_updateTrace {
-  __typename: "Trace";
-  id: string;
-  statement: string;
-  active: boolean;
-  version: number;
-  currentFailures: UpdateTraceMutation_updateTrace_currentFailures[];
+  readonly __typename: "Trace";
+  readonly id: string;
+  readonly statement: string;
+  readonly active: boolean;
+  readonly version: number;
+  readonly currentFailures: ReadonlyArray<UpdateTraceMutation_updateTrace_currentFailures>;
 }
 
 export interface UpdateTraceMutation {
-  updateTrace: UpdateTraceMutation_updateTrace;
+  readonly updateTrace: UpdateTraceMutation_updateTrace;
 }
 
 export interface UpdateTraceMutationVariables {
-  active?: boolean | null;
-  statement?: string | null;
-  id: string;
+  readonly active?: boolean | null;
+  readonly statement?: string | null;
+  readonly id: string;
 }

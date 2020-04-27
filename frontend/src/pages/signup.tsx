@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { login } from "../utils/auth";
 import Router from "next/router";
+import { config } from "../config";
 
 const INPUT_STYLE = "bg-gray-200 placeholder-gray-700 text-lg text-md my-2 p-2";
 
@@ -21,7 +22,7 @@ export default function Signup() {
     }) => {
         setFetching(true);
         try {
-            const resp = await fetch("http://localhost:4000/signup", {
+            const resp = await fetch(`http://${config.endpoint}/signup`, {
                 method: "POST",
                 credentials: "include",
                 headers: {

@@ -2,6 +2,7 @@ import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { WebSocketLink } from "@apollo/link-ws";
 import { SubscriptionClient } from "subscriptions-transport-ws";
 import fetch from "isomorphic-unfetch";
+import { config } from "../config";
 
 export function createApolloClient() {
     const ssrMode = !process.browser;
@@ -11,14 +12,17 @@ export function createApolloClient() {
     let link;
     if (ssrMode) {
         link = new HttpLink({
-            uri: "http://localhost:4000/graphql", // Server URL (must be absolute)
+            uri: `http://${config.endpoint}/graphql`, // Server URL (must be absolute)
             credentials: "same-origin", // Additional fetch() options like `credentials` or `headers`
             fetch,
         });
     } else {
-        const client = new SubscriptionClient("ws://localhost:4000/graphql", {
-            reconnect: true,
-        });
+        const client = new SubscriptionClient(
+            `ws://${config.endpoint}/graphql`,
+            {
+                reconnect: true,
+            }
+        );
 
         link = new WebSocketLink(client);
     }

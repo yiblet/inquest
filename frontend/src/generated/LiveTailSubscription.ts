@@ -8,9 +8,9 @@
 // ====================================================
 
 export interface LiveTailSubscription {
-  listenLog: string;
+  readonly listenLog: string;
 }
 
 export interface LiveTailSubscriptionVariables {
-  traceSetKey: string;
+  readonly traceSetKey: string;
 }

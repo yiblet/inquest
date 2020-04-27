@@ -8,15 +8,15 @@
 // ====================================================
 
 export interface TraceFragment_currentFailures {
-  __typename: "TraceFailure";
-  message: string;
+  readonly __typename: "TraceFailure";
+  readonly message: string;
 }
 
 export interface TraceFragment {
-  __typename: "Trace";
-  id: string;
-  statement: string;
-  active: boolean;
-  version: number;
-  currentFailures: TraceFragment_currentFailures[];
+  readonly __typename: "Trace";
+  readonly id: string;
+  readonly statement: string;
+  readonly active: boolean;
+  readonly version: number;
+  readonly currentFailures: ReadonlyArray<TraceFragment_currentFailures>;
 }

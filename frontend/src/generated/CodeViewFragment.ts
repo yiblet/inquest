@@ -8,62 +8,62 @@
 // ====================================================
 
 export interface CodeViewFragment_functions_traces_currentFailures {
-  __typename: "TraceFailure";
-  message: string;
+  readonly __typename: "TraceFailure";
+  readonly message: string;
 }
 
 export interface CodeViewFragment_functions_traces {
-  __typename: "Trace";
-  id: string;
-  statement: string;
-  active: boolean;
-  version: number;
-  currentFailures: CodeViewFragment_functions_traces_currentFailures[];
+  readonly __typename: "Trace";
+  readonly id: string;
+  readonly statement: string;
+  readonly active: boolean;
+  readonly version: number;
+  readonly currentFailures: ReadonlyArray<CodeViewFragment_functions_traces_currentFailures>;
 }
 
 export interface CodeViewFragment_functions {
-  __typename: "FunctionInfo";
-  id: string;
-  line: number;
-  name: string;
-  traces: CodeViewFragment_functions_traces[];
+  readonly __typename: "FunctionInfo";
+  readonly id: string;
+  readonly line: number;
+  readonly name: string;
+  readonly traces: ReadonlyArray<CodeViewFragment_functions_traces>;
 }
 
 export interface CodeViewFragment_classes_methods_traces_currentFailures {
-  __typename: "TraceFailure";
-  message: string;
+  readonly __typename: "TraceFailure";
+  readonly message: string;
 }
 
 export interface CodeViewFragment_classes_methods_traces {
-  __typename: "Trace";
-  id: string;
-  statement: string;
-  active: boolean;
-  version: number;
-  currentFailures: CodeViewFragment_classes_methods_traces_currentFailures[];
+  readonly __typename: "Trace";
+  readonly id: string;
+  readonly statement: string;
+  readonly active: boolean;
+  readonly version: number;
+  readonly currentFailures: ReadonlyArray<CodeViewFragment_classes_methods_traces_currentFailures>;
 }
 
 export interface CodeViewFragment_classes_methods {
-  __typename: "FunctionInfo";
-  id: string;
-  line: number;
-  name: string;
-  traces: CodeViewFragment_classes_methods_traces[];
+  readonly __typename: "FunctionInfo";
+  readonly id: string;
+  readonly line: number;
+  readonly name: string;
+  readonly traces: ReadonlyArray<CodeViewFragment_classes_methods_traces>;
 }
 
 export interface CodeViewFragment_classes {
-  __typename: "ClassInfo";
-  id: string;
-  line: number;
-  name: string;
-  methods: CodeViewFragment_classes_methods[];
+  readonly __typename: "ClassInfo";
+  readonly id: string;
+  readonly line: number;
+  readonly name: string;
+  readonly methods: ReadonlyArray<CodeViewFragment_classes_methods>;
 }
 
 export interface CodeViewFragment {
-  __typename: "FileInfo";
-  id: string;
-  name: string;
-  content: string;
-  functions: CodeViewFragment_functions[];
-  classes: CodeViewFragment_classes[];
+  readonly __typename: "FileInfo";
+  readonly id: string;
+  readonly name: string;
+  readonly content: string;
+  readonly functions: ReadonlyArray<CodeViewFragment_functions>;
+  readonly classes: ReadonlyArray<CodeViewFragment_classes>;
 }

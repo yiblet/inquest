@@ -8,10 +8,10 @@
 // ====================================================
 
 export interface LiveProbesQuery_liveProbes {
-  __typename: "Probe";
-  key: string;
+  readonly __typename: "Probe";
+  readonly key: string;
 }
 
 export interface LiveProbesQuery {
-  liveProbes: LiveProbesQuery_liveProbes[] | null;
+  readonly liveProbes: ReadonlyArray<LiveProbesQuery_liveProbes> | null;
 }

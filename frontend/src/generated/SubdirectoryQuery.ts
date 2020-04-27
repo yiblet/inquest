@@ -8,39 +8,39 @@
 // ====================================================
 
 export interface SubdirectoryQuery_directory_subDirectories {
-  __typename: "DirectoryInfo";
-  id: string;
-  name: string;
+  readonly __typename: "DirectoryInfo";
+  readonly id: string;
+  readonly name: string;
 }
 
 export interface SubdirectoryQuery_directory_files_classes {
-  __typename: "ClassInfo";
-  name: string;
+  readonly __typename: "ClassInfo";
+  readonly name: string;
 }
 
 export interface SubdirectoryQuery_directory_files_functions {
-  __typename: "FunctionInfo";
-  name: string;
+  readonly __typename: "FunctionInfo";
+  readonly name: string;
 }
 
 export interface SubdirectoryQuery_directory_files {
-  __typename: "FileInfo";
-  id: string;
-  name: string;
-  classes: SubdirectoryQuery_directory_files_classes[];
-  functions: SubdirectoryQuery_directory_files_functions[];
+  readonly __typename: "FileInfo";
+  readonly id: string;
+  readonly name: string;
+  readonly classes: ReadonlyArray<SubdirectoryQuery_directory_files_classes>;
+  readonly functions: ReadonlyArray<SubdirectoryQuery_directory_files_functions>;
 }
 
 export interface SubdirectoryQuery_directory {
-  __typename: "DirectoryInfo";
-  subDirectories: SubdirectoryQuery_directory_subDirectories[];
-  files: SubdirectoryQuery_directory_files[];
+  readonly __typename: "DirectoryInfo";
+  readonly subDirectories: ReadonlyArray<SubdirectoryQuery_directory_subDirectories>;
+  readonly files: ReadonlyArray<SubdirectoryQuery_directory_files>;
 }
 
 export interface SubdirectoryQuery {
-  directory: SubdirectoryQuery_directory | null;
+  readonly directory: SubdirectoryQuery_directory | null;
 }
 
 export interface SubdirectoryQueryVariables {
-  directoryId: string;
+  readonly directoryId: string;
 }

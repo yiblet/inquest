@@ -8,14 +8,14 @@
 // ====================================================
 
 export interface DeleteTraceMutation_deleteTrace {
-  __typename: "Trace";
-  id: string;
+  readonly __typename: "Trace";
+  readonly id: string;
 }
 
 export interface DeleteTraceMutation {
-  deleteTrace: DeleteTraceMutation_deleteTrace;
+  readonly deleteTrace: DeleteTraceMutation_deleteTrace;
 }
 
 export interface DeleteTraceMutationVariables {
-  id: string;
+  readonly id: string;
 }
