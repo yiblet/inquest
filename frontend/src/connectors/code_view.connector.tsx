@@ -5,7 +5,7 @@ import { CodeViewQuery } from "../generated/CodeViewQuery";
 import { useQuery, useMutation } from "@apollo/client";
 import { ExistingTrace } from "../components/code_view/utils";
 import { PropsOf } from "../utils/types";
-import { config } from "../config";
+import { getPublicRuntimeConfig } from "../config";
 import { NewTraceMutation } from "../generated/NewTraceMutation";
 import { UpdateTraceMutation } from "../generated/UpdateTraceMutation";
 import { DeleteTraceMutation } from "../generated/DeleteTraceMutation";
@@ -165,7 +165,7 @@ export const CodeViewConnector = ({
                 variables: {
                     functionId: func.id,
                     statement: traceStatement,
-                    key: config.traceSet,
+                    key: getPublicRuntimeConfig().traceSet,
                 },
             });
             await refetch();

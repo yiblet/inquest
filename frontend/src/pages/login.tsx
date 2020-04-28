@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { login } from "../utils/auth";
-import { config } from "../config";
+import { getPublicRuntimeConfig } from "../config";
 
 const INPUT_STYLE = "bg-gray-200 placeholder-gray-700 text-lg text-md my-2 p-2";
 
@@ -15,14 +15,17 @@ export default function Login() {
     const onSubmit = async (values: { email: string; password: string }) => {
         setFetching(true);
         try {
-            const resp = await fetch(`http://${config.endpoint}/login`, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams(values).toString(),
-            });
+            const resp = await fetch(
+                `http://${getPublicRuntimeConfig().endpoint}/login`,
+                {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams(values).toString(),
+                }
+            );
             console.log(resp);
             if (resp.status === 400)
                 setMessage((await resp.json())?.message || "internal error");

@@ -1,6 +1,10 @@
-export const config = {
-    traceSet: "default",
-    endpoint: `${process.env.BACKEND_HOST || "localhost"}:${
-        process.env.BACKEND_PORT || 4000
-    }`,
+import getConfig from "next/config";
+
+export type PublicRuntimeConfig = {
+    traceSet: string;
+    endpoint: string;
 };
+
+export function getPublicRuntimeConfig(): PublicRuntimeConfig {
+    return getConfig().publicRuntimeConfig;
+}

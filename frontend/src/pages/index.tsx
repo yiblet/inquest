@@ -69,7 +69,6 @@ function withApollo<P>(Comp: React.ComponentType<P>): React.ComponentType<P> {
         );
     };
 }
-
 function Index() {
     const [fileFragment, setFileFragment] = useState<FileFragment | null>(null);
     const [width, setWidth] = useState<number | null>(null);
