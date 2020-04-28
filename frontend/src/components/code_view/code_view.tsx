@@ -98,8 +98,12 @@ export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
         ),
         [setEditor, setVisibleLine]
     );
-
     useEffect(() => editor?.layout(), [editor, props.width]);
+    useEffect(() => {
+        const handleResize = () => editor?.layout();
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, [editor]);
 
     let vals: React.ReactElement[] = [];
     if (editor)

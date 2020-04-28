@@ -84,9 +84,7 @@ function Index() {
             </SideBar>
             <div className="w-full h-full flex overflow-hidden">
                 <Resizable
-                    onResizeStop={(_e, _direction, _ref, d) =>
-                        setWidth(d.width)
-                    }
+                    onResize={(_e, _direction, _ref, d) => setWidth(d.width)}
                     defaultSize={{
                         width: "50%",
                         height: "100%",
