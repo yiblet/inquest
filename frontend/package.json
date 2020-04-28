@@ -31,6 +31,7 @@
         "next-transpile-modules": "^3.2.0",
         "postcss-import": "^12.0.1",
         "postcss-loader": "^3.0.0",
+        "re-resizable": "^6.3.2",
         "react": "^16.8.6",
         "react-ace": "^8.1.0",
         "react-dom": "^16.13.1",
@@ -48,7 +49,6 @@
         "fix": "eslint --fix '**/*.ts*'; prettier --write '**/*.ts*'",
         "storybook": "start-storybook -p 6006 -c .storybook",
         "codegen": "apollo codegen:generate --target=typescript  --localSchemaFile=schema.graphql --outputFlat src/generated --useReadOnlyTypes --globalTypesFile=src/generated/globalTypes.d.ts"
-
     },
     "devDependencies": {
         "@babel/core": "^7.9.0",

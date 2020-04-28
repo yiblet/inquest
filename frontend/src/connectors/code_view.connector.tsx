@@ -119,7 +119,13 @@ const DELETE_TRACE = gql`
 /**
  * CodeViewConnector maps data from the graphql queries and mutations back into the CodeView
  */
-export const CodeViewConnector = ({ file }: { file?: FileFragment }) => {
+export const CodeViewConnector = ({
+    width,
+    file,
+}: {
+    file?: FileFragment;
+    width?: number;
+}) => {
     const emptyView = (
         <div
             className="w-full h-screen"
@@ -151,6 +157,7 @@ export const CodeViewConnector = ({ file }: { file?: FileFragment }) => {
         throw new Error("failed to retrieve file information");
 
     const props: CodeViewProps = {
+        width: width,
         fragment: data.file,
         onCreate: async (func: FunctionFragment, traceStatement) => {
             logger.debug("on create was called");

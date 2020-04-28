@@ -14,6 +14,7 @@ import { CodeViewFragment } from "../../generated/CodeViewFragment";
 const logger = createLogger(["CodeView"]);
 
 export type CodeViewProps = {
+    width?: number;
     fragment: CodeViewFragment;
     onEdit: (trace: ExistingTrace, traceStatement: string) => any;
     onDelete: (trace: ExistingTrace) => any;
@@ -97,6 +98,8 @@ export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
         ),
         [setEditor, setVisibleLine]
     );
+
+    useEffect(() => editor?.layout(), [editor, props.width]);
 
     let vals: React.ReactElement[] = [];
     if (editor)

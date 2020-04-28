@@ -8,6 +8,7 @@ import { LiveTailConnector } from "../connectors/live_tail.connector";
 import { LiveProbesQuery } from "../generated/LiveProbesQuery";
 import { FileFragment } from "../generated/FileFragment";
 import { FileTreeConnector } from "../components/file_tree.connector";
+import { Resizable } from "re-resizable";
 
 const CodeViewConnector = dynamic<CodeViewConnectorProps>(
     import("../connectors/code_view.connector").then(
@@ -71,8 +72,9 @@ function withApollo<P>(Comp: React.ComponentType<P>): React.ComponentType<P> {
 
 function Index() {
     const [fileFragment, setFileFragment] = useState<FileFragment | null>(null);
+    const [width, setWidth] = useState<number | null>(null);
     return (
-        <div className="flex h-screen overflow-none">
+        <div className="flex w-full h-screen overflow-none">
             <SideBar>
                 <LiveProbesConnector />
                 <FileTreeConnector
@@ -80,11 +82,25 @@ function Index() {
                     currentFile={fileFragment}
                 />
             </SideBar>
-            <div className="w-full h-full grid grid-cols-2">
-                <div>
-                    <CodeViewConnector file={fileFragment || undefined} />
-                </div>
-                <div className="overflow-auto">
+            <div className="w-full h-full flex overflow-hidden">
+                <Resizable
+                    onResizeStop={(_e, _direction, _ref, d) =>
+                        setWidth(d.width)
+                    }
+                    defaultSize={{
+                        width: "50%",
+                        height: "100%",
+                    }}
+                    enable={{ right: true }}
+                    maxWidth="70%"
+                    minWidth="30%"
+                >
+                    <CodeViewConnector
+                        file={fileFragment || undefined}
+                        width={width || undefined}
+                    />
+                </Resizable>
+                <div className="w-full overflow-auto">
                     <LiveTailConnector />
                 </div>
             </div>
