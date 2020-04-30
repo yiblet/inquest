@@ -70,7 +70,8 @@ class ProbeRunner(threading.Thread):
                     package=self.package,
                     glob=self.glob,
                     exclude=self.exclude,
-                ))
+                )
+            )
         return consumers
 
     def run(self):
