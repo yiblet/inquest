@@ -14,22 +14,18 @@ def test_on_sample_module():
     tree = ModuleTree(os.path.dirname(__file__), "sample.py")
     files = {file.absolute_name: file for file in tree.modules()}
     assert sample in files
-    assert set(func.name for func in files[sample].functions) == {
-        'async_sample_with_decorator', 'sample', 'sample_with_decorator',
-        'async_sample'
-    }
+    assert set(func.name for func in files[sample].functions
+              ) == {'sample', 'async_sample'}
 
     classes = set(cls.name for cls in files[sample].classes)
     methods = set(
         f'{cls.name}.{met.name}' for cls in files[sample].classes
         for met in cls.methods
     )
-    assert classes == {'TestClassWithDecorator', 'TestClass'}
+    assert classes == {'TestClass'}
     assert methods == {
-        'TestClassWithDecorator.async_sample',
-        'TestClassWithDecorator.sample_with_decorator', 'TestClass.sample',
-        'TestClass.async_sample', 'TestClassWithDecorator.sample',
+        'TestClass.async_sample',
         'TestClass.async_sample_with_decorator',
-        'TestClassWithDecorator.async_sample_with_decorator',
-        'TestClass.sample_with_decorator'
+        'TestClass.sample_with_decorator',
+        'TestClass.sample',
     }
