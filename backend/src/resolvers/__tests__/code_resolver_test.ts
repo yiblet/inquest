@@ -71,11 +71,12 @@ describe("setting up dummy file", () => {
                 { name: "test_function2", line: 3 },
             ],
             classes: [
-                { name: "TestClass", line: 3, methods: [] },
+                { name: "TestClass", line: 3, methods: [], classes: [] },
                 {
                     name: "TestClass",
                     line: 3,
                     methods: [{ name: "test_method", line: 5 }],
+                    classes: [],
                 },
             ],
             fileId: file.id,

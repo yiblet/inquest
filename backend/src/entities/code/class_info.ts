@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "type-graphql";
-import { Entity, OneToMany } from "typeorm";
+import { Entity, OneToMany, Column, ManyToOne } from "typeorm";
 import { AbstractPythonNode } from "./abstract_python_node";
 import { FunctionInfo } from "./function_info";
 
@@ -19,7 +19,19 @@ export class ClassInfo extends AbstractPythonNode {
     @Field((type) => [FunctionInfo], { nullable: false })
     @OneToMany((type) => FunctionInfo, (func) => func.parentClass, {
         nullable: false,
-        onDelete: "CASCADE",
     })
     methods: Promise<FunctionInfo[]>;
+
+    @Field((type) => ClassInfo, { nullable: true })
+    @ManyToOne((type) => ClassInfo, { nullable: true, onDelete: "CASCADE" })
+    parentClass: Promise<ClassInfo | undefined>;
+
+    @Column({ nullable: true })
+    parentClassId?: string;
+
+    @Field((type) => [ClassInfo], { nullable: false })
+    @OneToMany((type) => ClassInfo, (func) => func.parentClass, {
+        nullable: false,
+    })
+    subClasses: Promise<ClassInfo[]>;
 }

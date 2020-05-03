@@ -30,6 +30,9 @@ export class FunctionInput extends NodeInputWithLines {
 export class ClassInput extends NodeInputWithLines {
     @Field((type) => [FunctionInput], { nullable: false })
     methods: FunctionInput[];
+
+    @Field((type) => [ClassInput], { nullable: false })
+    classes: ClassInput[];
 }
 
 @InputType() // introduces a bug with module names being unique
@@ -68,6 +71,44 @@ export class CodeResolver {
         return await this.directoryInfoRepository.findOne(directoryId);
     }
 
+    private async saveClasses(
+        manager: EntityManager,
+        classes: ClassInput[],
+        fileId: string,
+        parentClassId: string | undefined = undefined
+    ) {
+        const classObjects = await manager.save(
+            classes.map((cls) =>
+                manager.create(ClassInfo, {
+                    name: cls.name,
+                    line: cls.line,
+                    fileId,
+                    parentClassId: parentClassId,
+                })
+            )
+        );
+
+        await manager.save(
+            classObjects.flatMap((cls, idx) =>
+                classes[idx].methods.map((func) =>
+                    manager.create(FunctionInfo, {
+                        name: func.name,
+                        line: func.line,
+                        fileId,
+                        parentClassId: cls.id,
+                    })
+                )
+            )
+        );
+
+        await Promise.all(
+            classObjects.map((cls, idx) =>
+                this.saveClasses(manager, classes[idx].classes, fileId, cls.id)
+            )
+        );
+        return classObjects;
+    }
+
     @Mutation((type) => FileInfo, { nullable: false })
     async newFileContent(@Arg("fileInput") fileInput: FileContentInput) {
         return await createTransaction(this.manager, async (manager) => {
@@ -75,15 +116,7 @@ export class CodeResolver {
             if (file == null || file.id !== fileInput.fileId)
                 throw new PublicError("file not found");
             const [classes] = await Promise.all([
-                manager.save(
-                    fileInput.classes.map((cls) =>
-                        manager.create(ClassInfo, {
-                            name: cls.name,
-                            line: cls.line,
-                            fileId: file.id,
-                        })
-                    )
-                ),
+                this.saveClasses(manager, fileInput.classes, file.id),
                 manager.save(
                     fileInput.functions.map((func) =>
                         manager.create(FunctionInfo, {
@@ -94,19 +127,6 @@ export class CodeResolver {
                     )
                 ),
             ]);
-
-            await manager.save(
-                classes.flatMap((cls, idx) =>
-                    fileInput.classes[idx].methods.map((func) =>
-                        manager.create(FunctionInfo, {
-                            name: func.name,
-                            line: func.line,
-                            fileId: file.id,
-                            parentClassId: cls.id,
-                        })
-                    )
-                )
-            );
             return file;
         });
     }
