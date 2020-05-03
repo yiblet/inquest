@@ -25,6 +25,7 @@ import { TraceLogRepository } from "../repositories/trace_log_repository";
 import { PublicError, createTransaction } from "../utils";
 import { genProbeTopic } from "../topics";
 import { Context, retrieveProbe } from "../context";
+import { GraphQLInt } from "graphql";
 
 @InputType()
 class UpdateTraceInput {
@@ -42,6 +43,9 @@ class UpdateTraceInput {
 class NewTraceInput {
     @Field({ nullable: false })
     functionId: string;
+
+    @Field((type) => GraphQLInt, { nullable: false })
+    line: number;
 
     @Field({ nullable: false })
     statement: string;
@@ -232,6 +236,7 @@ export class TraceResolver {
             const trace = await traceRepository.save(
                 traceRepository.create({
                     functionId: func.id,
+                    line: newTraceInput.line,
                     statement: newTraceInput.statement,
                     active: true,
                     traceSetId: traceSet.id,

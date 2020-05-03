@@ -57,6 +57,10 @@ export class Trace {
     statement: string;
 
     @Field({ nullable: false })
+    @Column({ nullable: false, type: "int" })
+    line: number;
+
+    @Field({ nullable: false })
     @Column({ nullable: false })
     active: boolean;
 

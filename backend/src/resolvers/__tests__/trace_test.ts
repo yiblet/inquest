@@ -41,12 +41,14 @@ const NEW_TRACE = gql`
         $functionId: String!
         $statement: String!
         $key: String!
+        $line: Int!
     ) {
         newTrace(
             newTraceInput: {
                 functionId: $functionId
                 statement: $statement
                 traceSetKey: $key
+                line: $line
             }
         ) {
             function {
@@ -172,6 +174,7 @@ describe("testing server", () => {
                     mutation: NEW_TRACE,
                     variables: {
                         functionId: func1.id,
+                        line: 2,
                         statement: "statement",
                         key: "test_key",
                     },
@@ -240,6 +243,7 @@ describe("testing server", () => {
                     mutation: NEW_TRACE,
                     variables: {
                         functionId: func1.id,
+                        line: 2,
                         statement: "statement",
                         key: traceSet.key,
                     },
@@ -300,12 +304,14 @@ describe("testing server", () => {
                 $functionId: String!
                 $statement: String!
                 $key: String!
+                $line: Int!
             ) {
                 newTrace(
                     newTraceInput: {
                         functionId: $functionId
                         statement: $statement
                         traceSetKey: $key
+                        line: $line
                     }
                 ) {
                     id
@@ -396,6 +402,7 @@ describe("testing server", () => {
                 mutation: NEW_TRACE_WITH_DESIRED_STATE,
                 variables: {
                     functionId: func1.id,
+                    line: 2,
                     statement: "statement",
                     key: KEY,
                 },
@@ -431,6 +438,7 @@ describe("testing server", () => {
                 mutation: NEW_TRACE_WITH_DESIRED_STATE,
                 variables: {
                     functionId: func2.id,
+                    line: 2,
                     statement: "statement",
                     key: KEY,
                 },
