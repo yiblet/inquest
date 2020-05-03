@@ -17,7 +17,10 @@ abstract class NodeInput {
 @InputType({ isAbstract: true })
 abstract class NodeInputWithLines extends NodeInput {
     @Field({ nullable: false })
-    line: number;
+    startLine: number;
+
+    @Field({ nullable: false })
+    endLine: number;
 }
 
 @InputType()
@@ -71,6 +74,10 @@ export class CodeResolver {
         return await this.directoryInfoRepository.findOne(directoryId);
     }
 
+    /**
+     * saveClasses recursively saves the class input and the input's children
+     * TODO make this more efficient by saving more in parallel
+     */
     private async saveClasses(
         manager: EntityManager,
         classes: ClassInput[],
@@ -81,7 +88,8 @@ export class CodeResolver {
             classes.map((cls) =>
                 manager.create(ClassInfo, {
                     name: cls.name,
-                    line: cls.line,
+                    startLine: cls.startLine,
+                    endLine: cls.endLine,
                     fileId,
                     parentClassId: parentClassId,
                 })
@@ -93,7 +101,8 @@ export class CodeResolver {
                 classes[idx].methods.map((func) =>
                     manager.create(FunctionInfo, {
                         name: func.name,
-                        line: func.line,
+                        startLine: func.startLine,
+                        endLine: func.endLine,
                         fileId,
                         parentClassId: cls.id,
                     })
@@ -115,13 +124,14 @@ export class CodeResolver {
             const file = await manager.findOne(FileInfo, fileInput.fileId);
             if (file == null || file.id !== fileInput.fileId)
                 throw new PublicError("file not found");
-            const [classes] = await Promise.all([
+            await Promise.all([
                 this.saveClasses(manager, fileInput.classes, file.id),
                 manager.save(
                     fileInput.functions.map((func) =>
                         manager.create(FunctionInfo, {
                             name: func.name,
-                            line: func.line,
+                            startLine: func.startLine,
+                            endLine: func.endLine,
                             fileId: file.id,
                         })
                     )

@@ -34,7 +34,11 @@ export abstract class AbstractPythonNode {
 
     @Field((type) => GraphQLInt, { nullable: false })
     @Column({ nullable: false, type: "int" })
-    readonly line: number;
+    readonly startLine: number;
+
+    @Field((type) => GraphQLInt, { nullable: false })
+    @Column({ nullable: false, type: "int" })
+    readonly endLine: number;
 
     @Field((type) => FileInfo, { nullable: false })
     @ManyToOne((type) => FileInfo, { nullable: false, onDelete: "CASCADE" })

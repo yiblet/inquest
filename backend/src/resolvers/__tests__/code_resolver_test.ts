@@ -67,15 +67,24 @@ describe("setting up dummy file", () => {
 
         const input = plainToClass(FileContentInput, {
             functions: [
-                { name: "test_function", line: 3 },
-                { name: "test_function2", line: 3 },
+                { name: "test_function", startLine: 3, endLine: 4 },
+                { name: "test_function2", startLine: 3, endLine: 4 },
             ],
             classes: [
-                { name: "TestClass", line: 3, methods: [], classes: [] },
                 {
                     name: "TestClass",
-                    line: 3,
-                    methods: [{ name: "test_method", line: 5 }],
+                    startLine: 3,
+                    endLine: 4,
+                    methods: [],
+                    classes: [],
+                },
+                {
+                    name: "TestClass",
+                    startLine: 3,
+                    endLine: 4,
+                    methods: [
+                        { name: "test_method", startLine: 3, endLine: 4 },
+                    ],
                     classes: [],
                 },
             ],
@@ -88,13 +97,13 @@ describe("setting up dummy file", () => {
         });
 
         await expect(fileResolver.functions(file)).resolves.toMatchObject([
-            { name: "test_function", line: 3 },
-            { name: "test_function2", line: 3 },
+            { name: "test_function", startLine: 3, endLine: 4 },
+            { name: "test_function2", startLine: 3, endLine: 4 },
         ]);
 
         await expect(fileResolver.classes(file)).resolves.toMatchObject([
-            { name: "TestClass", line: 3 },
-            { name: "TestClass", line: 3 },
+            { name: "TestClass", startLine: 3, endLine: 4 },
+            { name: "TestClass", startLine: 3, endLine: 4 },
         ]);
     });
 });

@@ -85,14 +85,17 @@ describe("testing server", () => {
         func1 = await manager.save(
             manager.create(FunctionInfo, {
                 name: "func1",
-                line: 4,
+                startLine: 4,
+                endLine: 5,
                 fileId: file.id,
             })
         );
+
         func2 = await manager.save(
             manager.create(FunctionInfo, {
                 name: "func2",
-                line: 4,
+                startLine: 4,
+                endLine: 5,
                 fileId: file.id,
             })
         );
