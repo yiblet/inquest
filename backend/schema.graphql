@@ -3,7 +3,8 @@ type AbstractPythonNode {
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
-  line: Int!
+  startLine: Int!
+  endLine: Int!
   file: FileInfo!
 }
 
@@ -12,15 +13,20 @@ type ClassInfo {
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
-  line: Int!
+  startLine: Int!
+  endLine: Int!
   file: FileInfo!
   methods: [FunctionInfo!]!
+  parentClass: ClassInfo
+  subClasses: [ClassInfo!]!
 }
 
 input ClassInput {
   name: String!
-  line: Float!
+  startLine: Int!
+  endLine: Int!
   methods: [FunctionInput!]!
+  classes: [ClassInput!]!
 }
 
 """
@@ -60,7 +66,8 @@ type FunctionInfo {
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
-  line: Int!
+  startLine: Int!
+  endLine: Int!
   file: FileInfo!
   parentClass: ClassInfo
   traces: [Trace!]!
@@ -69,7 +76,8 @@ type FunctionInfo {
 
 input FunctionInput {
   name: String!
-  line: Float!
+  startLine: Int!
+  endLine: Int!
   metadata: String
 }
 
@@ -91,6 +99,7 @@ type Mutation {
 
 input NewTraceInput {
   functionId: String!
+  line: Int!
   statement: String!
   traceSetKey: String!
 }
@@ -167,6 +176,7 @@ type Trace {
   function: FunctionInfo
   functionId: String
   statement: String!
+  line: Float!
   active: Boolean!
   version: Float!
   traceSet: TraceSet!

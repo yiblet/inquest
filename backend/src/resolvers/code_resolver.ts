@@ -7,6 +7,7 @@ import { FileInfo, FunctionInfo, DirectoryInfo, ClassInfo } from "../entities";
 import { UploadService } from "../services/upload";
 import { PublicError, createTransaction } from "../utils";
 import { DirectoryInfoRepository } from "../repositories/directory_info_repository";
+import { GraphQLInt } from "graphql";
 
 @InputType({ isAbstract: true })
 abstract class NodeInput {
@@ -16,10 +17,10 @@ abstract class NodeInput {
 
 @InputType({ isAbstract: true })
 abstract class NodeInputWithLines extends NodeInput {
-    @Field({ nullable: false })
+    @Field((type) => GraphQLInt, { nullable: false })
     startLine: number;
 
-    @Field({ nullable: false })
+    @Field((type) => GraphQLInt, { nullable: false })
     endLine: number;
 }
 
