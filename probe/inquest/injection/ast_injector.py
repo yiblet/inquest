@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import ast
+import copy
 import dataclasses
-from typing import List, Optional
 import logging
+from typing import List, Optional, Tuple
 
 LOGGER = logging.getLogger(__name__)
 
@@ -14,30 +15,50 @@ class TestStatement:
     body: Optional[List[List[TestStatement]]] = None
 
 
-def insert(node: ast.AST, line: int, statement_to_add: ast.AST):
+class ASTInjector:
+
+    def __init__(self, base_ast: ast.AST):
+        """
+        injector builder class
+        WARNING: this will mutate the input ast
+        """
+        self._ast = copy.deepcopy(base_ast)
+
+    def insert(self, line: int, statement: ast.AST):
+        res, nodes = insert(self._ast, line, statement)
+        if not res:
+            raise ValueError('failed to inject statement')
+        return nodes
+
+    def result(self):
+        return self._ast
+
+
+def insert(node: ast.AST, line: int,
+           statement_to_add: ast.AST) -> Tuple[bool, ast.AST]:
     """
-    inserts the new statement_to_add to the given line
+    inserts the new statement_to_add to the given line, and
+    returns whether or not it was successful plus the all the
+    function definitions and class definitions along the path
+    from the input node to the node with the modification
+    in reverse order.
     """
     stmts = get_blocks(node)
     if stmts is None:
-        return False
-    return _modify(node, stmts, line, statement_to_add)
+        return False, []
+    if node.lineno > line:
+        return False, []
+    res, nodes = _modify(stmts, line, statement_to_add)
+    if res and is_definition(node):
+        nodes.append(node)
+    return res, nodes
 
 
 def _modify(
-    node: ast.AST,
     stmts: List[List[ast.AST]],
     line: int,
     statement_to_add: ast.AST,
 ) -> bool:
-    max_line = node.lineno
-    min_line = node.lineno
-
-    if node.lineno > line:
-        return False
-
-    # going forward, node.lineno <= line
-
     # find last line
     prev = None
     prev_is_valid = False
@@ -47,8 +68,6 @@ def _modify(
             if statement.lineno > line:
                 found = True
                 break
-            max_line = max(max_line, statement.lineno)
-            min_line = max(min_line, statement.lineno)
 
             if statement.lineno == line:
                 prev_is_valid = True
@@ -59,11 +78,11 @@ def _modify(
 
     if not found and not prev_is_valid:
         # last line occurs before the insertion point
-        return False
+        return False, []
 
     if prev is None:  # prev is guarenteed to not be valid
         stmts[0].insert(0, statement_to_add)
-        return True
+        return True, []
 
     # now prev must point to the either the target line or the
     # statement before the target line
@@ -75,26 +94,38 @@ def _modify(
         if blocks is not None:
             # if has blockstatements -> put it in the first line of
             blocks[0].insert(0, statement_to_add)
+            res = [cur_statement] if is_definition(cur_statement) else []
         else:
             # the first block else put it in the next line
             stmts[block_idx].insert(statement_idx + 1, statement_to_add)
-        return True
+            res = []
+        return True, res
     if cur_statement.lineno < line:
-        if blocks is None or (not insert(
+        if blocks is not None:
+            # if has blockstatements -> recurse into the statements
+            insert_success, insert_result = insert(
                 cur_statement,
                 line,
                 statement_to_add,
-        )):
-            # if has blockstatements -> recurse into the statements
+            )
+
+            if insert_success:
+                return insert_success, insert_result
             # else (or if previou statement doesn't work) insert
             # the statement into the proceeeding line
-            stmts[block_idx].insert(statement_idx + 1, statement_to_add)
-        return True
+        stmts[block_idx].insert(statement_idx + 1, statement_to_add)
+        return True, []
     raise ValueError('unexpected injection failure')
 
 
 def has_blocks(node: ast.AST):
     return get_blocks(node) is not None
+
+
+def is_definition(node: ast.AST):
+    return isinstance(
+        node, (ast.AsyncFunctionDef, ast.FunctionDef, ast.ClassDef)
+    )
 
 
 def get_blocks(node: ast.AST) -> Optional[List[List[ast.AST]]]:

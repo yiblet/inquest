@@ -1,4 +1,3 @@
-import contextlib
 import logging
 import sys
 import types
@@ -6,8 +5,11 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import pandas as pd
 
+import inquest.injection.codegen as codegen
 from inquest.file_module_resolver import FileModuleResolver
-from inquest.hotpatch import embed_fstrings, get_function_in_module
+from inquest.hotpatch import get_function_in_module
+from inquest.injection.code_reassigner import CodeReassigner
+from inquest.utils.has_stack import HasStack
 
 LOGGER = logging.getLogger(__name__)
 
@@ -95,7 +97,7 @@ def diff_desired_set(
     )
 
 
-class Probe(contextlib.ExitStack):
+class Probe(HasStack):
     package: str
     traces: pd.DataFrame
     code: Dict[FunctionPath, types.CodeType]
@@ -110,14 +112,14 @@ class Probe(contextlib.ExitStack):
         self.module_resolver: FileModuleResolver = FileModuleResolver(
             package, root
         )
+        self._code_reassigner = CodeReassigner()
         self.code = {}
 
-    def __enter__(self):
-        super().__enter__()
-        # when the with statement closes
-        # self.reset is called
-        self.callback(self.reset)
-        return self
+    def enter(self):
+        # first clear the desired state
+        self._stack.callback(self.reset)
+        # clear all code assignments
+        self._stack.enter_context(self._code_reassigner)
 
     def reset(self):
         errors = self.new_desired_state([])
@@ -138,17 +140,14 @@ class Probe(contextlib.ExitStack):
                 return value
             return self.find_obj(value, dotpath[idx + 1:])
 
-    def new_desired_state(
+    def _construct_desired_set(
         self,
         desired_set: List[Dict[str, str]],
-    ) -> Optional[Dict[FunctionPath, Exception]]:
-        '''
-        changes the probe to match the new desired state
-        @param desired_set: the set of desired traces
-        @returns: if the change failed and was not implemented an error
-                  a dict mapping (function, module) to Exception is returned
-        TODO make the error dict point directly to the problematic trace id
-        '''
+    ):
+        """
+        constructs the desired_set 
+        @returns a list of trace dictionaries
+        """
         new_desired_set = []
         for trace in desired_set:
             trace_id = trace['id']
@@ -183,25 +182,39 @@ class Probe(contextlib.ExitStack):
                     "module": module,
                 }
             )
+        return new_desired_set
 
-        desired_set = new_desired_set
+    def new_desired_state(
+        self,
+        desired_set: List[Dict[str, str]],
+    ) -> Optional[Dict[FunctionPath, Exception]]:
+        '''
+        changes the probe to match the new desired state
+        @param desired_set: the set of desired traces
+        @returns: if the change failed and was not implemented an error
+                  a dict mapping (function, module) to Exception is returned
+        TODO make the error dict point directly to the problematic trace id
+        '''
+        desired_set = self._construct_desired_set(desired_set)
 
         LOGGER.debug('input desired_set %s', desired_set)
-        traces, final_code, errors = self._add_desired_set(desired_set)
-        LOGGER.debug('final desired_set %s', list(traces.id))
+        traces_df, new_traces, functions_to_be_reverted, errors = self._add_desired_set(
+            desired_set
+        )
+        LOGGER.debug('final desired_set %s', list(traces_df.id))
 
         if errors != {}:
             raise TraceSetException(errors)
 
+        for func in functions_to_be_reverted:
+            self._code_reassigner.revert_function(func)
+
         # TODO figure out where to send errors when this fails
         # only after ensuring there are no errors at all do we set code objects
-        for (module, function), code in final_code.items():
-            function_obj = get_function_in_module(
-                self.get_path(module, function),
-                self.package,
-            )
-            function_obj.__code__ = code
-        self.traces = traces
+        for (module, function), code in new_traces.items():
+            function_obj = self._get_function(module, function)
+            self._code_reassigner.assign_function(function_obj, code)
+        self.traces = traces_df
 
     def _add_desired_set(self, desired_set: List[Dict[str, str]]):
         '''
@@ -218,34 +231,21 @@ class Probe(contextlib.ExitStack):
             desired_df,
         )
 
-        reverted_code = self._delete_traces(diff.to_be_removed)
+        functions_to_be_reverted = list(
+            self._functions_to_be_removed(diff.to_be_removed)
+        )
         new_traces, errors = self._set_traces(diff.new_traces)
-        final_code = {
-            **reverted_code,
-            **new_traces,
-        }
-        return diff.new_traces, final_code, errors
+        return diff.new_traces, new_traces, functions_to_be_reverted, errors
 
-    def _get_og_code(self, module: str, function: str):
-        key = (module, function)
-        if key in self.code:
-            return self.code[key]
-        function_obj = get_function_in_module(
+    def _get_function(self, module: str, function: str):
+        return get_function_in_module(
             self.get_path(module, function),
             self.package,
         )
-        self.code[key] = function_obj.__code__
-        return function_obj.__code__
 
-    def _delete_traces(self, traces: pd.DataFrame):
-        '''
-        sets up the code changes to revert the the traces
-        '''
-        new_code = {}
+    def _functions_to_be_removed(self, traces: pd.DataFrame):
         for (module, function), _ in group_by_location(traces):
-            code = self._get_og_code(module, function)
-            new_code[(module, function)] = code
-        return new_code
+            yield self._get_function(module, function)
 
     def _set_traces(self, traces: pd.DataFrame):
         '''
@@ -255,10 +255,11 @@ class Probe(contextlib.ExitStack):
         errors = {}
         for (module, function), group in group_by_location(traces):
             try:
-                code = self._get_og_code(module, function)
-                fstrings = list(group['statement'])
-                ids = list(group['id'])
-                embedded_code = embed_fstrings(code, fstrings, ids)
+                statements = list(zip(group['statement'], group['id']))
+                embedded_code = codegen.add_log_statements_infer_lineno(
+                    self._get_function(module, function),
+                    statements,
+                )
                 new_code[(module, function)] = embedded_code
             except Exception as error:  # pylint: disable=all
                 errors[(module, function)] = error

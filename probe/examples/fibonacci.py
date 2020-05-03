@@ -3,7 +3,7 @@ import logging.config
 from time import sleep
 
 from inquest.runner import enable
-from inquest.util import LOGGING_CONFIG
+from inquest.utils.logging import LOGGING_CONFIG
 
 # enable logging to see inquest's internal log statemnets
 logging.config.dictConfig(LOGGING_CONFIG)
