@@ -20,6 +20,17 @@ class ParsedAST:
         raise NotImplementedError()
 
 
+def _get_start_and_end(ast_node: ast.AST):
+    start_line = ast_node.lineno + len(ast_node.decorator_list)
+    end_line = start_line
+
+    for node in ast.walk(ast_node):
+        if not hasattr(node, 'lineno'):
+            continue
+        end_line = max(node.lineno, end_line)
+    return start_line, end_line
+
+
 @dataclass
 class FileInfo(ParsedAST):
     name: str
@@ -61,33 +72,41 @@ class FileInfo(ParsedAST):
 @dataclass
 class FunctionInfo(ParsedAST):
     name: str
-    line: int
+    start_line: int
+    end_line: int
 
     def encode(self):
         return {
             "name": self.name,
-            "line": self.line,
+            "startLine": self.start_line,
+            "endLine": self.end_line,
         }
 
     @staticmethod
     def parse(ast_node: Union[ast.FunctionDef, ast.AsyncFunctionDef]):
+        start_line, end_line = _get_start_and_end(ast_node)
         return FunctionInfo(
             name=ast_node.name,
-            line=ast_node.lineno + len(ast_node.decorator_list)
+            start_line=start_line,
+            end_line=end_line,
         )
 
 
 @dataclass
 class ClassInfo(ParsedAST):
     name: str
-    line: int
+    start_line: int
+    end_line: int
     methods: List[FunctionInfo]
+    classes: List[ClassInfo]
 
     def encode(self):
         return {
             "name": self.name,
-            "line": self.line,
+            "startLine": self.start_line,
+            "endLine": self.end_line,
             "methods": [function.encode() for function in self.methods],
+            "classes": [cls.encode() for cls in self.classes]
         }
 
     @staticmethod
@@ -97,10 +116,21 @@ class ClassInfo(ParsedAST):
             for statement in ast_node.body
             if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef))
         ]
+
+        classes = [
+            ClassInfo.parse(statement)
+            for statement in ast_node.body
+            if isinstance(statement, (ast.ClassDef))
+        ]
+
+        start_line, end_line = _get_start_and_end(ast_node)
+
         return ClassInfo(
             name=ast_node.name,
-            line=ast_node.lineno + len(ast_node.decorator_list),
+            start_line=start_line,
+            end_line=end_line,
             methods=methods,
+            classes=classes,
         )
 
 

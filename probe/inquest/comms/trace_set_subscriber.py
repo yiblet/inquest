@@ -99,6 +99,7 @@ query InitialProbeInfo {
           }
         }
         statement
+        line
       }
     }
   }
@@ -133,6 +134,7 @@ subscription probeNotification {
           }
         }
         statement
+        line
       }
 
     }

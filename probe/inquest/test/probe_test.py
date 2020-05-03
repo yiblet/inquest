@@ -14,11 +14,19 @@ def flatten_trace(trace):
         "module": trace['function']['file']['name'],
         "function": trace['function']['name'],
         "statement": trace['statement'],
+        "lineno": trace['line'],
         "id": trace['id'],
     }
 
 
-def create_trace(file, function, statement, id, cls=None) -> Dict[str, str]:
+def create_trace(
+    file,
+    function: str,
+    statement: str,
+    id: str,
+    lineno: int,
+    cls=None
+) -> Dict[str, str]:
     return {
         "function":
             {
@@ -31,6 +39,7 @@ def create_trace(file, function, statement, id, cls=None) -> Dict[str, str]:
                 } if cls is not None else None
             },
         "statement": statement,
+        "line": lineno,
         "id": id,
     }
 
@@ -45,6 +54,7 @@ def test_on_function_simple(capsys):
                     'sample',
                     '{arg1}',
                     "1",
+                    1,
                 )
             ]
         )
@@ -66,6 +76,7 @@ def test_on_function(capsys):
                     'sample',
                     '{arg1}',
                     "1",
+                    1,
                 )
             ]
         )
@@ -81,12 +92,14 @@ def test_on_function(capsys):
                     'sample',
                     '{arg1}',
                     "1",
+                    1,
                 ),
                 create_trace(
                     'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg2}',
                     "2",
+                    1,
                 )
             ]
         )
@@ -123,12 +136,14 @@ def test_on_function_changes(capsys):
                     'sample',
                     '{arg1}',
                     "1",
+                    1,
                 ),
                 create_trace(
                     'inquest/test/probe_test_module/test_imported_module.py',
                     'sample',
                     '{arg2}',
                     "2",
+                    1,
                 )
             ], "2\n1"
         )
@@ -140,6 +155,7 @@ def test_on_function_changes(capsys):
                     'sample',
                     '{arg2}',
                     "2",
+                    1,
                 )
             ], "1"
         )
@@ -151,6 +167,7 @@ def test_on_function_changes(capsys):
                     'sample',
                     '{arg2}',
                     "3",
+                    1,
                 )
             ], "1"
         )
@@ -162,6 +179,7 @@ def test_on_function_changes(capsys):
                     'sample',
                     '{arg2} haha',
                     "3",
+                    1,
                 )
             ],
             "1 haha",
@@ -174,6 +192,7 @@ def test_on_function_changes(capsys):
                     'sample',
                     '{arg2}',
                     "3",
+                    1,
                 )
             ],
             "1",
@@ -208,7 +227,12 @@ def test_on_class_methods(capsys):
         assert_desired_state(
             [
                 create_trace(
-                    'inquest/test/sample.py', 'sample', '{x}', "3", 'TestClass'
+                    'inquest/test/sample.py',
+                    'sample',
+                    '{x}',
+                    "3",
+                    24,
+                    'TestClass',
                 )
             ],
             "2",

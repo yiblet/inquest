@@ -39,7 +39,7 @@ def _get_ast(func1: FunctionOrMethod):
 
     ast_module = ast.parse(source)
     func1_ast: ast.FunctionDef = ast_module.body[0]
-    ast.increment_lineno(func1_ast, func_lineno - 1)
+    func1_ast = ast.increment_lineno(func1_ast, func_lineno - 1)
     return func1_ast
 
 
@@ -56,26 +56,8 @@ def _inject_and_codegen(func1_ast: ast.AST, filename):
     )
 
     mod = compile(ast.Module(body=[func1_ast]), filename, 'exec')
-    return mod.co_consts[0]
-
-
-def add_log_statements_infer_lineno(
-    func1: FunctionOrMethod, statements: List[Tuple[str, str]]
-) -> types.CodeType:
-
-    func1 = _unwrap(func1)
-    filename = inspect.getfile(func1)
-    func1_ast = _get_ast(func1)
-    lineno = func1_ast.body[0].lineno - 1
-    injector = ASTInjector(func1_ast)
-    for statement, id in statements:
-        try:
-            expr = ast.parse(f'___inquest_logging.log(f"{statement}")').body[0]
-            injector.insert(lineno, expr)
-        except Exception as exc:
-            raise TraceException(id, exc)
-
-    return _inject_and_codegen(injector.result(), filename)
+    code = mod.co_consts[0]
+    return code
 
 
 def add_log_statements(

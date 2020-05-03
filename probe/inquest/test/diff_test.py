@@ -1,6 +1,6 @@
 import pandas as pd
 
-from inquest.probe import diff_desired_set
+from inquest.probe import TRACE_COLUMNS, diff_desired_set
 
 from .probe_test import create_trace as create_trace_raw
 
@@ -11,6 +11,7 @@ def create_trace(key: str, loc=None):
             "id": "%s" % key,
             "module": "module%s" % loc,
             "function": "function%s" % loc,
+            "lineno": 2,
             "statement": "statement%s" % loc
         }
 
@@ -18,6 +19,7 @@ def create_trace(key: str, loc=None):
         "id": "%s" % key,
         "module": "mod%s" % key,
         "function": "function%s" % key,
+        "lineno": 2,
         "statement": "statement%s" % key
     }
 
@@ -31,12 +33,7 @@ DEFAULT_SET = [
 def create_trace_df(data):
     return pd.DataFrame(
         data,
-        columns=[
-            'id',
-            'module',
-            'function',
-            'statement',
-        ],
+        columns=TRACE_COLUMNS,
     )
 
 
@@ -145,6 +142,7 @@ def test_diff_desired_set_with_id_change_2():
                 'sample',
                 '{arg2}',
                 "3",
+                2,
             )
         ]
     )
@@ -156,6 +154,7 @@ def test_diff_desired_set_with_id_change_2():
                 'sample',
                 '{arg2} haha',
                 "3",
+                2,
             )
         ]
     )
@@ -169,6 +168,7 @@ def test_diff_desired_set_with_id_change_2():
                 'sample',
                 '{arg2} haha',
                 "3",
+                2,
             )
         ]
     )

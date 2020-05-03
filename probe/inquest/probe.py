@@ -15,12 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 FunctionPath = Tuple[str, str]
 
-TRACE_COLUMNS = [
-    'id',
-    'module',
-    'function',
-    'statement',
-]
+TRACE_COLUMNS = ['id', 'module', 'function', 'statement', 'lineno']
 
 CODE_COLUMNS = [
     'module',
@@ -71,11 +66,15 @@ def diff_desired_set(
         on=['id'],
         indicator=True,
     )
+    """
+    creates trace dataframes of the new and old traces
+    """
 
     # recreate module, function, and statement
     merged['module'] = merged['module_y'].fillna(merged['module_x'])
     merged['function'] = merged['function_y'].fillna(merged['function_x'])
     merged['statement'] = merged['statement_y'].fillna(merged['statement_x'])
+    merged['lineno'] = merged['lineno_y'].fillna(merged['lineno_x'])
 
     # to_be_removed is all ids that are removed
     to_be_removed = merged[merged['_merge'] == 'left_only'][trace_df.columns]
@@ -85,7 +84,7 @@ def diff_desired_set(
     to_be_updated = merged.query(
         '_merge == "both" & '
         + '( module_x != module_y | function_x != function_y '
-        + '| statement_x != statement_y ) '
+        + '| statement_x != statement_y | lineno_x != lineno_y )'
     )[trace_df.columns]
 
     new_traces = merged[merged['_merge'] != 'left_only'][trace_df.columns]
@@ -180,6 +179,7 @@ class Probe(HasStack):
                     "function": function_name,
                     "statement": trace['statement'],
                     "module": module,
+                    'lineno': trace['line']
                 }
             )
         return new_desired_set
@@ -255,8 +255,15 @@ class Probe(HasStack):
         errors = {}
         for (module, function), group in group_by_location(traces):
             try:
-                statements = list(zip(group['statement'], group['id']))
-                embedded_code = codegen.add_log_statements_infer_lineno(
+                statements = [
+                    codegen.Trace(
+                        statement=statement,
+                        id=id,
+                        lineno=lineno,
+                    ) for statement, id, lineno in
+                    zip(group['statement'], group['id'], group['lineno'])
+                ]
+                embedded_code = codegen.add_log_statements(
                     self._get_function(module, function),
                     statements,
                 )
