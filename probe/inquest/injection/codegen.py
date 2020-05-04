@@ -1,5 +1,6 @@
 import ast
 import inspect
+import logging
 import re
 import types
 from typing import List, NamedTuple, Tuple
@@ -7,6 +8,8 @@ from typing import List, NamedTuple, Tuple
 from inquest.hotpatch import TraceException
 from inquest.injection.ast_injector import ASTInjector
 from inquest.module_tree import FunctionOrMethod
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Trace(NamedTuple):
@@ -56,13 +59,17 @@ def _inject_and_codegen(func1_ast: ast.AST, filename):
     )
 
     mod = compile(ast.Module(body=[func1_ast]), filename, 'exec')
-    code = mod.co_consts[0]
-    return code
+    for obj in mod.co_consts:
+        if isinstance(obj, types.CodeType):
+            return obj
+    raise Exception('failed to generate the new bytecode')
 
 
 def add_log_statements(
     func1: FunctionOrMethod, traces: List[Trace]
 ) -> types.CodeType:
+    LOGGER.debug('adding log statements to %s with traces %s', func1, traces)
+
     func1 = _unwrap(func1)
     func1_ast = _get_ast(func1)
     filename = inspect.getfile(func1)
