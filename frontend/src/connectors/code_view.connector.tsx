@@ -12,6 +12,7 @@ import { DeleteTraceMutation } from "../generated/DeleteTraceMutation";
 import { createLogger } from "../utils/logger";
 import { FileFragment } from "../generated/FileFragment";
 import { FunctionFragment } from "../generated/FunctionFragment";
+import { NewTraceInput } from "../generated/globalTypes";
 
 const logger = createLogger(["CodeViewConnector"]);
 
@@ -19,6 +20,7 @@ const TRACE_FRAGMENT = gql`
     fragment TraceFragment on Trace {
         id
         statement
+        line
         active
         version
         currentFailures {
@@ -30,7 +32,8 @@ const TRACE_FRAGMENT = gql`
 const FUNCTION_FRAGMENT = gql`
     fragment FunctionFragment on FunctionInfo {
         id
-        line
+        startLine
+        endLine
         name
         traces {
             ...TraceFragment
@@ -50,7 +53,8 @@ const CODE_VIEW_FRAGMENT = gql`
         }
         classes {
             id
-            line
+            startLine
+            endLine
             name
             methods {
                 ...FunctionFragment
@@ -71,18 +75,8 @@ const CODE_VIEW_QUERY = gql`
 `;
 
 const NEW_TRACE = gql`
-    mutation NewTraceMutation(
-        $functionId: String!
-        $statement: String!
-        $key: String!
-    ) {
-        newTrace(
-            newTraceInput: {
-                functionId: $functionId
-                statement: $statement
-                traceSetKey: $key
-            }
-        ) {
+    mutation NewTraceMutation($input: NewTraceInput!) {
+        newTrace(newTraceInput: $input) {
             ...TraceFragment
         }
     }
@@ -159,13 +153,21 @@ export const CodeViewConnector = ({
     const props: CodeViewProps = {
         width: width,
         fragment: data.file,
-        onCreate: async (func: FunctionFragment, traceStatement) => {
+        onCreate: async (
+            func: FunctionFragment,
+            traceStatement: string,
+            line: number
+        ) => {
             logger.debug("on create was called");
+            const input: NewTraceInput = {
+                functionId: func.id,
+                statement: traceStatement,
+                line: line,
+                traceSetKey: getPublicRuntimeConfig().traceSet,
+            };
             const result = await newTrace({
                 variables: {
-                    functionId: func.id,
-                    statement: traceStatement,
-                    key: getPublicRuntimeConfig().traceSet,
+                    input,
                 },
             });
             await refetch();

@@ -40,7 +40,7 @@ class ContentWidget implements monacoEditor.editor.IContentWidget {
 }
 
 export type MarkerProps = {
-    name: string;
+    id: string;
     line: number;
     visible: boolean;
     editor: Editor;
@@ -51,35 +51,25 @@ export type MarkerProps = {
  * Maintains the state of each marker
  */
 export const Marker: React.FC<MarkerProps> = ({
-    name,
+    id,
     line,
     editor,
     children,
     visible,
 }) => {
-    const state = useMemo(() => {
-        const domNode = document.createElement("div");
-        domNode.className = "bg-green-200";
-        const contentWidget = new ContentWidget(name, line);
-        return {
-            domNode,
-            contentWidget,
-        };
-    }, [name, line, editor]);
+    const contentWidget = useMemo(() => {
+        return new ContentWidget(id, line);
+    }, [id, line, editor]);
 
     logger.debug(`rerender visibility=${visible}`);
 
     useEffect(() => {
         if (!visible) return;
-        editor.addContentWidget(state.contentWidget);
+        editor.addContentWidget(contentWidget);
         return () => {
-            editor.removeContentWidget(state.contentWidget);
+            editor.removeContentWidget(contentWidget);
         };
-    }, [visible, editor]);
+    }, [contentWidget, visible, editor]);
 
-    return (
-        <NodeRenderer node={state.contentWidget.domNode}>
-            {children}
-        </NodeRenderer>
-    );
+    return <NodeRenderer node={contentWidget.domNode}>{children}</NodeRenderer>;
 };

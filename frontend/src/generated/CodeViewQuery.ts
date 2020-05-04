@@ -16,6 +16,7 @@ export interface CodeViewQuery_file_functions_traces {
   readonly __typename: "Trace";
   readonly id: string;
   readonly statement: string;
+  readonly line: number;
   readonly active: boolean;
   readonly version: number;
   readonly currentFailures: ReadonlyArray<CodeViewQuery_file_functions_traces_currentFailures>;
@@ -24,7 +25,8 @@ export interface CodeViewQuery_file_functions_traces {
 export interface CodeViewQuery_file_functions {
   readonly __typename: "FunctionInfo";
   readonly id: string;
-  readonly line: number;
+  readonly startLine: number;
+  readonly endLine: number;
   readonly name: string;
   readonly traces: ReadonlyArray<CodeViewQuery_file_functions_traces>;
 }
@@ -38,6 +40,7 @@ export interface CodeViewQuery_file_classes_methods_traces {
   readonly __typename: "Trace";
   readonly id: string;
   readonly statement: string;
+  readonly line: number;
   readonly active: boolean;
   readonly version: number;
   readonly currentFailures: ReadonlyArray<CodeViewQuery_file_classes_methods_traces_currentFailures>;
@@ -46,7 +49,8 @@ export interface CodeViewQuery_file_classes_methods_traces {
 export interface CodeViewQuery_file_classes_methods {
   readonly __typename: "FunctionInfo";
   readonly id: string;
-  readonly line: number;
+  readonly startLine: number;
+  readonly endLine: number;
   readonly name: string;
   readonly traces: ReadonlyArray<CodeViewQuery_file_classes_methods_traces>;
 }
@@ -54,7 +58,8 @@ export interface CodeViewQuery_file_classes_methods {
 export interface CodeViewQuery_file_classes {
   readonly __typename: "ClassInfo";
   readonly id: string;
-  readonly line: number;
+  readonly startLine: number;
+  readonly endLine: number;
   readonly name: string;
   readonly methods: ReadonlyArray<CodeViewQuery_file_classes_methods>;
 }

@@ -16,6 +16,7 @@ export interface UpdateTraceMutation_updateTrace {
   readonly __typename: "Trace";
   readonly id: string;
   readonly statement: string;
+  readonly line: number;
   readonly active: boolean;
   readonly version: number;
   readonly currentFailures: ReadonlyArray<UpdateTraceMutation_updateTrace_currentFailures>;

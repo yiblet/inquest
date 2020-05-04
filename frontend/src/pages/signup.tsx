@@ -22,14 +22,17 @@ export default function Signup() {
     }) => {
         setFetching(true);
         try {
-            const resp = await fetch(`http://${getPublicRuntimeConfig().endpoint}/signup`, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams(values).toString(),
-            });
+            const resp = await fetch(
+                `http://${getPublicRuntimeConfig().endpoint}/signup`,
+                {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams(values).toString(),
+                }
+            );
             if (resp.status === 400)
                 setMessage((await resp.json())?.message || "internal error");
             else {
