@@ -12,8 +12,7 @@ import {
 
 import { TraceSet } from "./trace/trace_set";
 import { TraceLogStatus } from "./trace/trace_log_status";
-import { TraceFailure } from "./trace/trace_failure";
-
+import { ProbeFailure } from "./probe_failure";
 /**
  * Probe
  *
@@ -58,9 +57,9 @@ export class Probe {
     )
     traceLogStatuses: Promise<TraceLogStatus[]>;
 
-    @Field((type) => [TraceFailure], { nullable: false })
-    @OneToMany((type) => TraceFailure, (traceFailure) => traceFailure.probe)
-    traceFailures: Promise<TraceFailure[]>;
+    @Field((type) => [ProbeFailure], { nullable: false })
+    @OneToMany((type) => ProbeFailure, (probeFailure) => probeFailure.probe)
+    probeFailures: Promise<ProbeFailure[]>;
 
     /**
      * the respective TraceSet

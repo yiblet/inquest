@@ -14,7 +14,7 @@ import {
 
 import { TraceSet } from "./trace_set";
 import { FunctionInfo } from "../code/function_info";
-import { TraceFailure } from "./trace_failure";
+import { ProbeFailure } from "../probe_failure";
 
 /**
  * Trace
@@ -75,9 +75,9 @@ export class Trace {
     @ManyToOne((type) => TraceSet, { nullable: false })
     traceSet: Promise<TraceSet>;
 
-    @Field((type) => [TraceFailure], { nullable: false })
-    @OneToMany((type) => TraceFailure, (traceFailure) => traceFailure.trace)
-    traceFailures: Promise<TraceFailure[]>;
+    @Field((type) => [ProbeFailure], { nullable: false })
+    @OneToMany((type) => ProbeFailure, (probeFailure) => probeFailure.trace)
+    probeFailures: Promise<ProbeFailure[]>;
 
     @BeforeUpdate()
     deactivateIfOrphaned() {

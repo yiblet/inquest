@@ -8,14 +8,22 @@ import {
     Ctx,
     Mutation,
     Subscription,
+    FieldResolver,
 } from "type-graphql";
-import { getManager, Repository } from "typeorm";
-import { InjectRepository } from "typeorm-typedi-extensions";
+import {
+    getManager,
+    Repository,
+    EntityManager,
+    IsNull,
+    SelectQueryBuilder,
+} from "typeorm";
+import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
 import { GraphQLString } from "graphql";
-import { Probe, TraceSet } from "../entities";
+import { Probe, TraceSet, ProbeFailure } from "../entities";
 import { PublicError } from "../utils";
 import { genProbeTopic } from "../topics";
 import { Context, retrieveProbe } from "../context";
+import { ProbeFailureRepository } from "../repositories/probe_failure_repository";
 
 @ObjectType()
 export class ProbeNotification {
@@ -46,7 +54,9 @@ export class ProbeResolver {
         @InjectRepository(Probe)
         private readonly probeRepository: Repository<Probe>,
         @InjectRepository(TraceSet)
-        private readonly traceSetRepository: Repository<TraceSet>
+        private readonly traceSetRepository: Repository<TraceSet>,
+        @InjectManager()
+        private readonly manager: EntityManager
     ) {}
 
     @Query((returns) => Probe, { nullable: true })
@@ -61,6 +71,34 @@ export class ProbeResolver {
     @Query((returns) => Probe, { nullable: true })
     thisProbe(@Ctx() context: Context) {
         return retrieveProbe(context);
+    }
+
+    @FieldResolver((returns) => [ProbeFailure], { nullable: false })
+    async failures(
+        @Arg("includeTraceAssociated", {
+            defaultValue: false,
+            description:
+                "whether or not to include failures that also are associated to traces",
+        })
+        includeTraceAssociated: boolean,
+        @Ctx() context: Context
+    ) {
+        const probe = retrieveProbe(context);
+        const probeFailureRepository = this.manager.getCustomRepository(
+            ProbeFailureRepository
+        );
+
+        let builder: SelectQueryBuilder<ProbeFailure>;
+        if (includeTraceAssociated)
+            builder = probeFailureRepository.buildIncludedTrace();
+        else
+            builder = probeFailureRepository
+                .createQueryBuilder("failure")
+                .where("failure.traceId IS NULL");
+
+        return await builder
+            .where("failure.probeId = :probeId", { probeId: probe.id })
+            .getMany();
     }
 
     @Mutation((returns) => Probe)

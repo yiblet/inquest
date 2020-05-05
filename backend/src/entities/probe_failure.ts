@@ -9,23 +9,21 @@ import {
     Column,
 } from "typeorm";
 
-import { Trace } from "./trace";
-import { Probe } from "../probe";
+import { Trace } from "./trace/trace";
+import { Probe } from "./probe";
 
 /**
- * TraceFailure appears when traces have failures
+ * ProbeFailure appears when traces have failures
  * probes will report these failures and send them back to the parent
  *
  * id : number
  * initalization requires:
  *  - message
  *  - probeId
- *  - traceId
- *  - traceVersion
  */
 @Entity()
 @ObjectType()
-export class TraceFailure {
+export class ProbeFailure {
     @PrimaryGeneratedColumn()
     readonly id: number;
 
@@ -41,20 +39,20 @@ export class TraceFailure {
     @Column({ nullable: false })
     readonly message: string;
 
-    @Field({ nullable: false })
-    @Column({ nullable: false })
-    readonly traceVersion: number;
+    @Field({ nullable: true })
+    @Column({ nullable: true })
+    traceVersion?: number;
 
     /**
      * the respective Trace
      */
     @Field((type) => Trace, { nullable: false })
     @ManyToOne((type) => Trace, { nullable: false })
-    trace: Promise<Trace>;
+    trace: Promise<Trace | undefined>;
 
     @Index()
-    @Column({ nullable: false })
-    traceId: string;
+    @Column({ nullable: true })
+    traceId?: string;
 
     /**
      * the respective probe

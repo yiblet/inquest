@@ -6,7 +6,6 @@ import {
     Field,
     PubSub,
     PubSubEngine,
-    Ctx,
     Root,
     FieldResolver,
 } from "type-graphql";
@@ -18,13 +17,12 @@ import {
     TraceSet,
     TraceLogStatus,
     FunctionInfo,
-    TraceFailure,
+    ProbeFailure,
 } from "../entities";
 import { ProbeRepository } from "../repositories/probe_repository";
 import { TraceLogRepository } from "../repositories/trace_log_repository";
 import { PublicError, createTransaction } from "../utils";
 import { genProbeTopic } from "../topics";
-import { Context, retrieveProbe } from "../context";
 import { GraphQLInt } from "graphql";
 
 @InputType()
@@ -94,37 +92,11 @@ export class TraceResolver {
         return traceLog;
     }
 
-    @FieldResolver((returns) => [TraceFailure], { nullable: false })
+    @FieldResolver((returns) => [ProbeFailure], { nullable: false })
     async currentFailures(@Root() trace: Trace) {
-        return await this.manager.find(TraceFailure, {
+        return await this.manager.find(ProbeFailure, {
             traceId: trace.id,
             traceVersion: trace.version,
-        });
-    }
-
-    @Mutation((returns) => TraceFailure)
-    async newTraceFailure(
-        @Arg("traceId") traceId: string,
-        @Arg("message") message: string,
-        @Ctx() context: Context
-    ): Promise<TraceFailure> {
-        return await createTransaction(this.manager, async (manager) => {
-            const probe = retrieveProbe(context);
-            const trace = await manager.getRepository(Trace).findOne({
-                where: { id: traceId },
-            });
-            if (trace == null) {
-                throw new PublicError("could not find trace with that id");
-            }
-
-            const failure = manager.create(TraceFailure, {
-                traceVersion: trace.version,
-                message,
-                traceId: trace.id,
-                probeId: probe.id,
-            });
-
-            return await manager.save(failure);
         });
     }
 

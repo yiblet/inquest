@@ -2,6 +2,7 @@
 import { CodeResolver } from "./code_resolver";
 import { FileResolver } from "./file_resolver";
 import { LiveTailResolver } from "./live_tail_resolver";
+import { ProbeFailureResolver } from "./probe_failure_resolver";
 import { ProbeResolver } from "./probe_resolver";
 import { RateResolver } from "./rate_resolver";
 import { RecipeResolver } from "./recipe_resolver";
@@ -13,6 +14,7 @@ export const ALL_RESOLVERS = [
     CodeResolver,
     FileResolver,
     LiveTailResolver,
+    ProbeFailureResolver,
     ProbeResolver,
     RateResolver,
     RecipeResolver,

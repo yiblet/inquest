@@ -84,17 +84,22 @@ input FunctionInput {
 type Mutation {
   newFileContent(fileInput: FileContentInput!): FileInfo!
   publishLog(content: String!): String!
+  newProbeFailure(newProbeFailure: NewProbeFailureInput!): ProbeFailure!
   heartbeat: Probe!
   newProbe(traceSetKey: String!): Probe!
   addRecipe(recipe: RecipeInput!): Recipe!
   rate(rate: RateInput!): Recipe!
-  newTraceFailure(message: String!, traceId: String!): TraceFailure!
   deleteTrace(traceId: String!): Trace!
   updateTrace(updateTraceInput: UpdateTraceInput!): Trace!
   newTrace(newTraceInput: NewTraceInput!): Trace!
 
   """creates a traceSet with a given key"""
   newTraceSet(traceSetKey: String!): TraceSet!
+}
+
+input NewProbeFailureInput {
+  traceId: String
+  message: String!
 }
 
 input NewTraceInput {
@@ -115,8 +120,17 @@ type Probe {
   key: String!
   isAlive: Boolean!
   traceLogStatuses: [TraceLogStatus!]!
-  traceFailures: [TraceFailure!]!
+  probeFailures: [ProbeFailure!]!
   traceSet: TraceSet!
+}
+
+type ProbeFailure {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  message: String!
+  traceVersion: Float
+  trace: Trace!
+  probe: Probe!
 }
 
 type ProbeNotification {
@@ -180,17 +194,8 @@ type Trace {
   active: Boolean!
   version: Float!
   traceSet: TraceSet!
-  traceFailures: [TraceFailure!]!
-  currentFailures: [TraceFailure!]!
-}
-
-type TraceFailure {
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  message: String!
-  traceVersion: Float!
-  trace: Trace!
-  probe: Probe!
+  probeFailures: [ProbeFailure!]!
+  currentFailures: [ProbeFailure!]!
 }
 
 type TraceLog {
