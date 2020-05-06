@@ -9,6 +9,7 @@ import inquest.injection.codegen as codegen
 from inquest.file_module_resolver import FileModuleResolver
 from inquest.hotpatch import get_function_in_module
 from inquest.injection.code_reassigner import CodeReassigner
+from inquest.utils.exceptions import MultiTraceException, ProbeException
 from inquest.utils.has_stack import HasStack
 
 LOGGER = logging.getLogger(__name__)
@@ -27,21 +28,6 @@ TRACE_WITH_ERROR_COLUMNS = [
     *TRACE_COLUMNS,
     'error',
 ]
-
-
-class FunctionResolutionException(Exception):
-
-    def __init__(self, trace_id: str, message: str):
-        super().__init__(trace_id, message)
-        self.trace_id = trace_id
-        self.exception = message
-
-
-class TraceSetException(Exception):
-
-    def __init__(self, data: Dict):
-        self.data = data
-        super().__init__(data)
 
 
 class DiffResult(NamedTuple):
@@ -123,7 +109,7 @@ class Probe(HasStack):
     def reset(self):
         errors = self.new_desired_state([])
         if errors is not None:
-            raise Exception(errors)
+            raise MultiTraceException(errors)
 
     def find_obj(self, obj, dotpath: str):
         idx = dotpath.find('.')
@@ -162,15 +148,18 @@ class Probe(HasStack):
                     trace['function']['file']['name']
                 )
             except Exception as exc:
-                raise FunctionResolutionException(trace_id, exc)
+                raise ProbeException(
+                    message=str(exc), trace_id=trace_id
+                ) from exc
 
             value = self.find_obj(
                 sys.modules[module],
                 function_name,
             )
             if value is None:
-                raise FunctionResolutionException(
-                    trace_id, Exception('could not find function')
+                raise ProbeException(
+                    message='could not find function',
+                    trace_id=trace_id,
                 )
 
             new_desired_set.append(
@@ -204,7 +193,7 @@ class Probe(HasStack):
         LOGGER.debug('final desired_set %s', list(traces_df.id))
 
         if errors != {}:
-            raise TraceSetException(errors)
+            raise MultiTraceException(errors)
 
         for func in functions_to_be_reverted:
             self._code_reassigner.revert_function(func)
@@ -237,11 +226,16 @@ class Probe(HasStack):
         new_traces, errors = self._set_traces(diff.new_traces)
         return diff.new_traces, new_traces, functions_to_be_reverted, errors
 
-    def _get_function(self, module: str, function: str):
-        return get_function_in_module(
-            self.get_path(module, function),
-            self.package,
-        )
+    def _get_function(
+        self, module: str, function: str, trace_id: Optional[str] = None
+    ):
+        try:
+            return get_function_in_module(
+                self.get_path(module, function),
+                self.package,
+            )
+        except Exception as exc:
+            raise ProbeException(message=str(exc), trace_id=trace_id) from exc
 
     def _functions_to_be_removed(self, traces: pd.DataFrame):
         for (module, function), _ in group_by_location(traces):

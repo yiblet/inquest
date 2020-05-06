@@ -3,7 +3,7 @@ from typing import Dict
 
 import pandas as pd
 
-from inquest.hotpatch import convert_relative_import_to_absolute_import
+from inquest.logging import Callback, PrintCallback, with_callback
 from inquest.probe import TRACE_COLUMNS, TRACE_WITH_ERROR_COLUMNS, Probe
 from inquest.test.probe_test_module.test_imported_module import sample
 from inquest.test.sample import TestClass
@@ -46,7 +46,7 @@ def create_trace(
 
 def test_on_function_simple(capsys):
     with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe:
+               __name__) as probe, with_callback(PrintCallback()):
         result = probe.new_desired_state(
             [
                 create_trace(
@@ -68,7 +68,7 @@ def test_on_function_simple(capsys):
 
 def test_on_function(capsys):
     with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe:
+               __name__) as probe, with_callback(PrintCallback()):
         result = probe.new_desired_state(
             [
                 create_trace(
@@ -105,7 +105,7 @@ def test_on_function(capsys):
         )
         assert result is None
         assert sample(2, 1) == 3
-        assert capsys.readouterr().out == "2\n1\n"
+        assert capsys.readouterr().out == "1\n2\n"
 
     assert sample(2, 1) == 3
     assert capsys.readouterr().out == ""
@@ -113,7 +113,7 @@ def test_on_function(capsys):
 
 def test_on_function_changes(capsys):
     with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe:
+               __name__) as probe, with_callback(PrintCallback()):
 
         def assert_desired_state(desired_state, output):
             result = probe.new_desired_state(desired_state)
@@ -145,7 +145,7 @@ def test_on_function_changes(capsys):
                     "2",
                     1,
                 )
-            ], "2\n1"
+            ], "1\n2"
         )
 
         assert_desired_state(
@@ -208,7 +208,7 @@ def test_on_function_changes(capsys):
 
 def test_on_class_methods(capsys):
     with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe:
+               __name__) as probe, with_callback(PrintCallback()):
 
         def assert_desired_state(desired_state, output):
             result = probe.new_desired_state(desired_state)
@@ -237,3 +237,31 @@ def test_on_class_methods(capsys):
             ],
             "2",
         )
+
+
+def test_on_runtime_failure(capsys):
+
+    class TestCallback(Callback):
+
+        def log(self, value):
+            assert False
+
+        def error(self, trace_id, value):
+            assert value == "name 'arg0' is not defined\n"
+
+    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
+               __name__) as probe, with_callback(TestCallback()):
+        result = probe.new_desired_state(
+            [
+                create_trace(
+                    'inquest/test/probe_test_module/test_imported_module.py',
+                    'sample',
+                    '{arg0}',
+                    "1",
+                    1,
+                )
+            ]
+        )
+        assert result is None
+        assert sample(2, 1) == 3
+        assert capsys.readouterr().out == ""

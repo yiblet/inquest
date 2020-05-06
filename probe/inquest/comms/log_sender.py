@@ -1,21 +1,55 @@
 import asyncio
 import logging
+from typing import NamedTuple
 
 import janus
-from gql import gql
 
+from gql import gql
 from inquest.comms.client_consumer import ClientConsumer
+from inquest.comms.exception_sender import ExceptionSender
 from inquest.comms.utils import log_result
-from inquest.logging import with_callback
+from inquest.logging import Callback, with_callback
+from inquest.utils.exceptions import ProbeException
 
 LOGGER = logging.getLogger(__name__)
 
 
+class Log(NamedTuple):
+    log: str
+
+
+class Error(NamedTuple):
+    trace_id: str
+    error: str
+
+
+class LogSenderCallback(Callback):
+
+    def __init__(self, log_queue):
+        super().__init__()
+        self.log_queue = log_queue
+
+    def log(self, value: str):
+        try:
+            self.log_queue.sync_q.put(Log(value))
+        except asyncio.QueueFull as error:
+            LOGGER.error(error)
+
+    def error(self, trace_id: str, value: str):
+        try:
+            self.log_queue.sync_q.put(Error(trace_id, value))
+        except asyncio.QueueFull as error:
+            LOGGER.error(error)
+
+
 class LogSender(ClientConsumer):
 
-    def __init__(self, *, trace_set_key: str):
+    def __init__(
+        self, *, trace_set_key: str, exception_sender: ExceptionSender
+    ):
         super().__init__()
         self.trace_set_key = trace_set_key
+        self.exception_sender = exception_sender
 
         self.log_queue: asyncio.Queue = None
         self.query = gql(
@@ -29,14 +63,11 @@ mutation PublishLogMutation($content: String!) {
     async def __aenter__(self):
         await super().__aenter__()
         self.log_queue = janus.Queue()
-        self.enter_context(with_callback(self.log_callback))
+        self.enter_context(with_callback(self.gen_callback()))
         return self
 
-    def log_callback(self, log_content: str):
-        try:
-            self.log_queue.sync_q.put(log_content)
-        except asyncio.QueueFull as error:
-            LOGGER.error(error)
+    def gen_callback(self):
+        return LogSenderCallback(self.log_queue)
 
     async def _send_log(self, log_content: str):
         LOGGER.debug('sending: %s', log_content)
@@ -54,7 +85,15 @@ mutation PublishLogMutation($content: String!) {
 
         while True:
             log_content = await self.log_queue.async_q.get()
-            await self._send_log(log_content)
+            if isinstance(log_content, Log):
+                await self._send_log(log_content.log)
+            elif isinstance(log_content, Error):
+                await self.exception_sender.send_exception(
+                    ProbeException(
+                        message=str(log_content.error),
+                        trace_id=log_content.trace_id,
+                    )
+                )
             self.log_queue.async_q.task_done()
 
         LOGGER.info("logs finished being sent")

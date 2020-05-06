@@ -5,6 +5,7 @@ import threading
 from typing import List, Optional, Union
 
 from inquest.comms.client_provider import ClientProvider
+from inquest.comms.exception_sender import ExceptionSender
 from inquest.comms.heartbeat import Heartbeat
 from inquest.comms.log_sender import LogSender
 from inquest.comms.module_sender import ModuleSender
@@ -52,14 +53,20 @@ class ProbeRunner(threading.Thread):
         self.exclude = exclude
 
     def client_consumers(self):
+        sender = ExceptionSender()
         consumers = [
             TraceSetSubscriber(
                 probe=self.probe,
                 trace_set_key=self.trace_set_key,
                 package=self.package,
+                exception_sender=sender,
             ),
-            LogSender(trace_set_key=self.trace_set_key),
-            Heartbeat()
+            LogSender(
+                trace_set_key=self.trace_set_key,
+                exception_sender=sender,
+            ),
+            Heartbeat(),
+            sender,
         ]
 
         if self.send_modules:

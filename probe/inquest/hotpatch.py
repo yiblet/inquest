@@ -7,14 +7,6 @@ from functools import lru_cache
 from typing import Union
 
 
-class TraceException(Exception):
-
-    def __init__(self, trace_id: str, exception: Exception):
-        super().__init__(trace_id, exception)
-        self.trace_id = trace_id
-        self.exception = exception
-
-
 def convert_relative_import_to_absolute_import(
     import_string: str,
     package: str,

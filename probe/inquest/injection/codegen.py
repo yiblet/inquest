@@ -3,11 +3,11 @@ import inspect
 import logging
 import re
 import types
-from typing import List, NamedTuple, Tuple
+from typing import List, NamedTuple
 
-from inquest.hotpatch import TraceException
 from inquest.injection.ast_injector import ASTInjector
 from inquest.module_tree import FunctionOrMethod
+from inquest.utils.exceptions import ProbeException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -77,9 +77,21 @@ def add_log_statements(
 
     for trace in traces:
         try:
-            expr = ast.parse(f'___inquest_logging.log(f"{trace.statement}")')
+            expr = ast.parse(
+                '''\
+try:
+    ___inquest_logging.log(f"{statement}")
+except Exception as exc:
+    ___inquest_logging.error("{id}", exc)
+'''.format(statement=trace.statement, id=trace.id)
+            )
+
+            for node in ast.walk(expr):
+                if hasattr(node, 'lineno'):
+                    node.lineno = int(trace.lineno)
+
             injector.insert(trace.lineno, expr.body[0])
         except Exception as exc:
-            raise TraceException(trace.id, exc)
+            raise ProbeException(message=str(exc), trace_id=trace.id) from exc
 
     return _inject_and_codegen(injector.result(), filename)

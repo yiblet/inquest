@@ -2,11 +2,10 @@ import logging
 from collections import OrderedDict
 
 from gql import gql
-
 from inquest.comms.client_consumer import ClientConsumer
+from inquest.comms.exception_sender import ExceptionSender
 from inquest.comms.utils import log_result
-from inquest.hotpatch import TraceException
-from inquest.probe import FunctionResolutionException, Probe, TraceSetException
+from inquest.probe import Probe
 
 LOGGER = logging.getLogger(__name__)
 
@@ -19,66 +18,19 @@ class TraceSetSubscriber(ClientConsumer):
         probe: Probe,
         package: str,
         trace_set_key: str,
+        exception_sender: ExceptionSender,
     ):
         super().__init__()
         self.probe = probe
         self.package = package
         self.trace_set_key = trace_set_key
-
-    async def _send_exception(self, exception: TraceException):
-        query = gql(
-            '''
-mutation TraceFailureMutation($message: String!, $traceId: String!) {
-  newTraceFailure(message: $message, traceId: $traceId) {
-    message
-  }
-}
-                   '''
-        )
-
-        LOGGER.debug(
-            'sending exception=%s trace_id=%s',
-            exception.exception,
-            exception.trace_id,
-        )
-        result = (
-            await self.client.execute(
-                query,
-                variable_values={
-                    'message': str(exception.exception),
-                    'traceId': exception.trace_id,
-                }
-            )
-        ).to_dict()
-        log_result(LOGGER, result)
+        self.exception_sender = exception_sender
 
     async def update_state(self, desired_set):
         try:
             self.probe.new_desired_state(desired_set)
-        except Exception as errors:
-            if isinstance(errors, TraceSetException):
-                errors: TraceSetException = errors
-                for (module, function), error in errors.data.items():
-                    if isinstance(error, TraceException):
-                        await self._send_exception(error)
-                        LOGGER.warning("failed to add trace %s" % error)
-                    else:
-                        LOGGER.error(
-                            'error in %s:%s %s',
-                            module,
-                            function,
-                            error,
-                        )
-            elif isinstance(errors, FunctionResolutionException):
-                errors: FunctionResolutionException = errors
-                exc = TraceException(errors.trace_id, errors.exception)
-                await self._send_exception(exc)
-                LOGGER.warning("failed to resolve function %s" % exc)
-            else:
-                LOGGER.error(
-                    'unexpected in %s',
-                    errors,
-                )
+        except Exception as exc:
+            await self.exception_sender.send_exception(exc)
 
     async def _send_initial(self):
         query = gql(

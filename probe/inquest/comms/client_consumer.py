@@ -17,7 +17,7 @@ class ClientConsumer(contextlib.AsyncExitStack):
     @property
     def client(self) -> AsyncClient:
         if self._client is None:
-            raise Exception('consumer wasn\'t given asccess to the client')
+            raise ValueError('consumer wasn\'t given asccess to the client')
         return self._client
 
     async def main(self):
