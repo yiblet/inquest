@@ -1,5 +1,6 @@
 import contextlib
 import logging
+import urllib
 from typing import Dict
 
 import aiohttp
@@ -20,14 +21,33 @@ class FileSender(contextlib.AsyncExitStack):
         return self
 
     async def send_file(self, relative_name: str, filename: str) -> Dict:
-        LOGGER.debug("sending file %s", filename)
+        LOGGER.debug(
+            "sending file",
+            extra={
+                'absolute_name': filename,
+                'relative_name': relative_name,
+                'relative_name_length': len(relative_name)
+            }
+        )
         data = {relative_name: open(filename, 'rb')}
-        async with self.session.post(self.url, data=data) as resp:
+
+        slug = urllib.parse.quote(relative_name, safe='')
+        async with self.session.post(self.url + f"/{slug}", data=data) as resp:
             resp: aiohttp.ClientResponse = resp
             if resp.status != 200:
                 LOGGER.error(
-                    "sending failed with a status code: %s, with text %s",
-                    resp.status, await resp.text()
+                    "sending failed",
+                    extra={
+                        'status_code':
+                            resp.status,
+                        'sent_filename':
+                            filename,
+                        'relative_name_length':
+                            len(relative_name),
+                        'failure_message':
+                            (await
+                             resp.json()).get('message', 'message missing')
+                    }
                 )
 
             return await resp.json()

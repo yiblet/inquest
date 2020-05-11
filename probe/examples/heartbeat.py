@@ -17,13 +17,12 @@ def work(value):
 def main():
     try:
         enable(root="..", glob=["examples/**/*.py", "inquest/**/*.py"])
-        LOGGER.info("starting the main loop")
         value = 0
         while True:
             value = work(value)
             sleep(1)
     except KeyboardInterrupt:
-        LOGGER.info("closing the main loop")
+        print('closing the main loop')
 
 
 if __name__ == "__main__":
