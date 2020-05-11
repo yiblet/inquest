@@ -21,10 +21,11 @@ describe("setting up dummy file", () => {
 
     it("should create a new module", async () => {
         const file = await manager.save(
-            manager.create(FileInfo, {
+            FileInfo.create({
                 name: "test1",
                 objectName: "test",
                 parentDirectoryId: rootDirId,
+                md5sum: "randomSum",
             })
         );
         const codeResolver = new CodeResolver(
@@ -49,10 +50,11 @@ describe("setting up dummy file", () => {
 
     it("should create a complex module", async () => {
         const file = await manager.save(
-            manager.create(FileInfo, {
+            FileInfo.create({
                 name: "test2",
                 objectName: "test",
                 parentDirectoryId: rootDirId,
+                md5sum: "randomSum",
             })
         );
         const codeResolver = new CodeResolver(

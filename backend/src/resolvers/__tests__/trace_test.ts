@@ -77,10 +77,11 @@ describe("testing server", () => {
         const rootDirId = (await dirRepo.genRootDir()).id;
 
         const file = await manager.save(
-            manager.create(FileInfo, {
+            FileInfo.create({
                 name: "test_file",
                 objectName: "test_object",
                 parentDirectoryId: rootDirId,
+                md5sum: "random sum",
             })
         );
 

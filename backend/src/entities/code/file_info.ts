@@ -9,6 +9,7 @@ import {
     ManyToOne,
 } from "typeorm";
 import { DirectoryInfo } from "./directory_info";
+import { plainToClass } from "class-transformer";
 
 /**
  * FileInfo
@@ -18,8 +19,11 @@ import { DirectoryInfo } from "./directory_info";
  * required fields:
  *  - name
  *  - objectName
+ *  - parentDirectoryId
+ *  - md5sum
  *
  * TODO count the number of lines on each file
+ *
  */
 @Entity()
 @ObjectType()
@@ -39,7 +43,11 @@ export class FileInfo {
     @Field({ nullable: false })
     @Index({ unique: true })
     @Column()
-    readonly name: string;
+    name: string;
+
+    @Field({ nullable: false })
+    @Column()
+    md5sum: string;
 
     @Column()
     objectName: string;
@@ -53,4 +61,13 @@ export class FileInfo {
 
     @Column({ nullable: false })
     parentDirectoryId: string;
+
+    static create(data: {
+        name: string;
+        objectName: string;
+        parentDirectoryId: string;
+        md5sum: string;
+    }) {
+        return plainToClass(FileInfo, data);
+    }
 }
