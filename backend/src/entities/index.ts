@@ -5,8 +5,6 @@ import { FileInfo } from "./code/file_info";
 import { FunctionInfo } from "./code/function_info";
 import { Probe } from "./probe";
 import { ProbeFailure } from "./probe_failure";
-import { Rate } from "./rate";
-import { Recipe } from "./recipe";
 import { Trace } from "./trace/trace";
 import { TraceLog } from "./trace/trace_log";
 import { TraceLogStatus } from "./trace/trace_log_status";
@@ -21,8 +19,6 @@ export const ALL_ENTITIES = [
     FunctionInfo,
     Probe,
     ProbeFailure,
-    Rate,
-    Recipe,
     Trace,
     TraceLog,
     TraceLogStatus,
@@ -39,8 +35,6 @@ export {
     FunctionInfo,
     Probe,
     ProbeFailure,
-    Rate,
-    Recipe,
     Trace,
     TraceLog,
     TraceLogStatus,
