@@ -11,7 +11,7 @@ import {
 import { EntityManager } from "typeorm";
 import { InjectManager } from "typeorm-typedi-extensions";
 import { genLogTopic } from "../topics";
-import { Context, retrieveProbe } from "../context";
+import { Context } from "../context";
 
 @Resolver()
 export class LiveTailResolver {
@@ -26,18 +26,17 @@ export class LiveTailResolver {
         @Ctx() context: Context,
         @PubSub() pubsub: PubSubEngine
     ): Promise<string> {
-        const probe = retrieveProbe(context);
-        const tail = await probe.traceSet;
-        await pubsub.publish(genLogTopic(tail.key), content);
+        const tail = await context.probe.traceSet;
+        await pubsub.publish(genLogTopic(tail.id), content);
         return content;
     }
 
     @Subscription((type) => String, {
         nullable: false,
-        topics: ({ args }) => genLogTopic(args.traceSetKey),
+        topics: ({ args }) => genLogTopic(args.traceSetId),
     })
     listenLog(
-        @Arg("traceSetKey") traceSetKey: string,
+        @Arg("traceSetId") traceSetId: string,
         @Root() content: string
     ): string {
         return content;

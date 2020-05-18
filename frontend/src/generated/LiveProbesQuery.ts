@@ -9,7 +9,7 @@
 
 export interface LiveProbesQuery_liveProbes {
   readonly __typename: "Probe";
-  readonly key: string;
+  readonly id: string;
 }
 
 export interface LiveProbesQuery {

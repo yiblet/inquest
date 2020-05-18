@@ -20,7 +20,7 @@ const CodeViewConnector = dynamic<CodeViewConnectorProps>(
 const LIVE_PROBES_QUERY = gql`
     query LiveProbesQuery {
         liveProbes {
-            key
+            id
         }
     }
 `;

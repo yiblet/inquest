@@ -48,8 +48,11 @@ class NewTraceInput {
     @Field({ nullable: false })
     statement: string;
 
-    @Field({ nullable: false })
-    traceSetKey: string;
+    @Field({ nullable: true })
+    traceSetId?: string;
+
+    @Field({ nullable: true })
+    traceSetKey?: string;
 }
 
 @Resolver((of) => Trace)
@@ -127,7 +130,7 @@ export class TraceResolver {
                 )
             );
 
-            await pubsub.publish(genProbeTopic(traceSet.key), "delete trace");
+            await pubsub.publish(genProbeTopic(traceSet.id), "delete trace");
             return trace;
         });
     }
@@ -174,7 +177,7 @@ export class TraceResolver {
                     })
                 )
             );
-            await pubsub.publish(genProbeTopic(traceSet.key), "update trace");
+            await pubsub.publish(genProbeTopic(traceSet.id), "update trace");
             return trace;
         });
     }
@@ -188,8 +191,13 @@ export class TraceResolver {
             const traceRepository = manager.getRepository(Trace);
             const traceSetRepository = manager.getRepository(TraceSet);
 
+            if (!newTraceInput.traceSetId && !newTraceInput.traceSetKey) {
+                throw new PublicError("key and id cannt both be left out");
+            }
+
             // find the trace set
             const traceSet = await traceSetRepository.findOne({
+                id: newTraceInput.traceSetId,
                 key: newTraceInput.traceSetKey,
             });
             if (traceSet == null) {
@@ -226,7 +234,7 @@ export class TraceResolver {
                     })
                 )
             );
-            await pubsub.publish(genProbeTopic(traceSet.key), "new trace");
+            await pubsub.publish(genProbeTopic(traceSet.id), "new trace");
             return trace;
         });
     }

@@ -1,9 +1,17 @@
 import { Field, ID, ObjectType, Arg } from "type-graphql";
 import { GraphQLBoolean, GraphQLString } from "graphql";
-import { Index, PrimaryGeneratedColumn, Column, Entity } from "typeorm";
+import {
+    Index,
+    PrimaryGeneratedColumn,
+    Column,
+    Entity,
+    ManyToOne,
+} from "typeorm";
 import { validate, MinLength, IsEmail } from "class-validator";
 import { hash, compare } from "bcrypt";
 import { PublicError } from "../utils";
+import { Organization } from "./organization";
+import { plainToClass } from "class-transformer";
 
 @ObjectType()
 export class PasswordValidity {
@@ -56,8 +64,25 @@ export class User {
     @Column({ nullable: true })
     nickname?: string;
 
+    @Field((type) => [Organization], { nullable: false })
+    @ManyToOne((type) => Organization, (org) => org.traceSets)
+    organization: Promise<Organization>;
+
+    @Column()
+    organizationId: string;
+
     @Column()
     password: string;
+
+    static create(data: {
+        email: string;
+        firstname: string;
+        lastname: string;
+        organizationId: string;
+        password: string;
+    }) {
+        return plainToClass(User, data);
+    }
 
     @Field((type) => GraphQLBoolean, {
         description: "checks the user's password",

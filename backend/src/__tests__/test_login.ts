@@ -15,19 +15,19 @@ describe("server tests", () => {
     it("should login", async () => {
         const authService = Container.get(AuthService);
         const login = new LoginInfo();
-        login.email = "test@github.com";
+        login.email = "default@example.com";
         login.password = "s#cr3tp4ssw0rd";
         const user = await authService.login(login);
         expect(user).toMatchObject({
-            email: "test@github.com",
-            firstname: "Michal",
+            email: "default@example.com",
+            firstname: "Default",
         });
         const token = await authService.genToken(user);
         expect(token.length).toBeGreaterThan(12);
         const verfiedUser = await authService.verify(token);
         expect(verfiedUser).toMatchObject({
-            email: "test@github.com",
-            firstname: "Michal",
+            email: "default@example.com",
+            firstname: "Default",
         });
     });
 
@@ -106,7 +106,7 @@ describe("server tests", () => {
         await expect(
             authService.signup(
                 plainToClass(SignupInfo, {
-                    email: "test@github.com",
+                    email: "default@example.com",
                     password: "password2",
                     password2: "password2",
                     firstname: "Test",

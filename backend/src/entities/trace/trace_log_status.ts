@@ -64,7 +64,7 @@ export class TraceLogStatus {
 
     @Index()
     @Column({ nullable: false })
-    probeId: number;
+    probeId: string;
 
     @Field((type) => TraceLog, { nullable: false })
     @ManyToOne((type) => TraceLog, { nullable: false })
@@ -75,7 +75,7 @@ export class TraceLogStatus {
     traceLogId: string;
 
     static newTraceLogstatus(relations: {
-        probeId: number;
+        probeId: string;
         traceLogId: string;
     }): Partial<TraceLogStatus> {
         return {

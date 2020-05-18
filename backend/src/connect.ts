@@ -45,8 +45,8 @@ async function authorizeProbe(
 ): Promise<Probe | undefined> {
     const authorization = context.request.headers.authorization;
     if (!authorization) return undefined;
-    const key = getProbeAuth(authorization);
-    const probe = await manager.findOne(Probe, { key });
+    const id = getProbeAuth(authorization);
+    const probe = await manager.findOne(Probe, { id });
     if (!probe) throw new PublicError("unauthorized");
     return probe;
 }
@@ -59,9 +59,9 @@ export async function createSQLiteServerSchema() {
     const manager = getManager();
 
     // create mocked context
-    const context = ({ req, res, connection }) => {
+    const context = async ({ req, res, connection }): Promise<Context> => {
         if (connection) return connection.context;
-        return { user: defaultUser };
+        return new Context(defaultUser);
     };
 
     // Create GraphQL server
@@ -76,7 +76,7 @@ export async function createSQLiteServerSchema() {
                 context: ConnectionContext
             ): Promise<Context> => {
                 const probe = await authorizeProbe(manager, context);
-                return { probe };
+                return new Context(undefined, probe);
             },
             onDisconnect: async (
                 websocket: WebSocket,

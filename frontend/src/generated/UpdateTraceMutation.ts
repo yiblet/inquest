@@ -8,7 +8,7 @@
 // ====================================================
 
 export interface UpdateTraceMutation_updateTrace_currentFailures {
-  readonly __typename: "TraceFailure";
+  readonly __typename: "ProbeFailure";
   readonly message: string;
 }
 

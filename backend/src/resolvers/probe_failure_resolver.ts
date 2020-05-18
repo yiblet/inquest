@@ -3,7 +3,7 @@ import { EntityManager } from "typeorm";
 import { InjectManager } from "typeorm-typedi-extensions";
 
 import { ProbeFailure, Trace } from "../entities";
-import { Context, retrieveProbe } from "../context";
+import { Context } from "../context";
 import { createTransaction, PublicError } from "../utils";
 import { ProbeFailureRepository } from "../repositories/probe_failure_repository";
 
@@ -31,7 +31,7 @@ export class ProbeFailureResolver {
         context: Context,
         manager: EntityManager
     ) {
-        const probe = retrieveProbe(context);
+        const probe = context.probe;
         const failure = manager.create(ProbeFailure, {
             message,
             probeId: probe.id,
@@ -60,7 +60,7 @@ export class ProbeFailureResolver {
                 ProbeFailureRepository
             );
 
-            const probe = retrieveProbe(context);
+            const probe = context.probe;
             const failure = await this.createFailure(input, context, manager);
 
             const existingFailure = await probeFailureRepository.findExistingFailure(

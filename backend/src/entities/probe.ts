@@ -26,8 +26,9 @@ import { ProbeFailure } from "./probe_failure";
 @Entity()
 @ObjectType()
 export class Probe {
-    @PrimaryGeneratedColumn()
-    readonly id: number;
+    @Field({ nullable: false })
+    @PrimaryGeneratedColumn("uuid")
+    readonly id: string;
 
     @Field({ nullable: false })
     @Column({ nullable: false })
@@ -36,12 +37,6 @@ export class Probe {
     @Field({ nullable: false })
     @Column({ nullable: false, default: false })
     closed: boolean;
-
-    @Field()
-    @Index({ unique: true })
-    @Column({ nullable: false, unique: true })
-    @Generated("uuid")
-    key: string;
 
     @Field((type) => GraphQLBoolean, { nullable: false })
     isAlive(): boolean {
@@ -70,5 +65,5 @@ export class Probe {
 
     @Index()
     @Column({ nullable: false })
-    traceSetId: number;
+    traceSetId: string;
 }

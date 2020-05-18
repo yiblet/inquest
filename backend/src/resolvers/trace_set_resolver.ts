@@ -5,10 +5,12 @@ import {
     Mutation,
     Arg,
     Query,
+    Ctx,
 } from "type-graphql";
 import { Repository, EntityManager, Not, IsNull } from "typeorm";
 import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
 import { Trace, TraceSet } from "../entities";
+import { Context } from "../context";
 
 @Resolver((of) => TraceSet)
 export class TraceSetResolver {
@@ -38,11 +40,15 @@ export class TraceSetResolver {
     }
 
     @Mutation((returns) => TraceSet, {
-        description: "creates a traceSet with a given key",
+        description: "creates a traceSet with a given id",
     })
-    async newTraceSet(@Arg("traceSetKey") key: string): Promise<TraceSet> {
+    async newTraceSet(
+        @Ctx() context: Context,
+        @Arg("traceSetKey") key: string
+    ): Promise<TraceSet> {
         return await this.traceSetRepository.save(
-            this.traceSetRepository.create({
+            TraceSet.create({
+                organizationId: (await context.organization()).id,
                 key,
             })
         );
@@ -51,11 +57,11 @@ export class TraceSetResolver {
     @Query((returns) => TraceSet, {
         nullable: true,
         name: "traceSet",
-        description: "creates a traceSet with a given key",
+        description: "creates a traceSet with a given id",
     })
     async findTraceSet(
-        @Arg("traceSetKey") key: string
+        @Arg("traceSetId") id: string
     ): Promise<TraceSet | undefined> {
-        return await this.traceSetRepository.findOne({ key });
+        return await this.traceSetRepository.findOne({ id });
     }
 }

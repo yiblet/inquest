@@ -12,5 +12,5 @@ export interface LiveTailSubscription {
 }
 
 export interface LiveTailSubscriptionVariables {
-  readonly traceSetKey: string;
+  readonly traceSetId: string;
 }

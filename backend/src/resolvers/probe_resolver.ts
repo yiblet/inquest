@@ -22,12 +22,12 @@ import { GraphQLString } from "graphql";
 import { Probe, TraceSet, ProbeFailure } from "../entities";
 import { PublicError } from "../utils";
 import { genProbeTopic } from "../topics";
-import { Context, retrieveProbe } from "../context";
+import { Context } from "../context";
 import { ProbeFailureRepository } from "../repositories/probe_failure_repository";
 
 @ObjectType()
 export class ProbeNotification {
-    constructor(message: string, private traceSetKey: string) {
+    constructor(message: string, private traceSetId: string) {
         this.message = message;
     }
 
@@ -39,7 +39,7 @@ export class ProbeNotification {
         return await getManager()
             .findOneOrFail(TraceSet, {
                 where: {
-                    key: this.traceSetKey,
+                    id: this.traceSetId,
                 },
             })
             .catch((err) => {
@@ -60,17 +60,17 @@ export class ProbeResolver {
     ) {}
 
     @Query((returns) => Probe, { nullable: true })
-    probe(@Arg("key", (_) => GraphQLString) key: string) {
+    probe(@Arg("probeId", (_) => GraphQLString) id: string) {
         return this.probeRepository.findOne({
             where: {
-                key,
+                id,
             },
         });
     }
 
     @Query((returns) => Probe, { nullable: true })
     thisProbe(@Ctx() context: Context) {
-        return retrieveProbe(context);
+        return context.probe;
     }
 
     @FieldResolver((returns) => [ProbeFailure], { nullable: false })
@@ -83,7 +83,7 @@ export class ProbeResolver {
         includeTraceAssociated: boolean,
         @Ctx() context: Context
     ) {
-        const probe = retrieveProbe(context);
+        const probe = context.probe;
         const probeFailureRepository = this.manager.getCustomRepository(
             ProbeFailureRepository
         );
@@ -103,7 +103,7 @@ export class ProbeResolver {
 
     @Mutation((returns) => Probe)
     async heartbeat(@Ctx() context: Context): Promise<Probe> {
-        const probe = retrieveProbe(context);
+        const probe = context.probe;
         probe.lastHeartbeat = new Date();
         this.probeRepository.update(probe.id, {
             lastHeartbeat: new Date(),
@@ -134,8 +134,8 @@ export class ProbeResolver {
     })
     async probeNotification(
         @Root() message: string,
-        @Arg("traceSetKey") key: string
+        @Arg("traceSetId") id: string
     ): Promise<ProbeNotification> {
-        return new ProbeNotification(message, key);
+        return new ProbeNotification(message, id);
     }
 }

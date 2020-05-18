@@ -8,7 +8,7 @@
 // ====================================================
 
 export interface FunctionFragment_traces_currentFailures {
-  readonly __typename: "TraceFailure";
+  readonly __typename: "ProbeFailure";
   readonly message: string;
 }
 

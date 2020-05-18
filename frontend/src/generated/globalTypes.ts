@@ -11,7 +11,8 @@ export interface NewTraceInput {
   readonly functionId: string;
   readonly line: number;
   readonly statement: string;
-  readonly traceSetKey: string;
+  readonly traceSetId?: string | null;
+  readonly traceSetKey?: string | null;
 }
 
 //==============================================================

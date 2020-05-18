@@ -1,6 +1,6 @@
 import { EntityManager } from "typeorm";
 import { Service } from "typedi";
-import { User } from "../entities";
+import { User, Organization } from "../entities";
 import { InjectManager } from "typeorm-typedi-extensions";
 import { sign, verify } from "jsonwebtoken";
 import { config } from "./../config";
@@ -53,28 +53,41 @@ export class AuthService {
      * signup
      * creates the user
      */
-    async signup(info: SignupInfo) {
-        if (info.password != info.password2) {
-            throw new PublicError("passwords do not match");
-        }
-        await cv.validateOrReject(info);
-        let user = await this.manager.findOne(User, {
-            email: info.email,
+    async signup(info: SignupInfo): Promise<User> {
+        return this.manager.transaction(async (manager) => {
+            const userRepository = manager.getRepository(User);
+            const orgRepository = manager.getRepository(Organization);
+            if (info.password != info.password2) {
+                throw new PublicError("passwords do not match");
+            }
+            await cv.validateOrReject(info);
+
+            let user = await manager.findOne(User, {
+                email: info.email,
+            });
+
+            if (user)
+                throw new PublicError("user already exists with that email");
+
+            const organization = await orgRepository.save(
+                Organization.create({ name: info.email })
+            );
+
+            user = User.create({
+                firstname: info.firstname,
+                lastname: info.lastname,
+                email: info.email,
+                organizationId: organization.id,
+                password: await User.hashPassword(info.password, false),
+            });
+
+            const validUser = await user.isValid(info.password);
+            if (validUser.length === 0) {
+                return await manager.save(user);
+            } else {
+                throw new ValidationException(validUser);
+            }
         });
-        if (user) throw new PublicError("user already exists with that email");
-
-        user = new User();
-        user.firstname = info.firstname;
-        user.lastname = info.lastname;
-        user.email = info.email;
-        user.password = await User.hashPassword(info.password, false);
-
-        const validUser = await user.isValid(info.password);
-        if (validUser.length === 0) {
-            return await this.manager.save(User, user);
-        } else {
-            throw new ValidationException(validUser);
-        }
     }
 
     /**
@@ -167,7 +180,7 @@ function parseAuth(authorization: string) {
 }
 
 /**
- * returns the probekey
+ * returns the probeId
  */
 export function getProbeAuth(authorization: string) {
     const loginTokenSplit = parseAuth(authorization);

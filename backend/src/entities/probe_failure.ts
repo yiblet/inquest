@@ -63,5 +63,5 @@ export class ProbeFailure {
 
     @Index()
     @Column({ nullable: false })
-    probeId: number;
+    probeId: string;
 }

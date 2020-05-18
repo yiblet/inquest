@@ -69,7 +69,7 @@ export class Trace {
     version: number;
 
     @Column({ nullable: false })
-    traceSetId: number;
+    traceSetId: string;
 
     @Field((type) => TraceSet, { nullable: false })
     @ManyToOne((type) => TraceSet, { nullable: false })

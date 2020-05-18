@@ -3,6 +3,7 @@ import { ClassInfo } from "./code/class_info";
 import { DirectoryInfo } from "./code/directory_info";
 import { FileInfo } from "./code/file_info";
 import { FunctionInfo } from "./code/function_info";
+import { Organization } from "./organization";
 import { Probe } from "./probe";
 import { ProbeFailure } from "./probe_failure";
 import { Trace } from "./trace/trace";
@@ -17,6 +18,7 @@ export const ALL_ENTITIES = [
     DirectoryInfo,
     FileInfo,
     FunctionInfo,
+    Organization,
     Probe,
     ProbeFailure,
     Trace,
@@ -33,6 +35,7 @@ export {
     DirectoryInfo,
     FileInfo,
     FunctionInfo,
+    Organization,
     Probe,
     ProbeFailure,
     Trace,

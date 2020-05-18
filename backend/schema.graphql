@@ -55,6 +55,7 @@ type FileInfo {
   createdAt: DateTime!
   updatedAt: DateTime!
   name: String!
+  md5sum: String!
   parentDirectory: DirectoryInfo!
   content: String!
   functions: [FunctionInfo!]!
@@ -87,13 +88,11 @@ type Mutation {
   newProbeFailure(newProbeFailure: NewProbeFailureInput!): ProbeFailure!
   heartbeat: Probe!
   newProbe(traceSetKey: String!): Probe!
-  addRecipe(recipe: RecipeInput!): Recipe!
-  rate(rate: RateInput!): Recipe!
   deleteTrace(traceId: String!): Trace!
   updateTrace(updateTraceInput: UpdateTraceInput!): Trace!
   newTrace(newTraceInput: NewTraceInput!): Trace!
 
-  """creates a traceSet with a given key"""
+  """creates a traceSet with a given id"""
   newTraceSet(traceSetKey: String!): TraceSet!
 }
 
@@ -106,7 +105,15 @@ input NewTraceInput {
   functionId: String!
   line: Int!
   statement: String!
-  traceSetKey: String!
+  traceSetId: String
+  traceSetKey: String
+}
+
+type Organization {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  traceSets: [TraceSet!]!
+  users: [User!]!
 }
 
 type PasswordValidity {
@@ -115,13 +122,17 @@ type PasswordValidity {
 }
 
 type Probe {
+  id: String!
   lastHeartbeat: DateTime!
   closed: Boolean!
-  key: String!
   isAlive: Boolean!
   traceLogStatuses: [TraceLogStatus!]!
   probeFailures: [ProbeFailure!]!
   traceSet: TraceSet!
+  failures(
+    """whether or not to include failures that also are associated to traces"""
+    includeTraceAssociated: Boolean = false
+  ): [ProbeFailure!]!
 }
 
 type ProbeFailure {
@@ -142,45 +153,18 @@ type Query {
   rootDirectory: DirectoryInfo!
   directory(directoryId: String!): DirectoryInfo
   file(name: String, fileId: String): FileInfo
-  probe(key: String!): Probe
+  probe(probeId: String!): Probe
   thisProbe: Probe
-  recipe(recipeId: Int!): Recipe
-  recipes: [Recipe!]!
 
-  """creates a traceSet with a given key"""
-  traceSet(traceSetKey: String!): TraceSet
+  """creates a traceSet with a given id"""
+  traceSet(traceSetId: String!): TraceSet
   me: User
   liveProbes: [Probe!]
 }
 
-type Rate {
-  value: Int!
-  user: User!
-  date: DateTime!
-  recipe: Recipe!
-}
-
-input RateInput {
-  recipeId: ID!
-  value: Int!
-}
-
-type Recipe {
-  id: ID!
-  title: String!
-  description: String
-  ratings: [Rate!]!
-  author: User!
-}
-
-input RecipeInput {
-  title: String!
-  description: String
-}
-
 type Subscription {
-  listenLog(traceSetKey: String!): String!
-  probeNotification(traceSetKey: String!): ProbeNotification!
+  listenLog(traceSetId: String!): String!
+  probeNotification(traceSetId: String!): ProbeNotification!
 }
 
 type Trace {
@@ -236,9 +220,11 @@ enum TraceLogType {
 }
 
 type TraceSet {
+  id: String!
   key: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+  organization: [Organization!]!
   traceLogs: [TraceLog!]!
 
   """the desired set according to this traceSet"""
@@ -257,6 +243,7 @@ type User {
   firstname: String!
   lastname: String!
   nickname: String
+  organization: [Organization!]!
 
   """checks the user's password"""
   isPassword(password: String!): Boolean!

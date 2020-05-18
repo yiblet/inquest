@@ -30,7 +30,7 @@ registerEnumType(TraceLogType, {
 });
 
 export type StateChange = {
-    traceSetId: number;
+    traceSetId: string;
     traceId: string;
 };
 
@@ -71,7 +71,7 @@ export class TraceLog {
 
     @Index()
     @Column({ nullable: false })
-    traceSetId: number;
+    traceSetId: string;
 
     /**
      * the respective Trace

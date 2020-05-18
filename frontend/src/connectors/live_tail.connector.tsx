@@ -6,8 +6,8 @@ import { LiveTail } from "../components/live_tail/live_tail";
 import { List } from "immutable";
 
 const LIVE_TAIL_SUBSCRIPTION = gql`
-    subscription LiveTailSubscription($traceSetKey: String!) {
-        listenLog(traceSetKey: $traceSetKey)
+    subscription LiveTailSubscription($traceSetId: String!) {
+        listenLog(traceSetId: $traceSetId)
     }
 `;
 
@@ -15,7 +15,7 @@ export function LiveTailConnector() {
     const { data } = useSubscription<LiveTailSubscription>(
         LIVE_TAIL_SUBSCRIPTION,
         {
-            variables: { traceSetKey: getPublicRuntimeConfig().traceSet },
+            variables: { traceSetId: getPublicRuntimeConfig().traceSet },
         }
     );
 

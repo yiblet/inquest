@@ -7,7 +7,7 @@ export class ProbeRepository extends Repository<Probe> {
     /**
      * retrieves the list of active probes for the given traceset
      */
-    async findActiveProbesIds(traceSetId: number): Promise<number[]> {
+    async findActiveProbesIds(traceSetId: string): Promise<string[]> {
         return (
             await this.find({
                 select: ["id"],

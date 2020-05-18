@@ -8,7 +8,7 @@
 // ====================================================
 
 export interface CodeViewQuery_file_functions_traces_currentFailures {
-  readonly __typename: "TraceFailure";
+  readonly __typename: "ProbeFailure";
   readonly message: string;
 }
 
@@ -32,7 +32,7 @@ export interface CodeViewQuery_file_functions {
 }
 
 export interface CodeViewQuery_file_classes_methods_traces_currentFailures {
-  readonly __typename: "TraceFailure";
+  readonly __typename: "ProbeFailure";
   readonly message: string;
 }
 

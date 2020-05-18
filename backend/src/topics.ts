@@ -1,7 +1,7 @@
-export function genProbeTopic(traceSetKey: string): string {
-    return `PROBE:${traceSetKey}`;
+export function genProbeTopic(traceSetId: string): string {
+    return `PROBE:${traceSetId}`;
 }
 
-export function genLogTopic(traceSetKey: string): string {
-    return `LOG:${traceSetKey}`;
+export function genLogTopic(traceSetId: string): string {
+    return `LOG:${traceSetId}`;
 }

@@ -10,7 +10,7 @@ import { NewTraceInput } from "./globalTypes";
 // ====================================================
 
 export interface NewTraceMutation_newTrace_currentFailures {
-  readonly __typename: "TraceFailure";
+  readonly __typename: "ProbeFailure";
   readonly message: string;
 }
 
