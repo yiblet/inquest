@@ -3,6 +3,7 @@ import { getRepository, getManager, Column, ColumnOptions } from "typeorm";
 import { User, TraceSet } from "./entities";
 import { hash } from "bcrypt";
 import { Organization } from "./entities/organization";
+import { logger } from "./logging";
 
 export async function seedDatabase() {
     const manager = getManager();
@@ -25,13 +26,14 @@ export async function seedDatabase() {
 
     const defaultTraceSet = await manager.save(
         TraceSet.create({
-            key: "default",
             organizationId: defaultOrganization.id,
         })
     );
 
-    console.log("default user:", defaultUser.email);
-    console.log("default traceSet:", defaultTraceSet.key);
+    logger.info("database seeded", {
+        user: defaultUser.email,
+        traceSet: defaultTraceSet.id,
+    });
 
     return {
         defaultUser,

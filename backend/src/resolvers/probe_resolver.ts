@@ -113,14 +113,14 @@ export class ProbeResolver {
     }
 
     @Mutation((returns) => Probe)
-    async newProbe(@Arg("traceSetKey") key: string): Promise<Probe> {
+    async newProbe(@Arg("traceSetId") id: string): Promise<Probe> {
         const traceSet = await this.traceSetRepository.findOne({
             where: {
-                key,
+                id,
             },
         });
         if (traceSet == null) {
-            throw new PublicError("could not find traceSet with given key");
+            throw new PublicError("could not find traceSet with given id");
         }
         const probe = this.probeRepository.create({
             lastHeartbeat: new Date(),

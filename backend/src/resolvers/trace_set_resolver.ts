@@ -42,14 +42,10 @@ export class TraceSetResolver {
     @Mutation((returns) => TraceSet, {
         description: "creates a traceSet with a given id",
     })
-    async newTraceSet(
-        @Ctx() context: Context,
-        @Arg("traceSetKey") key: string
-    ): Promise<TraceSet> {
+    async newTraceSet(@Ctx() context: Context): Promise<TraceSet> {
         return await this.traceSetRepository.save(
             TraceSet.create({
                 organizationId: (await context.organization()).id,
-                key,
             })
         );
     }

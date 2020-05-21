@@ -87,13 +87,13 @@ type Mutation {
   publishLog(content: String!): String!
   newProbeFailure(newProbeFailure: NewProbeFailureInput!): ProbeFailure!
   heartbeat: Probe!
-  newProbe(traceSetKey: String!): Probe!
+  newProbe(traceSetId: String!): Probe!
   deleteTrace(traceId: String!): Trace!
   updateTrace(updateTraceInput: UpdateTraceInput!): Trace!
   newTrace(newTraceInput: NewTraceInput!): Trace!
 
   """creates a traceSet with a given id"""
-  newTraceSet(traceSetKey: String!): TraceSet!
+  newTraceSet: TraceSet!
 }
 
 input NewProbeFailureInput {
@@ -105,8 +105,7 @@ input NewTraceInput {
   functionId: String!
   line: Int!
   statement: String!
-  traceSetId: String
-  traceSetKey: String
+  traceSetId: String!
 }
 
 type Organization {
@@ -221,7 +220,6 @@ enum TraceLogType {
 
 type TraceSet {
   id: String!
-  key: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   organization: [Organization!]!

@@ -24,10 +24,6 @@ export class TraceSet {
     readonly id: string;
 
     @Field({ nullable: false })
-    @Column({ nullable: false, unique: true })
-    readonly key: string;
-
-    @Field({ nullable: false })
     @CreateDateColumn()
     readonly createdAt: Date;
 
@@ -46,7 +42,7 @@ export class TraceSet {
     @OneToMany((type) => TraceLog, (log) => log.traceSet)
     traceLogs: Promise<TraceLog[]>;
 
-    static create(data: { organizationId: string; key: string }) {
+    static create(data: { organizationId: string }) {
         return plainToClass(TraceSet, data);
     }
 }

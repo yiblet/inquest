@@ -13,6 +13,8 @@ import { ConnectionContext } from "subscriptions-transport-ws";
 import { getProbeAuth } from "./services/auth";
 import { getManager, EntityManager } from "typeorm";
 import { PublicError } from "./utils";
+import { ErrorInterceptor } from "./middlewares";
+import { logger } from "./logging";
 
 /**
  * build TypeGraphQL executable schema
@@ -22,6 +24,7 @@ export async function buildSchema(
 ) {
     return await TypeGraphQL.buildSchema({
         resolvers: ALL_RESOLVERS,
+        globalMiddlewares: [ErrorInterceptor],
         container: Container,
     });
 }
@@ -61,7 +64,11 @@ export async function createSQLiteServerSchema() {
     // create mocked context
     const context = async ({ req, res, connection }): Promise<Context> => {
         if (connection) return connection.context;
-        return new Context(defaultUser);
+        return new Context(
+            logger.child({ user: defaultUser.email }),
+            defaultUser,
+            null
+        );
     };
 
     // Create GraphQL server
@@ -76,7 +83,11 @@ export async function createSQLiteServerSchema() {
                 context: ConnectionContext
             ): Promise<Context> => {
                 const probe = await authorizeProbe(manager, context);
-                return new Context(undefined, probe);
+                return new Context(
+                    logger.child({ probe: probe?.id || "new" }),
+                    null,
+                    probe || "new"
+                );
             },
             onDisconnect: async (
                 websocket: WebSocket,

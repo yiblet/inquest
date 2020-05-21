@@ -1,18 +1,24 @@
 import { User, Probe, Organization } from "./entities";
 import { PublicError } from "./utils";
+import { Logger } from "winston";
 
 export class Context {
     private _organization: Organization | undefined;
-    constructor(private _user?: User, private _probe?: Probe) {}
+    constructor(
+        public readonly logger: Logger,
+        private _user: User | null,
+        private _probe: Probe | null | "new"
+    ) {}
 
     get probe(): Probe {
-        if (!this.probe) throw new PublicError("probe must be logged in");
-        return this.probe;
+        if (!this._probe || this._probe === "new")
+            throw new PublicError("probe must be logged in");
+        return this._probe;
     }
 
     get user(): User {
-        if (!this.user) throw new PublicError("user must be logged in");
-        return this.user;
+        if (!this._user) throw new PublicError("user must be logged in");
+        return this._user;
     }
 
     async organization(): Promise<Organization> {
@@ -24,7 +30,7 @@ export class Context {
         let org: Organization;
         if (this._user) {
             org = await this._user.organization;
-        } else if (this._probe) {
+        } else if (this._probe && this._probe !== "new") {
             org = await (await this._probe.traceSet).organization;
         } else {
             throw new PublicError("must be logged in");

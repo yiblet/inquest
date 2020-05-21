@@ -48,11 +48,8 @@ class NewTraceInput {
     @Field({ nullable: false })
     statement: string;
 
-    @Field({ nullable: true })
-    traceSetId?: string;
-
-    @Field({ nullable: true })
-    traceSetKey?: string;
+    @Field({ nullable: false })
+    traceSetId: string;
 }
 
 @Resolver((of) => Trace)
@@ -191,14 +188,9 @@ export class TraceResolver {
             const traceRepository = manager.getRepository(Trace);
             const traceSetRepository = manager.getRepository(TraceSet);
 
-            if (!newTraceInput.traceSetId && !newTraceInput.traceSetKey) {
-                throw new PublicError("key and id cannt both be left out");
-            }
-
             // find the trace set
             const traceSet = await traceSetRepository.findOne({
                 id: newTraceInput.traceSetId,
-                key: newTraceInput.traceSetKey,
             });
             if (traceSet == null) {
                 throw new PublicError("could not find trace set");

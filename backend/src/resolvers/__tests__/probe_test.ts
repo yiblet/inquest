@@ -4,14 +4,19 @@ import { ApolloServer } from "apollo-server";
 import { Container } from "typedi";
 import { EntityManager, getManager } from "typeorm";
 import { TraceSet, Organization } from "../../entities";
-import {
-    createTestClient,
-    ApolloServerTestClient,
-} from "apollo-server-testing";
 import gql from "graphql-tag";
+import {
+    createWrappedTestClient,
+    TestClientWrapper,
+} from "../../utils/testing";
+
+import {
+    NewProbeMutation,
+    NewProbeMutationVariables,
+} from "../../generated/NewProbeMutation";
 
 const FIND_PROBE = gql`
-    query probeQuery($id: String!) {
+    query ProbeQuery($id: String!) {
         probe(probeId: $id) {
             id
         }
@@ -19,8 +24,8 @@ const FIND_PROBE = gql`
 `;
 
 const NEW_PROBE = gql`
-    mutation newProbeMutation($id: String!) {
-        newProbe(traceSetKey: $id) {
+    mutation NewProbeMutation($id: String!) {
+        newProbe(traceSetId: $id) {
             id
         }
     }
@@ -28,14 +33,14 @@ const NEW_PROBE = gql`
 
 describe("testing server", () => {
     let server: ApolloServer;
-    let client: ApolloServerTestClient;
+    let client: TestClientWrapper;
     let manager: EntityManager;
     let org: Organization;
     beforeAll(async () => {
         Container.reset();
         server = await createSQLiteServer();
         manager = getManager();
-        client = createTestClient(server);
+        client = createWrappedTestClient(server);
         org = await manager.save(Organization.create({ name: "test" }));
     });
 
@@ -47,7 +52,6 @@ describe("testing server", () => {
     it("should fail to find probe set object", async () => {
         const set = await manager.save(
             TraceSet.create({
-                key: "test3",
                 organizationId: org.id,
             })
         );
@@ -99,15 +103,17 @@ describe("testing server", () => {
     it("should fail to find probe trace set object", async () => {
         const set = await manager.save(
             TraceSet.create({
-                key: "test4",
                 organizationId: org.id,
             })
         );
 
-        const mutation = client.mutate({
+        const mutation = client.mutate<
+            NewProbeMutation,
+            NewProbeMutationVariables
+        >({
             mutation: NEW_PROBE,
             variables: {
-                id: set.key,
+                id: set.id,
             },
         });
         expect(await mutation).toMatchObject({
@@ -124,7 +130,7 @@ describe("testing server", () => {
         if (!id) throw new Error("id should be truthy");
 
         expect(
-            await client.mutate({
+            await client.mutate<NewProbeMutation, NewProbeMutationVariables>({
                 mutation: FIND_PROBE,
                 variables: {
                     id: id,
