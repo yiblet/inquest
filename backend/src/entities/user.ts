@@ -64,7 +64,7 @@ export class User {
     @Column({ nullable: true })
     nickname?: string;
 
-    @Field((type) => [Organization], { nullable: false })
+    @Field((type) => Organization, { nullable: false })
     @ManyToOne((type) => Organization, (org) => org.traceSets)
     organization: Promise<Organization>;
 

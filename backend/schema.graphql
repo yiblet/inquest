@@ -42,6 +42,7 @@ type DirectoryInfo {
   subDirectories: [DirectoryInfo!]!
   parentDirectory: DirectoryInfo
   files: [FileInfo!]!
+  traceSet: TraceSet!
 }
 
 input FileContentInput {
@@ -57,6 +58,7 @@ type FileInfo {
   name: String!
   md5sum: String!
   parentDirectory: DirectoryInfo!
+  traceSet: TraceSet!
   content: String!
   functions: [FunctionInfo!]!
   classes: [ClassInfo!]!
@@ -149,16 +151,14 @@ type ProbeNotification {
 }
 
 type Query {
-  rootDirectory: DirectoryInfo!
   directory(directoryId: String!): DirectoryInfo
-  file(name: String, fileId: String): FileInfo
+  file(fileId: String): FileInfo
   probe(probeId: String!): Probe
   thisProbe: Probe
 
   """creates a traceSet with a given id"""
   traceSet(traceSetId: String!): TraceSet
   me: User
-  liveProbes: [Probe!]
 }
 
 type Subscription {
@@ -223,10 +223,11 @@ type TraceSet {
   createdAt: DateTime!
   updatedAt: DateTime!
   organization: [Organization!]!
-  traceLogs: [TraceLog!]!
 
   """the desired set according to this traceSet"""
   desiredSet: [Trace!]!
+  liveProbes: [Probe!]
+  rootDirectory: DirectoryInfo!
 }
 
 input UpdateTraceInput {
@@ -241,7 +242,7 @@ type User {
   firstname: String!
   lastname: String!
   nickname: String
-  organization: [Organization!]!
+  organization: Organization!
 
   """checks the user's password"""
   isPassword(password: String!): Boolean!

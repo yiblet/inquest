@@ -6,10 +6,12 @@ import { createSQLiteServerSchema } from "../connect";
 import { Container } from "typedi";
 import { plainToClass } from "class-transformer";
 import { transformAndValidate } from "class-transformer-validator";
+import { seedDatabase } from "../helpers";
 
 describe("server tests", () => {
     beforeAll(async () => {
         await createSQLiteServerSchema();
+        await seedDatabase();
     });
 
     it("should login", async () => {

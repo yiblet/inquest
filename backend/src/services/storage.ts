@@ -2,11 +2,14 @@ import { Service } from "typedi";
 import { Client } from "minio";
 import { config } from "./../config";
 import { Stream } from "stream";
+import { logger } from "../logging";
+import { Logger } from "winston";
 
 @Service()
 export class StorageService {
     private client: Client;
     private started: boolean;
+    private logger: Logger;
 
     async start() {
         if (!this.started) {
@@ -38,8 +41,9 @@ export class StorageService {
         });
     }
 
-    async save(name: string, data: Stream | Buffer | string) {
+    async save(name: string, data: Buffer) {
         await this.start();
+        logger.debug("file saved", { id: name });
         return await this.client.putObject(config.storage.bucket, name, data);
     }
 
@@ -53,5 +57,6 @@ export class StorageService {
             ...config.storage.client,
         });
         this.started = false;
+        this.logger = logger.child({ service: "storage" });
     }
 }

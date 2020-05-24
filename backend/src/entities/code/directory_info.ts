@@ -9,7 +9,9 @@ import {
     ManyToOne,
     OneToMany,
 } from "typeorm";
+import { TraceSet } from "../trace/trace_set";
 import { FileInfo } from "./file_info";
+import { plainToClass } from "class-transformer";
 
 /**
  * DirectoryInfo
@@ -19,6 +21,7 @@ import { FileInfo } from "./file_info";
  *  - name
  */
 @Entity()
+@Index(["name", "traceSetId"], { unique: true })
 @ObjectType()
 export class DirectoryInfo {
     @Field({ nullable: false })
@@ -34,7 +37,6 @@ export class DirectoryInfo {
     readonly updatedAt: Date;
 
     @Field({ nullable: false })
-    @Index({ unique: true })
     @Column()
     readonly name: string;
 
@@ -56,4 +58,20 @@ export class DirectoryInfo {
         nullable: false,
     })
     files: Promise<FileInfo[]>;
+
+    @Field((type) => TraceSet, { nullable: false })
+    @ManyToOne((type) => TraceSet, { nullable: false })
+    traceSet: Promise<TraceSet>;
+
+    @Index()
+    @Column({ nullable: false })
+    traceSetId: string;
+
+    static create(data: {
+        name: string;
+        traceSetId: string;
+        parentDirectoryId?: string;
+    }) {
+        return plainToClass(DirectoryInfo, data);
+    }
 }

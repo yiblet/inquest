@@ -9,14 +9,17 @@ import {
 } from "type-graphql";
 import { Repository, EntityManager, Not, IsNull } from "typeorm";
 import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
-import { Trace, TraceSet } from "../entities";
+import { Trace, TraceSet, Probe, DirectoryInfo } from "../entities";
 import { Context } from "../context";
+import { DirectoryInfoRepository } from "../repositories/directory_info_repository";
 
 @Resolver((of) => TraceSet)
 export class TraceSetResolver {
     constructor(
         @InjectRepository(TraceSet)
         private readonly traceSetRepository: Repository<TraceSet>,
+        @InjectRepository(DirectoryInfo)
+        private readonly directoryInfoRepository: DirectoryInfoRepository,
         @InjectManager()
         private readonly entityManager: EntityManager
     ) {}
@@ -59,5 +62,25 @@ export class TraceSetResolver {
         @Arg("traceSetId") id: string
     ): Promise<TraceSet | undefined> {
         return await this.traceSetRepository.findOne({ id });
+    }
+
+    // TODO add user auth
+    @FieldResolver((returns) => [Probe], { nullable: true })
+    async liveProbes(@Root() traceSet: TraceSet): Promise<Probe[]> {
+        const qb = this.entityManager
+            .createQueryBuilder(Probe, "probe")
+            .where(
+                "probe.lastHeartbeat > datetime(:date) AND probe.closed = false AND probe.traceSetId = :traceSetId",
+                {
+                    date: new Date(Date.now() - 90 * 1000).toISOString(),
+                    traceSetId: traceSet.id,
+                }
+            );
+        return await qb.getMany();
+    }
+
+    @FieldResolver((type) => DirectoryInfo, { nullable: false })
+    async rootDirectory(@Root() traceSet: TraceSet): Promise<DirectoryInfo> {
+        return await this.directoryInfoRepository.genRootDir(traceSet.id);
     }
 }

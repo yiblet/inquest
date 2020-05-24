@@ -4,12 +4,10 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
-    OneToMany,
     ManyToOne,
     Column,
 } from "typeorm";
 
-import { TraceLog } from "./trace_log";
 import { Organization } from "../organization";
 import { plainToClass } from "class-transformer";
 
@@ -37,10 +35,6 @@ export class TraceSet {
 
     @Column()
     organizationId: string;
-
-    @Field((type) => [TraceLog], { nullable: false })
-    @OneToMany((type) => TraceLog, (log) => log.traceSet)
-    traceLogs: Promise<TraceLog[]>;
 
     static create(data: { organizationId: string }) {
         return plainToClass(TraceSet, data);

@@ -14,7 +14,6 @@ import {
     getManager,
     Repository,
     EntityManager,
-    IsNull,
     SelectQueryBuilder,
 } from "typeorm";
 import { InjectRepository, InjectManager } from "typeorm-typedi-extensions";
@@ -130,7 +129,7 @@ export class ProbeResolver {
     }
 
     @Subscription((type) => ProbeNotification, {
-        topics: ({ args }) => genProbeTopic(args.traceSetKey),
+        topics: ({ args }) => genProbeTopic(args.traceSetId),
     })
     async probeNotification(
         @Root() message: string,

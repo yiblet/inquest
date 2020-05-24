@@ -16,33 +16,41 @@ export class DirectoryInfoRepository extends Repository<DirectoryInfo> {
      * retrieves the list of active probes for the given traceset
      */
 
-    async genRootDir() {
+    async genRootDir(traceSetId: string) {
         const dir = await this.findOne({
             name: "",
+            traceSetId: traceSetId,
         });
+
         if (!dir)
             return await this.save(
-                this.create({
+                DirectoryInfo.create({
                     name: "",
+                    traceSetId: traceSetId,
                 })
             );
         else return dir;
     }
 
-    async genDirpath(dirpath: string): Promise<DirectoryInfo> {
-        if (dirpath == "") return await this.genRootDir();
+    async genDirpath(
+        dirpath: string,
+        traceSetId: string
+    ): Promise<DirectoryInfo> {
+        if (dirpath == "") return await this.genRootDir(traceSetId);
         const dir = await this.findOne({
             name: dirpath,
+            traceSetId: traceSetId,
         });
         if (dir) return dir;
         const parentDirectory = await this.genDirpath(
-            getParentDirName(dirpath)
+            getParentDirName(dirpath),
+            traceSetId
         );
-        return await this.save(
-            this.create({
-                name: dirpath,
-                parentDirectoryId: parentDirectory.id,
-            })
-        );
+        const newDir = DirectoryInfo.create({
+            name: dirpath,
+            traceSetId: traceSetId,
+            parentDirectoryId: parentDirectory.id,
+        });
+        return await this.save(newDir);
     }
 }

@@ -131,10 +131,14 @@ export async function createApp() {
     );
 
     app.post(
-        "/upload/:filename",
+        "/upload/:traceSetId/:filename",
         wrapAsync(async (req, res) => {
             const uploadService = Container.get(UploadService);
             let file: UploadedFile | undefined = undefined;
+            if (!req.params.traceSetId) {
+                throw new PublicError("must pass in traceSetId");
+            }
+
             if (!req.params.filename) {
                 throw new PublicError("must pass in file");
             }
@@ -154,6 +158,7 @@ export async function createApp() {
 
             const fileResult = await uploadService.upload(
                 decodeURIComponent(req.params.filename),
+                decodeURIComponent(req.params.traceSetId),
                 data
             );
             res.status(200).send({

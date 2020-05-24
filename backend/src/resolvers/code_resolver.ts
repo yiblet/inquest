@@ -63,11 +63,6 @@ export class CodeResolver {
         );
     }
 
-    @Query((type) => DirectoryInfo, { nullable: false })
-    async rootDirectory(): Promise<DirectoryInfo> {
-        return await this.directoryInfoRepository.genRootDir();
-    }
-
     @Query((type) => DirectoryInfo, { nullable: true })
     async directory(
         @Arg("directoryId") directoryId: string

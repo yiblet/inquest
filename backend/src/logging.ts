@@ -10,7 +10,7 @@ function createLogger() {
             return winston.createLogger({
                 level: "debug",
                 format: winston.format.prettyPrint(),
-                defaultMeta: { service: "backend" },
+                defaultMeta: { instance: "backend" },
                 transports: [
                     new winston.transports.Console({
                         format: winston.format.simple(),
@@ -25,7 +25,7 @@ function createLogger() {
             return winston.createLogger({
                 level: "info",
                 format: winston.format.prettyPrint(),
-                defaultMeta: { service: "backend" },
+                defaultMeta: { instance: "backend" },
                 transports: [
                     new winston.transports.Console({
                         format: winston.format.simple(),

@@ -3,7 +3,6 @@ import { GraphQLBoolean } from "graphql";
 import {
     Entity,
     PrimaryGeneratedColumn,
-    Generated,
     Column,
     Index,
     OneToMany,

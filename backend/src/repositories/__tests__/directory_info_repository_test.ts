@@ -5,6 +5,7 @@ import {
     DirectoryInfoRepository,
 } from "../directory_info_repository";
 import { getManager } from "typeorm";
+import { seedTriple } from "../../helpers";
 
 beforeAll(async () => {
     Container.reset();
@@ -18,9 +19,11 @@ it("test get parentDirectoryectoryName", () => {
 });
 
 it("test generate dirpath", async () => {
-    const dirRepo = getManager().getCustomRepository(DirectoryInfoRepository);
+    const manager = getManager();
+    const dirRepo = manager.getCustomRepository(DirectoryInfoRepository);
 
-    const obj = await dirRepo.genDirpath("abc/def/ghij");
+    const { traceSet } = await seedTriple("org1");
+    const obj = await dirRepo.genDirpath("abc/def/ghij", traceSet.id);
     const parent1 = await obj.parentDirectory;
     const parent2 = parent1 && (await parent1.parentDirectory);
     const parent3 = parent2 && (await parent2.parentDirectory);

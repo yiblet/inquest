@@ -3,20 +3,23 @@ import { connectTypeOrm } from "../../connect";
 import { Container } from "typedi";
 import { EntityManager, getManager } from "typeorm";
 import { UploadService } from "../../services/upload";
-import { FileInfo } from "../../entities";
+import { FileInfo, TraceSet } from "../../entities";
 import { plainToClass } from "class-transformer";
 import { FileResolver } from "../file_resolver";
 import { StorageService } from "../../services/storage";
 import { DirectoryInfoRepository } from "../../repositories/directory_info_repository";
+import { seedTriple } from "../../helpers";
 
 describe("setting up dummy file", () => {
     let manager: EntityManager;
     let rootDirId: string;
+    let traceSet: TraceSet;
     beforeAll(async () => {
         await connectTypeOrm();
         manager = getManager();
+        traceSet = (await seedTriple("test1")).traceSet;
         const dirRepo = manager.getCustomRepository(DirectoryInfoRepository);
-        rootDirId = (await dirRepo.genRootDir()).id;
+        rootDirId = (await dirRepo.genRootDir(traceSet.id)).id;
     });
 
     it("should create a new module", async () => {
@@ -26,6 +29,7 @@ describe("setting up dummy file", () => {
                 objectName: "test",
                 parentDirectoryId: rootDirId,
                 md5sum: "randomSum",
+                traceSetId: traceSet.id,
             })
         );
         const codeResolver = new CodeResolver(
@@ -55,6 +59,7 @@ describe("setting up dummy file", () => {
                 objectName: "test",
                 parentDirectoryId: rootDirId,
                 md5sum: "randomSum",
+                traceSetId: traceSet.id,
             })
         );
         const codeResolver = new CodeResolver(

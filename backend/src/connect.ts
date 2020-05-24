@@ -7,14 +7,14 @@ import * as TypeGraphQL from "type-graphql";
 import { ALL_ENTITIES, Probe } from "./entities";
 import { ALL_RESOLVERS } from "./resolvers";
 import { Context } from "./context";
-import { seedDatabase } from "./helpers";
 import * as WebSocket from "ws";
-import { ConnectionContext } from "subscriptions-transport-ws";
-import { getProbeAuth } from "./services/auth";
+import { ConnectionContext, ExecutionParams } from "subscriptions-transport-ws";
+import { getProbeAuth, AuthService } from "./services/auth";
 import { getManager, EntityManager } from "typeorm";
 import { PublicError } from "./utils";
-import { ErrorInterceptor } from "./middlewares";
+import { ErrorInterceptor, LoggingInterceptor } from "./middlewares";
 import { logger } from "./logging";
+import * as express from "express";
 
 /**
  * build TypeGraphQL executable schema
@@ -24,7 +24,7 @@ export async function buildSchema(
 ) {
     return await TypeGraphQL.buildSchema({
         resolvers: ALL_RESOLVERS,
-        globalMiddlewares: [ErrorInterceptor],
+        globalMiddlewares: [LoggingInterceptor, ErrorInterceptor],
         container: Container,
     });
 }
@@ -54,21 +54,39 @@ async function authorizeProbe(
     return probe;
 }
 
+async function genContextFromToken(token: string) {
+    const authService = Container.get(AuthService);
+    const user = await authService.verify(token);
+    return new Context(logger.child({ user: user.id }), user, null);
+}
+
 // register 3rd party IOC container
 export async function createSQLiteServerSchema() {
     await connectTypeOrm();
     // seed database with some data
-    const { defaultUser } = await seedDatabase();
     const manager = getManager();
 
     // create mocked context
-    const context = async ({ req, res, connection }): Promise<Context> => {
+    const context = async ({
+        req,
+        res,
+        connection,
+    }: {
+        req?: express.Request;
+        res?: express.Response;
+        connection?: ExecutionParams<Context>;
+    }): Promise<Context> => {
         if (connection) return connection.context;
-        return new Context(
-            logger.child({ user: defaultUser.email }),
-            defaultUser,
-            null
-        );
+        let context: Context;
+        if (req) {
+            const token = req.headers["X-Token"];
+            if (token && typeof token === "string") {
+                context = await genContextFromToken(token);
+            }
+        }
+        context = new Context(logger.child({ probe: "new" }), null, "new");
+        context.logger.info("new http connection");
+        return context;
     };
 
     // Create GraphQL server
@@ -78,10 +96,14 @@ export async function createSQLiteServerSchema() {
         subscriptions: {
             path: "/graphql",
             onConnect: async (
-                connectionParams,
+                { token },
                 websocket: WebSocket,
                 context: ConnectionContext
             ): Promise<Context> => {
+                if (token && typeof token === "string") {
+                    return await genContextFromToken(token);
+                }
+
                 const probe = await authorizeProbe(manager, context);
                 return new Context(
                     logger.child({ probe: probe?.id || "new" }),
@@ -93,11 +115,12 @@ export async function createSQLiteServerSchema() {
                 websocket: WebSocket,
                 context: ConnectionContext
             ) => {
-                const probe = await authorizeProbe(manager, context);
-                if (probe) {
-                    probe.closed = true;
-                    await manager.save(probe);
-                }
+                await authorizeProbe(manager, context).then(async (probe) => {
+                    if (probe) {
+                        probe.closed = true;
+                        await manager.save(probe);
+                    }
+                });
             },
         },
     };

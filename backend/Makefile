@@ -40,6 +40,7 @@ fix-python-generated:
 
 fix-generated: SHELL:=/bin/bash
 fix-generated: python-generated build
+	yarn run --silent codegen
 	yarn run --silent schema:js > schema.graphql
 
 

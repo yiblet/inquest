@@ -50,6 +50,7 @@ export class UploadService {
         name: string,
         objectName: string,
         md5sum: string,
+        traceSetId: string,
         overwrite = true
     ): Promise<[FileInfo, boolean]> {
         return createTransaction(
@@ -63,18 +64,23 @@ export class UploadService {
                     FileInfoRepository
                 );
 
-                let file = await manager.findOne(FileInfo, { name: name });
+                const file = await manager.findOne(FileInfo, {
+                    name: name,
+                    traceSetId,
+                });
 
                 switch (UploadService.getFileState(file, overwrite, md5sum)) {
                     case FileState.NEW_FILE: {
                         const parentDirectory = await directoryInfoRepository.genDirpath(
-                            dirpath
+                            dirpath,
+                            traceSetId
                         );
 
                         const file = FileInfo.create({
                             name: name,
                             objectName: objectName,
                             parentDirectoryId: parentDirectory.id,
+                            traceSetId,
                             md5sum,
                         });
                         return [await manager.save(file), true];
@@ -114,11 +120,16 @@ export class UploadService {
         return lineCount;
     }
 
-    async upload(name: string, blob: Buffer) {
+    async upload(name: string, traceSetId: string, blob: Buffer) {
         const objectName: string = uuidv4();
         const sum = createHash("md5").update(blob).digest("hex");
 
-        const [file, changed] = await this.saveFile(name, objectName, sum);
+        const [file, changed] = await this.saveFile(
+            name,
+            objectName,
+            sum,
+            traceSetId
+        );
         if (changed) {
             await this.storageService.save(objectName, blob);
         }

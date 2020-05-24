@@ -5,7 +5,6 @@ import { StorageService } from "../services/storage";
 import { FileInfo, FunctionInfo, ClassInfo } from "../entities";
 import { EntityManager } from "typeorm";
 import { InjectManager } from "typeorm-typedi-extensions";
-import { PublicError } from "../utils";
 import { FileInfoRepository } from "../repositories/file_info_repository";
 
 @Resolver((of) => FileInfo)
@@ -26,14 +25,10 @@ export class FileResolver {
     async file(
         /* eslint-disable */
         @Arg("fileId", (type) => String, { nullable: true })
-        fileId: string | undefined,
-        @Arg("name", (type) => String, { nullable: true })
-        name: string | undefined
+        fileId: string
         /* eslint-enable */
     ): Promise<FileInfo | undefined> {
-        if (fileId) return await this.manager.findOne(FileInfo, fileId);
-        if (name) return await this.manager.findOne(FileInfo, { name: name });
-        throw new PublicError("both fileId and name cannot be null");
+        return await this.manager.findOne(FileInfo, fileId);
     }
 
     @FieldResolver((type) => String, { nullable: false })

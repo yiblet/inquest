@@ -19,6 +19,7 @@ export interface NewTrace_newTrace_traceSet {
 
 export interface NewTrace_newTrace {
   readonly __typename: "Trace";
+  readonly id: string;
   readonly function: NewTrace_newTrace_function | null;
   readonly statement: string;
   readonly traceSet: NewTrace_newTrace_traceSet;

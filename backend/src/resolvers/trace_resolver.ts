@@ -84,6 +84,7 @@ export class TraceResolver {
         traceLogPartial: TraceLog
     ): Promise<TraceLog> {
         const traceLog = await manager.save<TraceLog>(traceLogPartial);
+
         await manager.save(
             await manager
                 .getCustomRepository(TraceLogRepository)

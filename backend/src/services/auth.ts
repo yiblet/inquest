@@ -1,6 +1,6 @@
 import { EntityManager } from "typeorm";
 import { Service } from "typedi";
-import { User, Organization } from "../entities";
+import { User, Organization, TraceSet } from "../entities";
 import { InjectManager } from "typeorm-typedi-extensions";
 import { sign, verify } from "jsonwebtoken";
 import { config } from "./../config";
@@ -55,8 +55,8 @@ export class AuthService {
      */
     async signup(info: SignupInfo): Promise<User> {
         return this.manager.transaction(async (manager) => {
-            const userRepository = manager.getRepository(User);
             const orgRepository = manager.getRepository(Organization);
+            const traceSetRepository = manager.getRepository(TraceSet);
             if (info.password != info.password2) {
                 throw new PublicError("passwords do not match");
             }
@@ -71,6 +71,10 @@ export class AuthService {
 
             const organization = await orgRepository.save(
                 Organization.create({ name: info.email })
+            );
+
+            await traceSetRepository.save(
+                TraceSet.create({ organizationId: organization.id })
             );
 
             user = User.create({
