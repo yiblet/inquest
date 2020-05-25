@@ -4,7 +4,7 @@ import { SubscriptionClient } from "subscriptions-transport-ws";
 import fetch from "isomorphic-unfetch";
 import { getPublicRuntimeConfig } from "../config";
 
-export function createApolloClient() {
+export function createApolloClient(token) {
     const ssrMode = !process.browser;
     // The `ctx` (NextPageContext) will only be present on the server.
     // use it to extract auth headers (ctx.req) or similar.
@@ -14,6 +14,9 @@ export function createApolloClient() {
         link = new HttpLink({
             uri: `http://${getPublicRuntimeConfig().endpoint}/graphql`, // Server URL (must be absolute)
             credentials: "same-origin", // Additional fetch() options like `credentials` or `headers`
+            headers: {
+                "X-Token": token,
+            },
             fetch,
         });
     } else {
@@ -21,9 +24,11 @@ export function createApolloClient() {
             `ws://${getPublicRuntimeConfig().endpoint}/graphql`,
             {
                 reconnect: true,
+                connectionParams: {
+                    token,
+                },
             }
         );
-
         link = new WebSocketLink(client);
     }
 

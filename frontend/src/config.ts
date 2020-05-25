@@ -1,7 +1,6 @@
 import getConfig from "next/config";
 
 export type PublicRuntimeConfig = {
-    traceSet: string;
     endpoint: string;
 };
 

@@ -1,6 +1,5 @@
 import { gql, useSubscription } from "@apollo/client";
 import { LiveTailSubscription } from "../generated/LiveTailSubscription";
-import { getPublicRuntimeConfig } from "../config";
 import React, { useState, useEffect, useCallback } from "react";
 import { LiveTail } from "../components/live_tail/live_tail";
 import { List } from "immutable";
@@ -11,11 +10,13 @@ const LIVE_TAIL_SUBSCRIPTION = gql`
     }
 `;
 
-export function LiveTailConnector() {
+export const LiveTailConnector: React.FC<{ traceSetId: string }> = ({
+    traceSetId,
+}) => {
     const { data } = useSubscription<LiveTailSubscription>(
         LIVE_TAIL_SUBSCRIPTION,
         {
-            variables: { traceSetId: getPublicRuntimeConfig().traceSet },
+            variables: { traceSetId },
         }
     );
 
@@ -29,4 +30,4 @@ export function LiveTailConnector() {
     ]);
 
     return <LiveTail logs={logs} clearLogs={clearLogs} />;
-}
+};

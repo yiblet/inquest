@@ -5,4 +5,6 @@ export {
     List,
     Stack,
     Seq,
+    OrderedSet,
+    OrderedMap,
 } from "immutable";

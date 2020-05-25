@@ -5,7 +5,6 @@ import { CodeViewQuery } from "../generated/CodeViewQuery";
 import { useQuery, useMutation } from "@apollo/client";
 import { ExistingTrace } from "../components/code_view/utils";
 import { PropsOf } from "../utils/types";
-import { getPublicRuntimeConfig } from "../config";
 import { NewTraceMutation } from "../generated/NewTraceMutation";
 import { UpdateTraceMutation } from "../generated/UpdateTraceMutation";
 import { DeleteTraceMutation } from "../generated/DeleteTraceMutation";
@@ -116,7 +115,9 @@ const DELETE_TRACE = gql`
 export const CodeViewConnector = ({
     width,
     file,
+    traceSetId,
 }: {
+    traceSetId: string;
     file?: FileFragment;
     width?: number;
 }) => {
@@ -163,7 +164,7 @@ export const CodeViewConnector = ({
                 functionId: func.id,
                 statement: traceStatement,
                 line: line,
-                traceSetKey: getPublicRuntimeConfig().traceSet,
+                traceSetId: traceSetId,
             };
             const result = await newTrace({
                 variables: {

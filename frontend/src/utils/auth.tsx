@@ -10,6 +10,10 @@ export const login = (token: string) => {
     Router.push("/dashboard");
 };
 
+export const getToken = () => {
+    return cookie.get("token");
+};
+
 export const auth = (ctx: NextPageContext) => {
     const cookie = new Cookie(ctx);
     const token = cookie.get<string>("token");
@@ -27,8 +31,7 @@ export const auth = (ctx: NextPageContext) => {
 
 export const logout = () => {
     cookie.remove("token");
-    // to support logging out from all windows
-    window.localStorage.setItem("logout", `${Date.now()}`);
+    if (window) window.localStorage.setItem("logout", `${Date.now()}`);
     Router.push("/login");
 };
 

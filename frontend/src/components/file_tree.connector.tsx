@@ -3,14 +3,14 @@ import { gql, useQuery } from "@apollo/client";
 import { Module, DIRECTORY_FRAGMENT } from "./file_tree/module";
 import { FileFragment } from "../generated/FileFragment";
 import { useEffect, useState } from "react";
-import { FileTreeQuery } from "../generated/FileTreeQuery";
 import { SubdirectoryQuery } from "../generated/SubdirectoryQuery";
 import { FileTree, Line } from "./file_tree/file_tree";
 import { SubdirectoryFragment } from "../generated/SubdirectoryFragment";
 import { ImmSet } from "../utils/collections";
+import { FileTreeFragment } from "../generated/FileTreeFragment";
 
-const FILE_TREE_QUERY = gql`
-    query FileTreeQuery {
+export const FILE_TREE_FRAGMENT = gql`
+    fragment FileTreeFragment on TraceSet {
         rootDirectory {
             ...DirectoryFragment
         }
@@ -80,6 +80,7 @@ export const SubdirectoryHOC = ({
 };
 
 type FileTreeConnectorProps = {
+    fileTree: FileTreeFragment;
     currentFile: FileFragment | null;
     onPick: (fileFragment: FileFragment) => void;
 };
@@ -105,7 +106,7 @@ export const FileTreeConnector = (props: FileTreeConnectorProps) => {
     const [visibleSubdirs, setVisibleSubdirs] = useState<ImmSet<string>>(
         ImmSet()
     );
-    const { loading, error, data } = useQuery<FileTreeQuery>(FILE_TREE_QUERY);
+    const data = props.fileTree;
     useEffect(() => {
         if (!initalized && data && data.rootDirectory.files.length !== 0) {
             onPick(data.rootDirectory.files[0]);
@@ -132,9 +133,6 @@ export const FileTreeConnector = (props: FileTreeConnectorProps) => {
         [SubdirectoryHOC, setVisibleSubdirs, visibleSubdirs, File]
     );
 
-    if (loading) return <div></div>;
-    if (error) throw error;
-    if (!data) throw new Error("failed to retrieve data");
     return (
         <FileTree
             file={File}
