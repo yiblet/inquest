@@ -17,13 +17,11 @@ class TraceSetSubscriber(ClientConsumer):
         *,
         probe: Probe,
         package: str,
-        trace_set_key: str,
         exception_sender: ExceptionSender,
     ):
         super().__init__()
         self.probe = probe
         self.package = package
-        self.trace_set_key = trace_set_key
         self.exception_sender = exception_sender
 
     async def update_state(self, desired_set):
@@ -38,7 +36,7 @@ class TraceSetSubscriber(ClientConsumer):
 query InitialProbeInfo {
   thisProbe {
     traceSet {
-      key
+      id
       desiredSet {
         id
         function {
@@ -70,10 +68,10 @@ query InitialProbeInfo {
         subscription = gql(
             '''
 subscription probeNotification {
-  probeNotification(traceSetKey: "%s") {
+  probeNotification(traceSetId: "%s") {
     message
     traceSet {
-      key
+      id
       desiredSet {
         id
         function {
@@ -92,7 +90,7 @@ subscription probeNotification {
     }
   }
 }
-        ''' % (self.trace_set_key)
+        ''' % (self.trace_set_id)
         )
 
         await self._send_initial()

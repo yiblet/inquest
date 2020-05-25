@@ -20,7 +20,9 @@ class FileSender(contextlib.AsyncExitStack):
         self.session = await self.enter_async_context(aiohttp.ClientSession())
         return self
 
-    async def send_file(self, relative_name: str, filename: str) -> Dict:
+    async def send_file(
+        self, *, relative_name: str, filename: str, trace_set_id: str
+    ) -> Dict:
         LOGGER.debug(
             "sending file",
             extra={
@@ -29,10 +31,14 @@ class FileSender(contextlib.AsyncExitStack):
                 'relative_name_length': len(relative_name)
             }
         )
-        data = {relative_name: open(filename, 'rb')}
+        data = {'data': open(filename, 'rb')}
 
-        slug = urllib.parse.quote(relative_name, safe='')
-        async with self.session.post(self.url + f"/{slug}", data=data) as resp:
+        trace_set_slug = urllib.parse.quote(trace_set_id)
+        file_slug = urllib.parse.quote(relative_name, safe='')
+        async with self.session.post(
+                self.url + f"/{trace_set_slug}/{file_slug}",
+                data=data,
+        ) as resp:
             resp: aiohttp.ClientResponse = resp
             if resp.status != 200:
                 LOGGER.error(

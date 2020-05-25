@@ -10,9 +10,17 @@ class ClientConsumer(contextlib.AsyncExitStack):
     def __init__(self):
         super().__init__()
         self._client = None
+        self._trace_set_id = None
 
-    def set_client(self, client: AsyncClient):
+    def _set_values(self, client: AsyncClient, trace_set_id: str):
         self._client = client
+        self._trace_set_id = trace_set_id
+
+    @property
+    def trace_set_id(self) -> str:
+        if self._trace_set_id is None:
+            raise ValueError('consumer wasn\'t given asccess to the client')
+        return self._trace_set_id
 
     @property
     def client(self) -> AsyncClient:

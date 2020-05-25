@@ -1,3 +1,4 @@
+import argparse
 import logging
 import logging.config
 from time import sleep
@@ -14,9 +15,19 @@ def work(value):
     return value + 2
 
 
+def cli():
+    parser = argparse.ArgumentParser("inquest example")
+    parser.add_argument("-id", type=str)
+    return parser.parse_args().id
+
+
 def main():
     try:
-        enable(root="..", glob=["examples/**/*.py", "inquest/**/*.py"])
+        enable(
+            root="..",
+            trace_set_id=cli(),
+            glob=["examples/**/*.py", "inquest/**/*.py"]
+        )
         value = 0
         while True:
             value = work(value)

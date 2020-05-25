@@ -44,11 +44,8 @@ class LogSenderCallback(Callback):
 
 class LogSender(ClientConsumer):
 
-    def __init__(
-        self, *, trace_set_key: str, exception_sender: ExceptionSender
-    ):
+    def __init__(self, *, exception_sender: ExceptionSender):
         super().__init__()
-        self.trace_set_key = trace_set_key
         self.exception_sender = exception_sender
 
         self.log_queue: asyncio.Queue = None
@@ -73,7 +70,7 @@ mutation PublishLogMutation($content: String!) {
         LOGGER.debug('sending: %s', log_content)
         params = {
             "content": log_content,
-            "traceSetKey": self.trace_set_key,
+            "traceSetId": self.trace_set_id,
         }
 
         result = await self.client.execute(self.query, variable_values=params)

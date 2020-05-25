@@ -22,21 +22,21 @@ class ProbeRunner(threading.Thread):
     """
     runs the probe on a separate thread and communicates to the endpoint
     @param package: the package of the calling function (used for resolving relative imports)
-    @param trace_set_key: which trace_set_key to subscribe to for commands
+    @param trace_set_id: which trace_set_id to subscribe to for commands
     @param send_modules: whether or not to send_file information to the endpoint for
                          visualization purposes
     """
 
     package: str
     probe: Probe
-    trace_set_key: str
+    trace_set_id: str
 
     def __init__(
         self,
         *,
         root: str,
         package: str,
-        trace_set_key: str,
+        trace_set_id: str,
         host: str,
         port: int,
         glob: Optional[Union[str, List[str]]],
@@ -44,7 +44,7 @@ class ProbeRunner(threading.Thread):
     ):
         super().__init__()
         self.package = package
-        self.trace_set_key = trace_set_key
+        self.trace_set_id = trace_set_id
         self.send_modules = glob is not None
         self.endpoint = f"{host}:{port}"
         self.root = root
@@ -57,14 +57,10 @@ class ProbeRunner(threading.Thread):
         consumers = [
             TraceSetSubscriber(
                 probe=self.probe,
-                trace_set_key=self.trace_set_key,
                 package=self.package,
                 exception_sender=sender,
             ),
-            LogSender(
-                trace_set_key=self.trace_set_key,
-                exception_sender=sender,
-            ),
+            LogSender(exception_sender=sender),
             Heartbeat(),
             sender,
         ]
@@ -91,7 +87,7 @@ class ProbeRunner(threading.Thread):
         url = f'ws://{self.endpoint}/graphql'
         consumers = self.client_consumers()
         async with ClientProvider(
-                trace_set_key=self.trace_set_key,
+                trace_set_id=self.trace_set_id,
                 url=url,
                 consumers=consumers,
         ) as provider:
@@ -102,6 +98,7 @@ class ProbeRunner(threading.Thread):
 def enable(
     *,
     root: str,
+    trace_set_id: str,
     host: str = "localhost",
     port: int = 4000,
     glob: Optional[Union[str, List[str]]] = None,
@@ -120,7 +117,7 @@ def enable(
     probe = ProbeRunner(
         root=root,
         package=package,
-        trace_set_key="default",
+        trace_set_id=trace_set_id,
         host=host,
         port=port,
         glob=glob,
@@ -129,7 +126,3 @@ def enable(
     probe.setName('inquest probe')
     probe.setDaemon(daemon)
     probe.start()
-
-
-if __name__ == "__main__":
-    enable(daemon=False)

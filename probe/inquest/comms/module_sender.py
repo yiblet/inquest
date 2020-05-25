@@ -2,7 +2,6 @@ import logging
 from typing import List, Optional, Union
 
 from gql import gql
-
 from inquest.comms.client_consumer import ClientConsumer
 from inquest.comms.utils import log_result
 from inquest.file_module_resolver import get_root_dir
@@ -79,9 +78,12 @@ mutation NewFileContentMutation($input: FileContentInput!) {
                     module.__name__
                 )
                 continue
-            response = (
-                await self.sender.send_file(module.name, module.absolute_name)
+            response = await self.sender.send_file(
+                relative_name=module.name,
+                filename=module.absolute_name,
+                trace_set_id=self.trace_set_id,
             )
+
             file_id: str = (response).get("fileId")
             LOGGER.debug('sending file %s', module.name)
             if file_id is None:

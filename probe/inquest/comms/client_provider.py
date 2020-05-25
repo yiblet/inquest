@@ -7,7 +7,6 @@ from typing import Dict, List, Optional
 
 from gql import AsyncClient, gql
 from gql.transport.websockets import WebsocketsTransport
-
 from inquest.comms.client_consumer import ClientConsumer
 
 LOGGER = logging.getLogger(__name__)
@@ -18,7 +17,7 @@ class ClientProvider(contextlib.AsyncExitStack):
     def __init__(
         self,
         *,
-        trace_set_key: str,
+        trace_set_id: str,
         url: str,
         consumers: List[ClientConsumer],
         headers: Optional[Dict[str, str]] = None,
@@ -27,14 +26,14 @@ class ClientProvider(contextlib.AsyncExitStack):
         self.url = url
         self.consumers: List[ClientConsumer] = consumers
         self.headers = copy.copy(headers) if headers is not None else dict()
-        self.trace_set_key = trace_set_key
+        self.trace_set_id = trace_set_id
         self.client = None
 
         self.query = gql(
             """\
-mutation NewProbeMutation($traceSetKey: String!) {
-  newProbe(traceSetKey: $traceSetKey) {
-    key
+mutation NewProbeMutation($traceSetId: String!) {
+  newProbe(traceSetId: $traceSetId) {
+    id
   }
 }
                     """
@@ -51,13 +50,13 @@ mutation NewProbeMutation($traceSetKey: String!) {
                 result = (
                     await client.execute(
                         self.query,
-                        variable_values={'traceSetKey': self.trace_set_key}
+                        variable_values={'traceSetId': self.trace_set_id}
                     )
                 ).to_dict()
                 if 'errors' in result:
                     raise Exception('failed to connect')
-                key = str(result['data']['newProbe']['key'])
-                result = base64.b64encode(f'probe_{key}:'.encode('utf8'))
+                id = str(result['data']['newProbe']['id'])
+                result = base64.b64encode(f'probe_{id}:'.encode('utf8'))
 
             value = f'Basic {result.decode("utf8")}'
             self.headers[authorization] = value
@@ -77,7 +76,7 @@ mutation NewProbeMutation($traceSetKey: String!) {
             )
         )
         for consumer in self.consumers:
-            consumer.set_client(self.client)
+            consumer._set_values(self.client, self.trace_set_id)
         await asyncio.gather(
             *[
                 self.enter_async_context(consumer)

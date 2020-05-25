@@ -45,6 +45,7 @@ class FileInfo(ParsedAST):
             "classes": [classObj.encode() for classObj in self.classes]
         }
 
+    # pylint: disable=arguments-differ
     @staticmethod
     def parse(ast_node: ast.Module, name: str, absolute_name: str, lines: int):
         functions: List[Union[ast.FunctionDef, ast.AsyncFunctionDef]] = [

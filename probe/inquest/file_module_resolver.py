@@ -46,8 +46,6 @@ def get_root_dir(package, root):
     root_dir = os.path.abspath(root_dir)
     package_dir = os.path.abspath(package_dir)
 
-    root_dir = root_dir
-
     python_paths = set(os.path.abspath(path) for path in sys.path)
     if root_dir not in python_paths:
         raise ValueError('root %s is not in python path' % root_dir)
@@ -81,7 +79,6 @@ class FileModuleResolver:
         LOGGER.debug('main is %s', self.main)
 
     def convert_filename_to_modulename(self, filename: str) -> str:
-        LOGGER.debug('converting filename %s' % filename)
 
         if filename == self.main:
             return '__main__'
@@ -95,6 +92,14 @@ class FileModuleResolver:
             modname = modname.replace('/', '.')
         else:
             raise ValueError('file %s is not a python file' % filename)
+
+        LOGGER.debug(
+            'converting filename',
+            extra={
+                'input_filename': filename,
+                'output_modulename': modname
+            },
+        )
 
         if sys.modules.get(modname) is None:
             raise FileModuleResolverException(
