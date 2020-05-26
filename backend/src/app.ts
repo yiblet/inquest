@@ -3,7 +3,7 @@ import "reflect-metadata";
 // imports the .env file
 import "./env";
 import { config } from "./config";
-import { createSQLiteServerSchema } from "./connect";
+import { ProdConnector, Connector } from "./connect";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { Container } from "typedi";
@@ -49,9 +49,9 @@ function wrapAsync(handler: express.Handler) {
 }
 
 // register 3rd party IOC container
-export async function createApp() {
+export async function createApp(connector: Connector) {
     // gets the graphql server schema
-    const schema = await createSQLiteServerSchema();
+    const schema = await connector.buildSchema();
     const authService = Container.get(AuthService);
     const app = express();
 

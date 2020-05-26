@@ -1,4 +1,4 @@
-import { User, PasswordValidity } from "../user";
+import { User, PasswordValidity } from "../entities/user";
 
 test("validate password", () => {
     expect(User.validatePassword("testing")).toStrictEqual(

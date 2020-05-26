@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { createSQLiteServer } from "./../../connect";
+import { DebugConnector } from "./../../connect";
 import { ApolloServer } from "apollo-server";
 import { getManager, EntityManager } from "typeorm";
 import { Container } from "typedi";
@@ -63,7 +63,7 @@ describe("testing server", () => {
     let traceSet: TraceSet;
     beforeAll(async () => {
         Container.reset();
-        server = await createSQLiteServer();
+        server = await new DebugConnector().buildServer();
         client = createWrappedTestClient(server);
         manager = getManager();
         const dirRepo = manager.getCustomRepository(DirectoryInfoRepository);

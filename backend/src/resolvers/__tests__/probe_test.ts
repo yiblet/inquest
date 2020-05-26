@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { createSQLiteServer } from "./../../connect";
+import { DebugConnector } from "./../../connect";
 import { ApolloServer } from "apollo-server";
 import { Container } from "typedi";
 import { EntityManager, getManager } from "typeorm";
@@ -38,7 +38,7 @@ describe("testing server", () => {
     let org: Organization;
     beforeAll(async () => {
         Container.reset();
-        server = await createSQLiteServer();
+        server = await new DebugConnector().buildServer();
         manager = getManager();
         client = createWrappedTestClient(server);
         org = await manager.save(Organization.create({ name: "test" }));

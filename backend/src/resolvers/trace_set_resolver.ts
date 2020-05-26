@@ -70,9 +70,9 @@ export class TraceSetResolver {
         const qb = this.entityManager
             .createQueryBuilder(Probe, "probe")
             .where(
-                "probe.lastHeartbeat > datetime(:date) AND probe.closed = false AND probe.traceSetId = :traceSetId",
+                "probe.lastHeartbeat > :date AND probe.closed = false AND probe.traceSetId = :traceSetId",
                 {
-                    date: new Date(Date.now() - 90 * 1000).toISOString(),
+                    date: new Date(Date.now() - 90 * 1000),
                     traceSetId: traceSet.id,
                 }
             );

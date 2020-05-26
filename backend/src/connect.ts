@@ -1,4 +1,4 @@
-// needed for typeorm && type-graphl to function
+// neededconnectSQLiteTypeOrm& type-graphl to function
 import "reflect-metadata";
 import { ApolloServer } from "apollo-server";
 import { Container } from "typedi";
@@ -17,7 +17,7 @@ import { logger } from "./logging";
 import * as express from "express";
 
 /**
- * build TypeGraphQL executable schema
+ * build connectSQLiteTypeOrmecutable schema
  */
 export async function buildSchema(
     options: Partial<TypeGraphQL.BuildSchemaOptions> = {}
@@ -26,19 +26,6 @@ export async function buildSchema(
         resolvers: ALL_RESOLVERS,
         globalMiddlewares: [LoggingInterceptor, ErrorInterceptor],
         container: Container,
-    });
-}
-
-export async function connectTypeOrm() {
-    // create TypeORM connection
-    TypeORM.useContainer(Container);
-    return await TypeORM.createConnection({
-        type: "sqlite",
-        database: ":memory:",
-        entities: ALL_ENTITIES,
-        synchronize: true,
-        logger: "debug",
-        cache: true,
     });
 }
 
@@ -60,72 +47,106 @@ async function genContextFromToken(token: string) {
     return new Context(logger.child({ user: user.id }), user, null);
 }
 
-// register 3rd party IOC container
-export async function createSQLiteServerSchema() {
-    await connectTypeOrm();
-    // seed database with some data
-    const manager = getManager();
+export abstract class Connector {
+    private connected = false;
 
-    // create mocked context
-    const context = async ({
-        req,
-        res,
-        connection,
-    }: {
-        req?: express.Request;
-        res?: express.Response;
-        connection?: ExecutionParams<Context>;
-    }): Promise<Context> => {
-        if (connection) return connection.context;
-        let context: Context;
-        if (req) {
-            const token = req.headers["X-Token"];
-            if (token && typeof token === "string") {
-                context = await genContextFromToken(token);
-            }
+    abstract async connect();
+
+    /**
+     * buildSchema generates the valid server schema
+     */
+    async buildSchema() {
+        if (!this.connected) {
+            await this.connect();
+            this.connected = true;
         }
-        context = new Context(logger.child({ probe: "new" }), null, "new");
-        context.logger.info("new http connection");
-        return context;
-    };
+        // seed database with some data
+        const manager = getManager();
 
-    // Create GraphQL server
-    return {
-        schema: await buildSchema(),
-        context,
-        subscriptions: {
-            path: "/graphql",
-            onConnect: async (
-                { token },
-                websocket: WebSocket,
-                context: ConnectionContext
-            ): Promise<Context> => {
+        // create mocked context
+        const context = async ({
+            req,
+            res,
+            connection,
+        }: {
+            req?: express.Request;
+            res?: express.Response;
+            connection?: ExecutionParams<Context>;
+        }): Promise<Context> => {
+            if (connection) return connection.context;
+            let context: Context;
+            if (req) {
+                const token = req.headers["X-Token"];
                 if (token && typeof token === "string") {
-                    return await genContextFromToken(token);
+                    context = await genContextFromToken(token);
                 }
+            }
+            context = new Context(logger.child({ probe: "new" }), null, "new");
+            context.logger.info("new http connection");
+            return context;
+        };
 
-                const probe = await authorizeProbe(manager, context);
-                return new Context(
-                    logger.child({ probe: probe?.id || "new" }),
-                    null,
-                    probe || "new"
-                );
-            },
-            onDisconnect: async (
-                websocket: WebSocket,
-                context: ConnectionContext
-            ) => {
-                await authorizeProbe(manager, context).then(async (probe) => {
-                    if (probe) {
-                        probe.closed = true;
-                        await manager.save(probe);
+        // Create GraphQL server
+        return {
+            schema: await buildSchema(),
+            context,
+            subscriptions: {
+                path: "/graphql",
+                onConnect: async (
+                    { token },
+                    websocket: WebSocket,
+                    context: ConnectionContext
+                ): Promise<Context> => {
+                    if (token && typeof token === "string") {
+                        return await genContextFromToken(token);
                     }
-                });
+
+                    const probe = await authorizeProbe(manager, context);
+                    return new Context(
+                        logger.child({ probe: probe?.id || "new" }),
+                        null,
+                        probe || "new"
+                    );
+                },
+                onDisconnect: async (
+                    websocket: WebSocket,
+                    context: ConnectionContext
+                ) => {
+                    await authorizeProbe(manager, context).then(
+                        async (probe) => {
+                            if (probe) {
+                                probe.closed = true;
+                                await manager.save(probe);
+                            }
+                        }
+                    );
+                },
             },
-        },
-    };
+        };
+    }
+
+    async buildServer() {
+        return new ApolloServer(await this.buildSchema());
+    }
 }
 
-export async function createSQLiteServer() {
-    return new ApolloServer(await createSQLiteServerSchema());
+export class ProdConnector extends Connector {
+    async connect() {
+        TypeORM.useContainer(Container);
+        return await TypeORM.createConnection();
+    }
+}
+
+export class DebugConnector extends Connector {
+    async connect() {
+        TypeORM.useContainer(Container);
+        return await TypeORM.createConnection({
+            type: "sqlite",
+            database: ":memory:",
+            entities: ALL_ENTITIES,
+            synchronize: true,
+            logger: "debug",
+            cache: true,
+        });
+    }
 }

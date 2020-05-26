@@ -1,4 +1,4 @@
-import { connectTypeOrm } from "../../connect";
+import { DebugConnector } from "../../connect";
 import Container from "typedi";
 import {
     getParentDirName,
@@ -9,7 +9,7 @@ import { seedTriple } from "../../helpers";
 
 beforeAll(async () => {
     Container.reset();
-    await connectTypeOrm();
+    await new DebugConnector().connect();
 });
 
 it("test get parentDirectoryectoryName", () => {

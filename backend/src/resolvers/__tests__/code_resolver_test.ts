@@ -1,5 +1,5 @@
 import { CodeResolver, FileContentInput } from "../code_resolver";
-import { connectTypeOrm } from "../../connect";
+import { DebugConnector } from "../../connect";
 import { Container } from "typedi";
 import { EntityManager, getManager } from "typeorm";
 import { UploadService } from "../../services/upload";
@@ -15,7 +15,7 @@ describe("setting up dummy file", () => {
     let rootDirId: string;
     let traceSet: TraceSet;
     beforeAll(async () => {
-        await connectTypeOrm();
+        await new DebugConnector().connect();
         manager = getManager();
         traceSet = (await seedTriple("test1")).traceSet;
         const dirRepo = manager.getCustomRepository(DirectoryInfoRepository);

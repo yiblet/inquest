@@ -7,7 +7,8 @@ import {
     UpdateDateColumn,
     OneToMany,
 } from "typeorm";
-import { TraceSet, User } from ".";
+import { TraceSet } from "./trace/trace_set";
+import { User } from "./user";
 import { plainToClass } from "class-transformer";
 
 @ObjectType()

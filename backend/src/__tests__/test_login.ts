@@ -2,7 +2,7 @@ import "reflect-metadata";
 // imports the .env file
 import "../env";
 import { SignupInfo, LoginInfo, AuthService } from "../services/auth";
-import { createSQLiteServerSchema } from "../connect";
+import { DebugConnector } from "../connect";
 import { Container } from "typedi";
 import { plainToClass } from "class-transformer";
 import { transformAndValidate } from "class-transformer-validator";
@@ -10,7 +10,7 @@ import { seedDatabase } from "../helpers";
 
 describe("server tests", () => {
     beforeAll(async () => {
-        await createSQLiteServerSchema();
+        await new DebugConnector().connect();
         await seedDatabase();
     });
 
