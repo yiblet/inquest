@@ -5,7 +5,7 @@ export const LabelledField: React.FC<{
     className?: string;
 }> = ({ label, className, children }) => (
     <div className={className}>
-        <label>{label}</label>
+        <label> {label}</label>
         {children}
     </div>
 );

@@ -22,7 +22,7 @@ export function Line({
 export function FileTree(props: ModuleProps) {
     return (
         <div>
-            <div className="text-md font-semibold text-gray-800">Modules</div>
+            <div className="pl-2 text-md font-semibold text-gray-800">Modules</div>
             <Module {...props} />
         </div>
     );

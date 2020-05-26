@@ -17,6 +17,14 @@ import { copyToClipboard } from "../utils/clipboard_copy";
 import { NotificationContext } from "../components/utils/notifications";
 import { LiveProbesFragment } from "../generated/LiveProbesFragment";
 import ms from "ms";
+import {
+    faSignOutAlt,
+    faPaste,
+    faBackward,
+    faArrowLeft,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
 
 const CodeViewConnector = dynamic<CodeViewConnectorProps>(
     import("../connectors/code_view.connector").then(
@@ -86,12 +94,21 @@ const UserInfo: React.FC<LiveProbesFragment> = ({ id, liveProbes }) => {
 
     return (
         <div className="mb-4">
-            <div className="text-md mb-2 font-semibold text-gray-800">User</div>
+            <div className="pl-2 text-md mb-2 font-semibold text-gray-800">
+                User
+            </div>
+            <div className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer">
+                <Link href="/">
+                    <a href="/">
+                        <FontAwesomeIcon icon={faArrowLeft} /> home
+                    </a>
+                </Link>
+            </div>
             <div
                 className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
                 onClick={(_) => logout()}
             >
-                <i className="fas fa-sign-out-alt"></i> logout
+                <FontAwesomeIcon icon={faSignOutAlt} /> logout
             </div>
             <div
                 className="pl-4 mb-1 border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
@@ -100,7 +117,7 @@ const UserInfo: React.FC<LiveProbesFragment> = ({ id, liveProbes }) => {
                     notifactions.notify("api key was copied to clipboard");
                 }}
             >
-                <i className="fas fa-paste"></i> copy api key
+                <FontAwesomeIcon icon={faPaste} /> copy api key
             </div>
             <div className="pl-4 mb-1 border rounded py-1 px-2 text-gray-700">
                 <b>{numProbes}</b> probe
@@ -136,6 +153,7 @@ function Dashboard() {
         if (error.message === "Network error: invalid user id") {
             return <></>;
         }
+        logout();
         throw error;
     }
 

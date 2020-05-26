@@ -39,5 +39,15 @@ services:
             timeout: 20s
             retries: 3
 
+    postgres:
+        image: postgres:12
+        volumes:
+            - pgdata:/var/lib/postgres/data
+        ports:
+            - "5432:5432"
+        env_file:
+            - docker-compose.env
+
 volumes:
     data:
+    pgdata:

@@ -59,68 +59,76 @@ export default function Login() {
                                 Login
                             </h1>
                         </div>
-                        <form
-                            className="flex flex-col rounded-t-lg p-4 bg-white"
-                            onSubmit={handleSubmit(onSubmit)}
-                        >
-                            <LabelledField label="email*">
-                                <input
-                                    className={INPUT_STYLE}
-                                    type="email"
-                                    name="email"
-                                    required
-                                    placeholder="your email"
-                                    ref={register({
-                                        required: true,
-                                        pattern: {
-                                            value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-                                            message: "must be a valid email",
-                                        },
-                                    })}
-                                />
-                            </LabelledField>
-                            <LabelledField label="password*">
-                                <input
-                                    className={INPUT_STYLE}
-                                    type="password"
-                                    name="password"
-                                    placeholder="******"
-                                    required
-                                    ref={register({
-                                        minLength: {
-                                            value: 8,
-                                            message:
-                                                "password must be at least 8 characters",
-                                        },
-                                        maxLength: {
-                                            value: 24,
-                                            message:
-                                                "password must be at most 8 characters",
-                                        },
-                                        required: true,
-                                    })}
-                                />
-                            </LabelledField>
-                            <div className="flex items-baseline pt-4">
-                                {!fetching ? (
-                                    <button className="rounded inline-block bg-blue-600 text-white text-lg text-md p-2 px-4 mr-4">
-                                        Login
-                                    </button>
-                                ) : (
-                                    <div className="rounded inline-block bg-gray-600 text-white text-lg text-md p-2 px-4 mr-4">
-                                        Loading
-                                    </div>
-                                )}
-                                <Link href="/signup">
-                                    <a className="font-bold">
-                                        Or Make A New Account
-                                    </a>
-                                </Link>
+                        <div className="shadow-lg">
+                            <form
+                                className="flex flex-col rounded-t-lg p-4 bg-white"
+                                onSubmit={handleSubmit(onSubmit)}
+                            >
+                                <LabelledField label="Email*">
+                                    <input
+                                        className={INPUT_STYLE}
+                                        type="email"
+                                        name="email"
+                                        required
+                                        placeholder="Your email"
+                                        ref={register({
+                                            required: true,
+                                            pattern: {
+                                                value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                                                message:
+                                                    "must be a valid email",
+                                            },
+                                        })}
+                                    />
+                                </LabelledField>
+                                <LabelledField label="Password*">
+                                    <input
+                                        className={INPUT_STYLE}
+                                        type="password"
+                                        name="password"
+                                        placeholder="******"
+                                        required
+                                        ref={register({
+                                            minLength: {
+                                                value: 8,
+                                                message:
+                                                    "password must be at least 8 characters",
+                                            },
+                                            maxLength: {
+                                                value: 24,
+                                                message:
+                                                    "password must be at most 8 characters",
+                                            },
+                                            required: true,
+                                        })}
+                                    />
+                                </LabelledField>
+                                <div className="flex items-baseline pt-4">
+                                    {!fetching ? (
+                                        <button className="rounded inline-block bg-blue-600 text-white text-lg text-md p-2 px-4 mr-4">
+                                            Login
+                                        </button>
+                                    ) : (
+                                        <div className="rounded inline-block bg-gray-600 text-white text-lg text-md p-2 px-4 mr-4">
+                                            Loading
+                                        </div>
+                                    )}
+                                    <Link href="/signup">
+                                        <a className="font-bold">
+                                            Or Make A New Account
+                                        </a>
+                                    </Link>
+                                </div>
+                            </form>
+                            <div className="grid grid-cols-1 row-gaps-2 justify-between text-gray-700 rounded-b-lg p-4 bg-gray-200">
+                                {/* <span>Forgot your email or password?</span> */}
+                                {errorMessages}
                             </div>
-                        </form>
-                        <div className="grid grid-cols-1 row-gaps-2 justify-between text-gray-700 rounded-b-lg p-4 bg-gray-200">
-                            {/* <span>Forgot your email or password?</span> */}
-                            {errorMessages}
+                        </div>
+                        <div className="mt-8 text-center text-lg">
+                            <Link href="/">
+                                <a href="/">back to home page</a>
+                            </Link>
                         </div>
                     </div>
                 </div>
