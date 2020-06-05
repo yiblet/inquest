@@ -2,6 +2,7 @@ import logging
 from collections import OrderedDict
 
 from gql import gql
+
 from inquest.comms.client_consumer import ClientConsumer
 from inquest.comms.exception_sender import ExceptionSender
 from inquest.comms.utils import log_result
@@ -64,6 +65,10 @@ query InitialProbeInfo {
             await self.update_state(desired_set)
 
     async def main(self):
+        """
+        listens for changes to the desired_set
+        """
+
         # Request subscription
         subscription = gql(
             '''

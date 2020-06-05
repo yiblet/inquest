@@ -1,14 +1,12 @@
+import argparse
 import logging
 import logging.config
-import argparse
 from time import sleep
 
-from inquest.runner import enable
+import inquest
 from inquest.utils.logging import LOGGING_CONFIG
 
-# enable logging to see inquest's internal log statemnets
 logging.config.dictConfig(LOGGING_CONFIG)
-LOGGER = logging.getLogger(__name__)
 
 
 def fib(value: int):
@@ -20,24 +18,16 @@ def fib(value: int):
     return fib(value - 1) + fib(value - 2)
 
 
+def main():
+    inquest.enable(api_key=cli(), glob=["examples/**/*.py"])
+    while True:
+        fib(20)
+
+
 def cli():
     parser = argparse.ArgumentParser("inquest example")
     parser.add_argument("-id", type=str)
     return parser.parse_args().id
-
-
-def main():
-    try:
-        enable(
-            root="..",
-            trace_set_id=cli(),
-            glob=["examples/**/*.py", "inquest/**/*.py"]
-        )
-        LOGGER.info("starting the main loop")
-        while True:
-            fib(20)
-    except KeyboardInterrupt:
-        LOGGER.info("closing the main loop")
 
 
 if __name__ == "__main__":

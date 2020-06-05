@@ -87,16 +87,14 @@ class Probe(HasStack):
     traces: pd.DataFrame
     code: Dict[FunctionPath, types.CodeType]
 
-    def __init__(self, root: str, package: str):
+    def __init__(self, package: str):
         super().__init__()
         self.package = package
         self.traces = pd.DataFrame(
             [],
             columns=TRACE_WITH_ERROR_COLUMNS,
         )
-        self.module_resolver: FileModuleResolver = FileModuleResolver(
-            package, root
-        )
+        self.module_resolver: FileModuleResolver = FileModuleResolver(package)
         self._code_reassigner = CodeReassigner()
         self.code = {}
 
@@ -185,7 +183,6 @@ class Probe(HasStack):
         TODO make the error dict point directly to the problematic trace id
         '''
         desired_set = self._construct_desired_set(desired_set)
-
         LOGGER.debug('input desired_set %s', desired_set)
         traces_df, new_traces, functions_to_be_reverted, errors = self._add_desired_set(
             desired_set

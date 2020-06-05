@@ -34,7 +34,6 @@ class ProbeRunner(threading.Thread):
     def __init__(
         self,
         *,
-        root: str,
         package: str,
         trace_set_id: str,
         host: str,
@@ -47,8 +46,7 @@ class ProbeRunner(threading.Thread):
         self.trace_set_id = trace_set_id
         self.send_modules = glob is not None
         self.endpoint = f"{host}:{port}"
-        self.root = root
-        self.probe = Probe(root, package)
+        self.probe = Probe(package)
         self.glob = glob
         self.exclude = exclude
 
@@ -68,9 +66,7 @@ class ProbeRunner(threading.Thread):
         if self.send_modules:
             consumers.append(
                 ModuleSender(
-                    url=f'http://{self.endpoint}/upload',
-                    root=self.root,
-                    package=self.package,
+                    url=f'http://{self.endpoint}/api/upload',
                     glob=self.glob,
                     exclude=self.exclude,
                 )
@@ -84,7 +80,7 @@ class ProbeRunner(threading.Thread):
         LOGGER.info('inquest daemon closed')
 
     async def _run_async(self):
-        url = f'ws://{self.endpoint}/graphql'
+        url = f'ws://{self.endpoint}/api/graphql'
         consumers = self.client_consumers()
         async with ClientProvider(
                 trace_set_id=self.trace_set_id,
@@ -97,10 +93,9 @@ class ProbeRunner(threading.Thread):
 # TODO pass the TraceSet Key in as an argument
 def enable(
     *,
-    root: str,
-    trace_set_id: str,
-    host: str = "localhost",
-    port: int = 4000,
+    api_key: str,
+    host: str = "inquest.dev",
+    port: int = 80,
     glob: Optional[Union[str, List[str]]] = None,
     daemon: bool = True,
     package: Optional[str] = None,
@@ -115,9 +110,8 @@ def enable(
         mod = inspect.getmodule(frame[0])
         package = mod.__name__
     probe = ProbeRunner(
-        root=root,
         package=package,
-        trace_set_id=trace_set_id,
+        trace_set_id=api_key,
         host=host,
         port=port,
         glob=glob,

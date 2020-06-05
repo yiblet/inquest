@@ -52,14 +52,12 @@ class FileInfo(ParsedAST):
             FunctionInfo.parse(statement)
             for statement in ast_node.body
             if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef))
-            and len(statement.decorator_list) == 0
         ]
 
         classes = [
             ClassInfo.parse(statement)
             for statement in ast_node.body
             if isinstance(statement, ast.ClassDef)
-            and len(statement.decorator_list) == 0
         ]
         return FileInfo(
             name=name,
@@ -136,6 +134,9 @@ class ClassInfo(ParsedAST):
 
 
 class ModuleTree:
+    """
+    resolves the files that need to be sent
+    """
 
     def __init__(
         self,

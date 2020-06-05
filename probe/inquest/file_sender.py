@@ -40,19 +40,16 @@ class FileSender(contextlib.AsyncExitStack):
                 data=data,
         ) as resp:
             resp: aiohttp.ClientResponse = resp
+
             if resp.status != 200:
+
                 LOGGER.error(
                     "sending failed",
                     extra={
-                        'status_code':
-                            resp.status,
-                        'sent_filename':
-                            filename,
-                        'relative_name_length':
-                            len(relative_name),
-                        'failure_message':
-                            (await
-                             resp.json()).get('message', 'message missing')
+                        'status_code': resp.status,
+                        'sent_filename': filename,
+                        'relative_name_length': len(relative_name),
+                        'failure_message': (await resp.text())
                     }
                 )
 

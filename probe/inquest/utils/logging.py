@@ -42,7 +42,7 @@ LOGGING_CONFIG = {
         },
         'inquest': {
             'handlers': ['default'],
-            'level': 'WARNING',
+            'level': 'DEBUG',
             'propagate': False
         },
         '__main__': {  # if __name__ == '__main__'

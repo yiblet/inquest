@@ -45,8 +45,7 @@ def create_trace(
 
 
 def test_on_function_simple(capsys):
-    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe, with_callback(PrintCallback()):
+    with Probe(__name__) as probe, with_callback(PrintCallback()):
         result = probe.new_desired_state(
             [
                 create_trace(
@@ -67,8 +66,7 @@ def test_on_function_simple(capsys):
 
 
 def test_on_function(capsys):
-    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe, with_callback(PrintCallback()):
+    with Probe(__name__) as probe, with_callback(PrintCallback()):
         result = probe.new_desired_state(
             [
                 create_trace(
@@ -112,8 +110,7 @@ def test_on_function(capsys):
 
 
 def test_on_function_changes(capsys):
-    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe, with_callback(PrintCallback()):
+    with Probe(__name__) as probe, with_callback(PrintCallback()):
 
         def assert_desired_state(desired_state, output):
             result = probe.new_desired_state(desired_state)
@@ -207,8 +204,7 @@ def test_on_function_changes(capsys):
 
 
 def test_on_class_methods(capsys):
-    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe, with_callback(PrintCallback()):
+    with Probe(__name__) as probe, with_callback(PrintCallback()):
 
         def assert_desired_state(desired_state, output):
             result = probe.new_desired_state(desired_state)
@@ -249,8 +245,7 @@ def test_on_runtime_failure(capsys):
         def error(self, trace_id, value):
             assert value == "name 'arg0' is not defined\n"
 
-    with Probe(os.path.abspath(os.path.dirname(__file__) + "/../.."),
-               __name__) as probe, with_callback(TestCallback()):
+    with Probe(__name__) as probe, with_callback(TestCallback()):
         result = probe.new_desired_state(
             [
                 create_trace(

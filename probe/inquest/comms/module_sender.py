@@ -2,6 +2,7 @@ import logging
 from typing import List, Optional, Union
 
 from gql import gql
+
 from inquest.comms.client_consumer import ClientConsumer
 from inquest.comms.utils import log_result
 from inquest.file_module_resolver import get_root_dir
@@ -18,15 +19,12 @@ class ModuleSender(ClientConsumer):
         self,
         *,
         url: str,
-        package: str,
-        root: str,
         glob: Union[str, List[str]],
         exclude: Optional[List[str]] = None,
     ):
         super().__init__()
-        self.package = package
         self.sender = FileSender(url)
-        self.root_dir = get_root_dir(self.package, root)
+        self.root_dir = get_root_dir()
         self.glob = glob
         self.exclude = exclude
         self.query = gql(
@@ -67,6 +65,9 @@ mutation NewFileContentMutation($input: FileContentInput!) {
         log_result(LOGGER, result)
 
     async def main(self):
+        """
+        sends the modules out
+        """
         LOGGER.info("sending modules")
         module_tree = ModuleTree(self.root_dir, self.glob, self.exclude)
 

@@ -35,17 +35,8 @@ LOGGER = logging.getLogger(__name__)
 #     c.py
 
 
-def get_root_dir(package, root):
-    package = sys.modules[package].__file__
-
-    package_dir = os.path.dirname(package
-                                 ) if not os.path.isdir(package) else package
-
-    # validate the root
-    root_dir = os.path.join(package_dir, root)
-    root_dir = os.path.abspath(root_dir)
-    package_dir = os.path.abspath(package_dir)
-
+def get_root_dir():
+    root_dir = os.path.abspath(os.getcwd())
     python_paths = set(os.path.abspath(path) for path in sys.path)
     if root_dir not in python_paths:
         raise ValueError('root %s is not in python path' % root_dir)
@@ -66,8 +57,8 @@ class FileModuleResolver:
         root defines the maximum subdirectory that can be imported from
     '''
 
-    def __init__(self, package: str, root: str):
-        self.root_dir = get_root_dir(package, root)
+    def __init__(self, package: str):
+        self.root_dir = get_root_dir()
 
         main = os.path.abspath(sys.modules[package].__file__)
         if not main.startswith(self.root_dir):
