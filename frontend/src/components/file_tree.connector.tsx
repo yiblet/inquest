@@ -8,6 +8,8 @@ import { FileTree, Line } from "./file_tree/file_tree";
 import { SubdirectoryFragment } from "../generated/SubdirectoryFragment";
 import { ImmSet } from "../utils/collections";
 import { FileTreeFragment } from "../generated/FileTreeFragment";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 
 export const FILE_TREE_FRAGMENT = gql`
     fragment FileTreeFragment on TraceSet {
@@ -41,10 +43,18 @@ export const SubdirectoryHOC = ({
     }) => {
         return (
             <>
-                <Line
-                    text={fragment.name}
-                    onClick={(_) => toggle(fragment.id)}
-                />
+                <Line onClick={(_) => toggle(fragment.id)}>
+                    <small className="inline-block w-4 text-center">
+                        <FontAwesomeIcon
+                            icon={
+                                isVisible(fragment.id)
+                                    ? faChevronDown
+                                    : faChevronRight
+                            }
+                        />
+                    </small>{" "}
+                    {fragment.name}
+                </Line>
                 {isVisible(fragment.id) ? (
                     <SubdirectoryLoader fragment={fragment} />
                 ) : (
@@ -63,7 +73,7 @@ export const SubdirectoryHOC = ({
             SUBDIRECTORY_QUERY,
             { variables: { directoryId: fragment.id } }
         );
-        if (loading) return <Line text={fragment.name + " loading..."} />;
+        if (loading) return <Line> {fragment.name + " loading..."} </Line>;
         if (error) throw error;
         if (!data || !data.directory)
             throw new Error("failed to retrieve data");
@@ -92,9 +102,10 @@ export const FileHOC = ({
     const FileLine = ({ fragment }: { fragment: FileFragment }) => (
         <Line
             highlight={fragment.id == currentFile?.id}
-            text={fragment.name.substring(fragment.name.lastIndexOf("/") + 1)}
             onClick={(_) => onPick && onPick(fragment)}
-        />
+        >
+            {fragment.name.substring(fragment.name.lastIndexOf("/") + 1)}
+        </Line>
     );
     return FileLine;
 };

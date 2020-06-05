@@ -1,6 +1,6 @@
 import "../styles/style.css";
 import "@fortawesome/fontawesome-svg-core/styles.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import {
     Notifications,
@@ -10,11 +10,17 @@ import {
 import { Observable } from "../utils/observable";
 // Prevent fontawesome from adding its CSS since we did it manually above:
 import { config } from "@fortawesome/fontawesome-svg-core";
+import { gaService } from "../services/ga_service";
 
 config.autoAddCss = false;
 
 function MyApp({ Component, pageProps }) {
     const [observable] = useState<Observable<Notification>>(new Observable());
+
+    useEffect(() => {
+        gaService.initialize();
+        gaService.logPageView();
+    });
 
     return (
         <NotificationContext.Provider value={observable}>

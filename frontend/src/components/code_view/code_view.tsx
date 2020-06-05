@@ -188,6 +188,7 @@ export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
                         onCreate={(statement) =>
                             onCreate(fragment, statement, visibleLine)
                         }
+                        hasBorder
                     />
                 </Marker>
             );

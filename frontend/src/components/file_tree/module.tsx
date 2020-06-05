@@ -25,7 +25,7 @@ export type ModuleProps = {
 
 export function Module(props: ModuleProps) {
     return (
-        <div className="pl-2">
+        <div className="pl-4">
             {props.fragment.subDirectories.map((subdirectory) => (
                 <props.subdirectory
                     fragment={subdirectory}

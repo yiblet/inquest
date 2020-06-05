@@ -1,28 +1,25 @@
 import React from "react";
 import { Module, ModuleProps } from "./module";
 
-export function Line({
-    text,
-    highlight,
-    onClick,
-}: {
-    text: string;
+export const Line: React.FC<{
     highlight?: boolean;
     onClick?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => any;
-}) {
-    let className = "hover:bg-gray-500 cursor-pointer";
+}> = ({ children, highlight, onClick }) => {
+    let className = "hover:bg-gray-500 cursor-pointer my-1";
     if (highlight) className = className + " bg-gray-400";
     return (
         <div className={className} onClick={onClick}>
-            {text}
+            {children}
         </div>
     );
-}
+};
 
 export function FileTree(props: ModuleProps) {
     return (
         <div>
-            <div className="pl-2 text-md font-semibold text-gray-800">Modules</div>
+            <div className="pl-2 text-md font-semibold text-gray-800">
+                Modules
+            </div>
             <Module {...props} />
         </div>
     );

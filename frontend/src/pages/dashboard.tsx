@@ -20,7 +20,6 @@ import ms from "ms";
 import {
     faSignOutAlt,
     faPaste,
-    faBackward,
     faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -97,13 +96,13 @@ const UserInfo: React.FC<LiveProbesFragment> = ({ id, liveProbes }) => {
             <div className="pl-2 text-md mb-2 font-semibold text-gray-800">
                 User
             </div>
-            <div className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer">
-                <Link href="/">
-                    <a href="/">
+            <Link href="/">
+                <a href="/">
+                    <div className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer">
                         <FontAwesomeIcon icon={faArrowLeft} /> home
-                    </a>
-                </Link>
-            </div>
+                    </div>
+                </a>
+            </Link>
             <div
                 className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
                 onClick={(_) => logout()}

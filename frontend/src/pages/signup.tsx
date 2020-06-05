@@ -7,6 +7,7 @@ import Router from "next/router";
 import { getPublicRuntimeConfig } from "../config";
 import { WithTitle } from "../components/utils/with_title";
 import { LabelledField } from "../components/utils/labelled_field";
+import { isSecure } from "../utils/protocol";
 
 const INPUT_STYLE =
     "bg-gray-200 placeholder-gray-700 text-lg text-md my-2 p-2 w-full";
@@ -35,7 +36,9 @@ export default function Signup() {
         setFetching(true);
         try {
             const resp = await fetch(
-                `http://${getPublicRuntimeConfig().endpoint}/signup`,
+                `${isSecure() ? "https" : "http"}://${
+                    getPublicRuntimeConfig().endpoint
+                }/api/signup`,
                 {
                     method: "POST",
                     credentials: "include",
@@ -185,7 +188,7 @@ export default function Signup() {
                                 <div className="flex items-baseline pt-4">
                                     {!fetching ? (
                                         <button className="rounded inline-block bg-blue-600 text-white text-lg text-md p-2 px-4 mr-4">
-                                            Signup
+                                            Sign Up
                                         </button>
                                     ) : (
                                         <div className="rounded inline-block bg-gray-600 text-white text-lg text-md p-2 px-4 mr-4">
@@ -193,7 +196,7 @@ export default function Signup() {
                                         </div>
                                     )}
                                     <Link href="/login">
-                                        <a className="font-bold">Or Login</a>
+                                        <a className="font-bold">Or Log In</a>
                                     </Link>
                                 </div>
                             </form>

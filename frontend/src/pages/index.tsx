@@ -13,6 +13,7 @@ import {
     faWaveSquare,
     faCheck,
 } from "@fortawesome/free-solid-svg-icons";
+import { gaService } from "../services/ga_service";
 
 const CODE_STRING = `import inquest
 
@@ -28,6 +29,15 @@ declare global {
         initPopupWidget: (data: Record<string, string>) => void;
     };
 }
+
+const openCalendly = gaService.wrapWithGa(
+    () => {
+        Calendly.initPopupWidget({
+            url: "https://calendly.com/yiblet/30min",
+        });
+    },
+    () => "User Clicked Calendly"
+);
 
 const Login: React.FC = () => {
     const [loggedIn, setLoggedIn] = useState(false);
@@ -54,8 +64,8 @@ const Hero: React.FC = () => {
     return (
         <section className="hero bg-blue-600 w-full px-4">
             <div className="container mx-auto" style={{ minHeight: "60vh" }}>
-                <div className="pt-5 flex justify-between mb-32 text-left items-baseline text-lg tracking-wider text-white">
-                    <div className="logo uppercase text-2xl">
+                <div className="pt-5 flex justify-center md:justify-between mb-32 text-left items-baseline text-lg tracking-wider text-white">
+                    <div className="hidden md:block logo uppercase text-2xl">
                         <Link href="/">
                             <a href="/">Inquest</a>
                         </Link>
@@ -64,15 +74,15 @@ const Hero: React.FC = () => {
                         <a className="mr-6" href="#features">
                             Features
                         </a>
-                        <a className="mr-6" href="#pricing">
-                            Pricing
-                        </a>
+                        {/* <a className="mr-6" href="#pricing"> */}
+                        {/*     Pricing */}
+                        {/* </a> */}
                         <Login />
                     </div>
                 </div>
                 <div className="flex flex-wrap justify-center">
-                    <div className="max-w-lg">
-                        <div className="mt-5">
+                    <div className="max-w-lg my-5">
+                        <div className="">
                             <div className="mb-3 text-5xl font-bold text-white">
                                 Point, Click, And See.
                             </div>
@@ -83,18 +93,13 @@ const Hero: React.FC = () => {
                             </div>
                             <button
                                 className="font-bold bg-blue-200 px-12 py-4 text-blue-900 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1"
-                                onClick={(_) => {
-                                    Calendly.initPopupWidget({
-                                        url:
-                                            "https://calendly.com/yiblet/30min",
-                                    });
-                                }}
+                                onClick={openCalendly}
                             >
                                 Sign Up For A Demo
                             </button>
                         </div>
                     </div>
-                    <div className="mb-12 p-10">
+                    <div className="mb-12 py-10 md:px-10">
                         <div className="mb-3 text-2xl font-medium text-white">
                             Set It Up In Seconds
                         </div>
@@ -102,15 +107,16 @@ const Hero: React.FC = () => {
                             className="bg-black rounded-lg overflow-hidden shadow-2xl w-full text-white p-2"
                             style={{
                                 backgroundColor: "rgb(40, 44, 52)",
-                                width: "25rem",
                             }}
                         >
-                            <SyntaxHighlighter
-                                language="python"
-                                style={atomOneDark}
-                            >
-                                {CODE_STRING}
-                            </SyntaxHighlighter>
+                            <div className="mr-16 sm:mr-20 md:mr-32">
+                                <SyntaxHighlighter
+                                    language="python"
+                                    style={atomOneDark}
+                                >
+                                    {CODE_STRING}
+                                </SyntaxHighlighter>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -192,7 +198,7 @@ const Pricing: React.FC = () => {
                 <div className="flex flex-wrap justify-center items-center">
                     <div className="p-10 mr-2 max-w-lg text-blue-900">
                         <h2 className="py-2 text-3xl font-bold">
-                            Interested In Learing More?
+                            Interested In Learning More?
                         </h2>
                         <p className="text-lg">
                             Setup a meeting with us. We'll answer your questions
@@ -216,11 +222,7 @@ const Pricing: React.FC = () => {
 
                         <button
                             className="mt-12 font-bold bg-blue-600 px-12 py-4 text-blue-100 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1"
-                            onClick={(_) => {
-                                Calendly.initPopupWidget({
-                                    url: "https://calendly.com/yiblet/30min",
-                                });
-                            }}
+                            onClick={openCalendly}
                         >
                             Setup A Meeting
                         </button>
@@ -233,7 +235,7 @@ const Pricing: React.FC = () => {
 
 const Footnotes: React.FC = () => {
     return (
-        <section id="footnotes" className="bg-gray-200">
+        <section id="footnotes" className="">
             <div className="container mx-auto py-4">
                 <div className="flex flex-wrap justify-center items-center">
                     <div className="mr-2 text-blue-900">
@@ -262,7 +264,7 @@ function Index() {
             </Head>
             <Hero />
             <Features />
-            <Pricing />
+            {/* <Pricing /> */}
             <Footnotes />
         </div>
     );

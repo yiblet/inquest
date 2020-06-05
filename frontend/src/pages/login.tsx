@@ -6,6 +6,7 @@ import { login } from "../utils/auth";
 import { getPublicRuntimeConfig } from "../config";
 import { WithTitle } from "../components/utils/with_title";
 import { LabelledField } from "../components/utils/labelled_field";
+import { isSecure } from "../utils/protocol";
 const INPUT_STYLE =
     "bg-gray-200 placeholder-gray-700 text-lg text-md my-2 p-2 w-full";
 
@@ -18,7 +19,9 @@ export default function Login() {
         setFetching(true);
         try {
             const resp = await fetch(
-                `http://${getPublicRuntimeConfig().endpoint}/login`,
+                `${isSecure() ? "https" : "http"}://${
+                    getPublicRuntimeConfig().endpoint
+                }/api/login`,
                 {
                     method: "POST",
                     credentials: "include",
@@ -115,7 +118,7 @@ export default function Login() {
                                     )}
                                     <Link href="/signup">
                                         <a className="font-bold">
-                                            Or Make A New Account
+                                            Or Sign Up
                                         </a>
                                     </Link>
                                 </div>

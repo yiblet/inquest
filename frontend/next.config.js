@@ -33,12 +33,4 @@ module.exports = withTM({
         );
         return config;
     },
-
-    publicRuntimeConfig: {
-        traceSet: "default",
-        // Will be available on both server and client
-        endpoint: `${process.env.BACKEND_HOST || "localhost"}:${
-            process.env.BACKEND_PORT || 4000
-        }`,
-    },
 });
