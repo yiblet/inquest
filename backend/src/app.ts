@@ -20,6 +20,7 @@ import fileUpload, { UploadedFile } from "express-fileupload";
 import session from "express-session";
 import { PublicError } from "./utils";
 import { createServer } from "http";
+import { logger } from "./logging";
 
 function wrapAsync(handler: express.Handler) {
     return async (
@@ -83,12 +84,20 @@ export async function createApp(connector: Connector) {
         })
     );
 
-    app.get("/cors-test", (req, res) => {
-        res.status(200).send("this should return a OK 200 if cors works");
+    // simplistic logging middlware
+    app.use((req, res, next) => {
+        logger.info("received request", {
+            ur: req.url,
+        });
+        next();
+    });
+
+    app.get("/", (req, res) => {
+        res.status(200).send("hello world");
     });
 
     app.post(
-        "/signup",
+        "/api/signup",
         wrapAsync(async (req, res) => {
             const signup = new SignupInfo();
             signup.email = req?.body?.email;
@@ -105,7 +114,7 @@ export async function createApp(connector: Connector) {
     );
 
     app.post(
-        "/login",
+        "/api/login",
         wrapAsync(async (req, res) => {
             const login = new LoginInfo();
             login.email = req?.body?.email;
@@ -119,7 +128,7 @@ export async function createApp(connector: Connector) {
     );
 
     app.post(
-        "/refresh",
+        "/api/refresh",
         wrapAsync(async (req, res) => {
             const token = getUserAuthToken(req);
             const user = await authService.verify(token);
@@ -131,15 +140,16 @@ export async function createApp(connector: Connector) {
     );
 
     app.post(
-        "/upload/:traceSetId/:filename",
+        /^\/api\/upload\/([A-Za-z0-9-]*)\/(.*)$/,
         wrapAsync(async (req, res) => {
             const uploadService = Container.get(UploadService);
             let file: UploadedFile | undefined = undefined;
-            if (!req.params.traceSetId) {
+            const traceSetId: string | undefined = req.params[0];
+            const filename: string | undefined = req.params[1];
+            if (!traceSetId) {
                 throw new PublicError("must pass in traceSetId");
             }
-
-            if (!req.params.filename) {
+            if (!filename) {
                 throw new PublicError("must pass in file");
             }
 
@@ -157,8 +167,8 @@ export async function createApp(connector: Connector) {
             const data = file?.data ?? Buffer.from("");
 
             const fileResult = await uploadService.upload(
-                decodeURIComponent(req.params.filename),
-                decodeURIComponent(req.params.traceSetId),
+                decodeURIComponent(filename),
+                decodeURIComponent(traceSetId),
                 data
             );
             res.status(200).send({
@@ -167,12 +177,12 @@ export async function createApp(connector: Connector) {
         })
     );
 
-    app.get("/logout", (req, res) => {
+    app.get("/api/logout", (req, res) => {
         res.redirect("/");
     });
 
     const server = new ApolloServer({ ...schema });
-    server.applyMiddleware({ app, path: "/graphql" });
+    server.applyMiddleware({ app, path: "/api/graphql" });
     const httpServer = createServer(app);
     server.installSubscriptionHandlers(httpServer);
     return httpServer;

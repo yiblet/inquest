@@ -51,11 +51,12 @@ export class UploadService {
         objectName: string,
         md5sum: string,
         traceSetId: string,
+        blob: Buffer,
         overwrite = true
-    ): Promise<[FileInfo, boolean]> {
+    ): Promise<FileInfo> {
         return createTransaction(
             this.manager,
-            async (manager): Promise<[FileInfo, boolean]> => {
+            async (manager): Promise<FileInfo> => {
                 const dirpath = getParentDirName(name);
                 const directoryInfoRepository = manager.getCustomRepository(
                     DirectoryInfoRepository
@@ -69,13 +70,13 @@ export class UploadService {
                     traceSetId,
                 });
 
+                // setting this up as a switch statement makes it extremely readable
                 switch (UploadService.getFileState(file, overwrite, md5sum)) {
                     case FileState.NEW_FILE: {
                         const parentDirectory = await directoryInfoRepository.genDirpath(
                             dirpath,
                             traceSetId
                         );
-
                         const file = FileInfo.create({
                             name: name,
                             objectName: objectName,
@@ -83,7 +84,8 @@ export class UploadService {
                             traceSetId,
                             md5sum,
                         });
-                        return [await manager.save(file), true];
+                        await this.storageService.save(objectName, blob);
+                        return await manager.save(file);
                     }
                     case FileState.ALREADY_EXISTS_ERROR:
                         throw new PublicError("file already exists");
@@ -94,11 +96,12 @@ export class UploadService {
                             this.storageService.remove(file.objectName),
                         ]);
                         file.objectName = objectName;
-                        return [await manager.save(file), true];
+                        await this.storageService.save(objectName, blob);
+                        return await manager.save(file);
                     }
                     case FileState.UNCHANGED_FILE:
                         if (!file) throw new Error("file should not be null");
-                        return [file, false];
+                        return file;
                     default:
                         throw new Error("unexpected case");
                 }
@@ -120,19 +123,12 @@ export class UploadService {
         return lineCount;
     }
 
+    /**
+     * upload will send the file to the blob store if the buffer publishes a new file
+     */
     async upload(name: string, traceSetId: string, blob: Buffer) {
         const objectName: string = uuidv4();
         const sum = createHash("md5").update(blob).digest("hex");
-
-        const [file, changed] = await this.saveFile(
-            name,
-            objectName,
-            sum,
-            traceSetId
-        );
-        if (changed) {
-            await this.storageService.save(objectName, blob);
-        }
-        return file;
+        return await this.saveFile(name, objectName, sum, traceSetId, blob);
     }
 }

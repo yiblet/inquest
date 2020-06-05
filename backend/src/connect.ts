@@ -91,7 +91,7 @@ export abstract class Connector {
             schema: await buildSchema(),
             context,
             subscriptions: {
-                path: "/graphql",
+                path: "/api/graphql",
                 onConnect: async (
                     { token },
                     websocket: WebSocket,

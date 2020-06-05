@@ -80,6 +80,10 @@ push: build-prod
 	@echo "\n${BLUE}Pushing image to GitHub Docker Registry...${NC}\n"
 	@docker push $(IMAGE):$(VERSION)
 
+push-latest: push 
+	docker tag $(IMAGE):$(VERSION) $(IMAGE):latest
+	@docker push $(IMAGE):latest
+
 version:
 	@echo $(TAG)
 

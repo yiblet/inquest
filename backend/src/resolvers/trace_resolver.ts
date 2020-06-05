@@ -106,7 +106,7 @@ export class TraceResolver {
         @Arg("traceId") traceId: string,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await createTransaction(this.manager, async (manager) => {
+        const trace = await createTransaction(this.manager, async (manager) => {
             const traceRepository = manager.getRepository(Trace);
             let trace = await traceRepository.findOne({
                 where: { id: traceId },
@@ -127,10 +127,10 @@ export class TraceResolver {
                     })
                 )
             );
-
-            await pubsub.publish(genProbeTopic(traceSet.id), "delete trace");
             return trace;
         });
+        await pubsub.publish(genProbeTopic(trace.traceSetId), "delete trace");
+        return trace;
     }
 
     // TODO convert updates to no-ops if nothing is changed
@@ -139,7 +139,7 @@ export class TraceResolver {
         @Arg("updateTraceInput") updateTraceInput: UpdateTraceInput,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await createTransaction(this.manager, async (manager) => {
+        const trace = await createTransaction(this.manager, async (manager) => {
             const traceRepository = manager.getRepository(Trace);
 
             let trace = await traceRepository.findOne({
@@ -175,9 +175,10 @@ export class TraceResolver {
                     })
                 )
             );
-            await pubsub.publish(genProbeTopic(traceSet.id), "update trace");
             return trace;
         });
+        await pubsub.publish(genProbeTopic(trace.traceSetId), "update trace");
+        return trace;
     }
 
     @Mutation((returns) => Trace)
@@ -185,7 +186,7 @@ export class TraceResolver {
         @Arg("newTraceInput") newTraceInput: NewTraceInput,
         @PubSub() pubsub: PubSubEngine
     ): Promise<Trace> {
-        return await createTransaction(this.manager, async (manager) => {
+        const trace = await createTransaction(this.manager, async (manager) => {
             const traceRepository = manager.getRepository(Trace);
             const traceSetRepository = manager.getRepository(TraceSet);
 
@@ -227,8 +228,9 @@ export class TraceResolver {
                     })
                 )
             );
-            await pubsub.publish(genProbeTopic(traceSet.id), "new trace");
             return trace;
         });
+        await pubsub.publish(genProbeTopic(trace.traceSetId), "new trace");
+        return trace;
     }
 }
