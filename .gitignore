@@ -111,3 +111,6 @@ config.env
 *.key
 *.pem
 .env
+secrets.env
+secrets.configmap.yml
+k8s/

@@ -40,6 +40,12 @@ push: build-prod
 	@make -C probe push
 	@make -C backend push
 
+
+# Example: make push VERSION=0.0.2
+push-latest:
+	@make -C probe push-latest
+	@make -C backend push-latest
+
 dev-frontend:
 	@(cd frontend; yarn run dev)
 
