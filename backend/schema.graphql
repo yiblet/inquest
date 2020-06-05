@@ -1,13 +1,3 @@
-type AbstractPythonNode {
-  id: String!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  name: String!
-  startLine: Int!
-  endLine: Int!
-  file: FileInfo!
-}
-
 type ClassInfo {
   id: String!
   createdAt: DateTime!

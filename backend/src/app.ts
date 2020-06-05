@@ -3,7 +3,7 @@ import "reflect-metadata";
 // imports the .env file
 import "./env";
 import { config } from "./config";
-import { ProdConnector, Connector } from "./connect";
+import { Connector } from "./connect";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { Container } from "typedi";
