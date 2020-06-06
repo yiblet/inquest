@@ -102,7 +102,9 @@ export function TraceCreator(props: {
         }
     };
 
-    const borderClass = props.hasBorder ?  "py-2 px-4 border border-black rounded-lg bg-white shadow-lg inline-block" : "inline-block"
+    const borderClass = props.hasBorder
+        ? "py-2 px-4 border border-black rounded-lg bg-white shadow-lg inline-block"
+        : "inline-block";
 
     return (
         <form onSubmit={handleSubmit(submit)} className="">

@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import NamedTuple
+from typing import List, NamedTuple, Union
 
 import janus
 
@@ -51,7 +51,7 @@ class LogSender(ClientConsumer):
         self.log_queue: asyncio.Queue = None
         self.query = gql(
             """\
-mutation PublishLogMutation($content: String!) {
+mutation PublishLogMutation($content: [String!]!) {
   publishLog(content: $content)
 }
                     """
@@ -66,7 +66,7 @@ mutation PublishLogMutation($content: String!) {
     def gen_callback(self):
         return LogSenderCallback(self.log_queue)
 
-    async def _send_log(self, log_content: str):
+    async def _send_log(self, log_content: List[str]):
         LOGGER.debug('sending: %s', log_content)
         params = {
             "content": log_content,
@@ -77,20 +77,64 @@ mutation PublishLogMutation($content: String!) {
         result = result.to_dict()
         log_result(LOGGER, result)
 
+    @staticmethod
+    def add_to_buffers(
+        log_buffer: List[Log], error_buffer: List[Error],
+        log_content: Union[Log, Error]
+    ):
+        if isinstance(log_content, Log):
+            log_buffer.append(log_content)
+        elif isinstance(log_content, Error):
+            error_buffer.append(log_content)
+
     async def main(self):
         LOGGER.info("sending logs")
 
+        next_queue_value = asyncio.create_task(self.log_queue.async_q.get())
         while True:
-            log_content = await self.log_queue.async_q.get()
-            if isinstance(log_content, Log):
-                await self._send_log(log_content.log)
-            elif isinstance(log_content, Error):
-                await self.exception_sender.send_exception(
-                    ProbeException(
-                        message=str(log_content.error),
-                        trace_id=log_content.trace_id,
-                    )
-                )
+            logs = []
+            errors = []
+            log_content = await next_queue_value
+            self.add_to_buffers(logs, errors, log_content)
             self.log_queue.async_q.task_done()
+            sleep_task = asyncio.create_task(asyncio.sleep(0.05))
+
+            buffering = True
+
+            # buffer up the messages
+
+            while buffering:
+                next_queue_value = asyncio.create_task(
+                    self.log_queue.async_q.get()
+                )
+                finished, unfinished = await asyncio.wait(
+                    [
+                        sleep_task,
+                        next_queue_value,
+                    ],
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+                buffering = sleep_task in unfinished
+                if next_queue_value in finished:
+                    self.add_to_buffers(logs, errors, await next_queue_value)
+                    self.log_queue.async_q.task_done()
+                    if not buffering:
+                        next_queue_value = asyncio.create_task(
+                            self.log_queue.async_q.get()
+                        )
+
+            if len(logs) != 0:
+                await self._send_log([log.log for log in logs])
+            if len(errors) != 0:
+                await asyncio.gather(
+                    [
+                        self.exception_sender.send_exception(
+                            ProbeException(
+                                message=str(log_content.error),
+                                trace_id=log_content.trace_id,
+                            )
+                        ) for log_content in errors
+                    ]
+                )
 
         LOGGER.info("logs finished being sent")

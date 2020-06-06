@@ -8,7 +8,7 @@
 // ====================================================
 
 export interface LiveTailSubscription {
-  readonly listenLog: string;
+  readonly listenLog: ReadonlyArray<string>;
 }
 
 export interface LiveTailSubscriptionVariables {

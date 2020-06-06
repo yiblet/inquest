@@ -20,25 +20,25 @@ export class LiveTailResolver {
         private readonly manager: EntityManager
     ) {}
 
-    @Mutation((type) => String, { nullable: false })
+    @Mutation((type) => [String], { nullable: false })
     async publishLog(
-        @Arg("content") content: string,
+        @Arg("content", (type) => [String]) content: string[],
         @Ctx() context: Context,
         @PubSub() pubsub: PubSubEngine
-    ): Promise<string> {
+    ): Promise<string[]> {
         const tail = await context.probe.traceSet;
         await pubsub.publish(genLogTopic(tail.id), content);
         return content;
     }
 
-    @Subscription((type) => String, {
+    @Subscription((type) => [String], {
         nullable: false,
         topics: ({ args }) => genLogTopic(args.traceSetId),
     })
     listenLog(
         @Arg("traceSetId") traceSetId: string,
-        @Root() content: string
-    ): string {
+        @Root() content: string[]
+    ): string[] {
         return content;
     }
 }

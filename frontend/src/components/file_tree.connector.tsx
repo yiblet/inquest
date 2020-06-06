@@ -9,7 +9,10 @@ import { SubdirectoryFragment } from "../generated/SubdirectoryFragment";
 import { ImmSet } from "../utils/collections";
 import { FileTreeFragment } from "../generated/FileTreeFragment";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import {
+    faChevronDown,
+    faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 export const FILE_TREE_FRAGMENT = gql`
     fragment FileTreeFragment on TraceSet {

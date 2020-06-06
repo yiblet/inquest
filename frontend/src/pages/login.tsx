@@ -117,9 +117,7 @@ export default function Login() {
                                         </div>
                                     )}
                                     <Link href="/signup">
-                                        <a className="font-bold">
-                                            Or Sign Up
-                                        </a>
+                                        <a className="font-bold">Or Sign Up</a>
                                     </Link>
                                 </div>
                             </form>

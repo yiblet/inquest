@@ -76,7 +76,7 @@ input FunctionInput {
 
 type Mutation {
   newFileContent(fileInput: FileContentInput!): FileInfo!
-  publishLog(content: String!): String!
+  publishLog(content: [String!]!): [String!]!
   newProbeFailure(newProbeFailure: NewProbeFailureInput!): ProbeFailure!
   heartbeat: Probe!
   newProbe(traceSetId: String!): Probe!
@@ -152,7 +152,7 @@ type Query {
 }
 
 type Subscription {
-  listenLog(traceSetId: String!): String!
+  listenLog(traceSetId: String!): [String!]!
   probeNotification(traceSetId: String!): ProbeNotification!
 }
 
