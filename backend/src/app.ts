@@ -87,13 +87,17 @@ export async function createApp(connector: Connector) {
     // simplistic logging middlware
     app.use((req, res, next) => {
         logger.info("received request", {
-            ur: req.url,
+            url: req.url,
         });
         next();
     });
 
     app.get("/", (req, res) => {
         res.status(200).send("hello world");
+    });
+
+    app.get("/api/version", (req, res) => {
+        res.status(200).send(config.version);
     });
 
     app.post(

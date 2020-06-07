@@ -1,7 +1,9 @@
 import "./env";
+import { version } from "./version";
 
 // TODO productionize use a more featured configuration management solution
 export const config = {
+    version: version,
     server: {
         host: "0.0.0.0",
         port: parseInt(process.env.BACKEND_PORT || "4000"),

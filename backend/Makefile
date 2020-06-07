@@ -19,7 +19,7 @@ test:
 	@yarn test
 
 
-build: 
+build:
 	yarn run tsc
 
 lint: lint-generated
@@ -64,6 +64,10 @@ build-dev:
 	    -e 's|{VERSION}|$(TAG)|g'        \
 	    docker/dev.Dockerfile | docker build -t $(IMAGE):$(TAG) -f- .
 
+
+set-version:
+	sed 's/version.*/version = "$(VERSION)";/g' -i src/version.ts
+
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev
 	@echo "\n${BLUE}Launching a shell in the containerized build environment...${NC}\n"
@@ -80,7 +84,7 @@ push: build-prod
 	@echo "\n${BLUE}Pushing image to GitHub Docker Registry...${NC}\n"
 	@docker push $(IMAGE):$(VERSION)
 
-push-latest: push 
+push-latest: push
 	docker tag $(IMAGE):$(VERSION) $(IMAGE):latest
 	@docker push $(IMAGE):latest
 
