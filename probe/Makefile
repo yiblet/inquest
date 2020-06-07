@@ -12,7 +12,7 @@ TAG := $(shell git describe --tags --always --dirty)
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-dist: 
+dist:
 	poetry build
 
 run:
@@ -49,6 +49,10 @@ build-dev:
 	    -e 's|{NAME}|$(MODULE)|g'        \
 	    -e 's|{VERSION}|$(TAG)|g'        \
 	    docker/dev.Dockerfile | docker build -t $(IMAGE):$(TAG) -f- .
+
+set-version:
+	sed -i 's/^version.*/version = "$(VERSION)"/g' pyproject.toml
+	sed -i 's/^VERSION.*/VERSION = "$(VERSION)"/g' inquest/utils/version.py
 
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev

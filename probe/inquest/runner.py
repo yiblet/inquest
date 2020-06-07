@@ -10,6 +10,7 @@ from inquest.comms.heartbeat import Heartbeat
 from inquest.comms.log_sender import LogSender
 from inquest.comms.module_sender import ModuleSender
 from inquest.comms.trace_set_subscriber import TraceSetSubscriber
+from inquest.comms.version_checker import check_version
 from inquest.probe import Probe
 
 LOGGER = logging.getLogger(__name__)
@@ -81,6 +82,9 @@ class ProbeRunner(threading.Thread):
 
     async def _run_async(self):
         url = f'ws://{self.endpoint}/api/graphql'
+
+        await check_version(f'http://{self.endpoint}/api/version')
+
         consumers = self.client_consumers()
         async with ClientProvider(
                 trace_set_id=self.trace_set_id,

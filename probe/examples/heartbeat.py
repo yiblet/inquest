@@ -14,7 +14,7 @@ def work(value):
 
 
 def main():
-    inquest.enable(api_key=cli(), glob=["examples/**/*.py"])
+    inquest.enable(**cli(), glob=["examples/**/*.py"])
     value = 0
     while True:
         sleep(0.2)
@@ -24,7 +24,13 @@ def main():
 def cli():
     parser = argparse.ArgumentParser("inquest example")
     parser.add_argument("-id", type=str)
-    return parser.parse_args().id
+    parser.add_argument('-local', action='store_true')
+    args = parser.parse_args()
+    result = {'api_key': args.id}
+    if args.local:
+        result['host'] = 'localhost'
+        result['port'] = 4000
+    return result
 
 
 if __name__ == "__main__":
