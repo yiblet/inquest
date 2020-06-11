@@ -24,10 +24,7 @@ export const LiveTailConnector: React.FC<{ traceSetId: string }> = ({
     useEffect(() => {
         data?.listenLog && setLogs((logs) => logs.push(...data.listenLog));
     }, [data?.listenLog, setLogs]);
-    const clearLogs = useCallback(() => setLogs(() => List()), [
-        logs,
-        setLogs,
-    ]);
+    const clearLogs = useCallback(() => setLogs(() => List()), [logs, setLogs]);
 
     return <LiveTail logs={logs} clearLogs={clearLogs} />;
 };

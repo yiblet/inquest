@@ -11,7 +11,6 @@ import {
     faPowerOff,
     faExpandArrowsAlt,
     faWaveSquare,
-    faCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import { gaService } from "../services/ga_service";
 
@@ -74,9 +73,6 @@ const Hero: React.FC = () => {
                         <a className="mr-6" href="#features">
                             Features
                         </a>
-                        {/* <a className="mr-6" href="#pricing"> */}
-                        {/*     Pricing */}
-                        {/* </a> */}
                         <Login />
                     </div>
                 </div>
@@ -175,59 +171,6 @@ const Features: React.FC = () => {
                     run this freely across your stack with no noticeable
                     performance costs.
                 </Feature>
-            </div>
-        </section>
-    );
-};
-
-const Pricing: React.FC = () => {
-    const Utility: React.FC = ({ children }) => (
-        <li className="flex items-center justify-between mb-4">
-            <div
-                className="checkbox mr-4 w-6 h-6 rounded-full bg-blue-200 flex justify-center items-center"
-                style={{ fontSize: "0.5rem" }}
-            >
-                <FontAwesomeIcon icon={faCheck} />
-            </div>
-            <p className="flex-1">{children}</p>
-        </li>
-    );
-    return (
-        <section id="pricing" className="bg-gray-200">
-            <div className="container mx-auto py-16">
-                <div className="flex flex-wrap justify-center items-center">
-                    <div className="p-10 mr-2 max-w-lg text-blue-900">
-                        <h2 className="py-2 text-3xl font-bold">
-                            Interested In Learning More?
-                        </h2>
-                        <p className="text-lg">
-                            Setup a meeting with us. We'll answer your questions
-                            and walk you through a demo.
-                        </p>
-                    </div>
-
-                    <div className="text-blue-600 bg-white rounded-md shadow-2xl flex-col justify-around items-center p-10 flex">
-                        <h1 className="text-5xl font-bold">
-                            <span className="text-xl align-text-top">$</span>0
-                        </h1>
-                        <h2 className="ml-2 text-xl -mt-4 mb-12">
-                            Forever For Beta Users
-                        </h2>
-                        <ul className="flex flex-col">
-                            <Utility>Unlimited Logs</Utility>
-                            <Utility>Unlimited Instances</Utility>
-                            <Utility>1-on-1 Setup Tutorial</Utility>
-                            <Utility>Slack Channel For Support</Utility>
-                        </ul>
-
-                        <button
-                            className="mt-12 font-bold bg-blue-600 px-12 py-4 text-blue-100 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1"
-                            onClick={openCalendly}
-                        >
-                            Setup A Meeting
-                        </button>
-                    </div>
-                </div>
             </div>
         </section>
     );

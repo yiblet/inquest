@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import { createApolloClient } from "../utils/apollo_client";
-import { ApolloProvider, useQuery } from "@apollo/client";
+import { ApolloProvider, useQuery, useMutation } from "@apollo/client";
 import gql from "graphql-tag";
 import dynamic from "next/dynamic";
 import { CodeViewConnectorProps } from "../connectors/code_view.connector";
@@ -21,9 +21,11 @@ import {
     faSignOutAlt,
     faPaste,
     faArrowLeft,
+    faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import { RemoveRootDirectoryMutation } from "../generated/RemoveRootDirectoryMutation";
 
 const CodeViewConnector = dynamic<CodeViewConnectorProps>(
     import("../connectors/code_view.connector").then(
@@ -58,6 +60,12 @@ const USER_CONTEXT_QUERY = gql`
     ${FILE_TREE_FRAGMENT}
 `;
 
+const REMOVE_ROOT_DIRECTORY = gql`
+    mutation RemoveRootDirectoryMutation {
+        removeRootDirectory
+    }
+`;
+
 const SideBar: React.FC<{}> = ({ children }) => {
     return (
         <div
@@ -87,9 +95,16 @@ function withApollo<P>(Comp: React.ComponentType<P>): React.ComponentType<P> {
     };
 }
 
-const UserInfo: React.FC<LiveProbesFragment> = ({ id, liveProbes }) => {
+const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
+    id,
+    liveProbes,
+    clearFiles,
+}) => {
     const notifactions = useContext(NotificationContext);
     const numProbes = liveProbes?.length || 0;
+    const [removeRootDirectory] = useMutation<RemoveRootDirectoryMutation>(
+        REMOVE_ROOT_DIRECTORY
+    );
 
     return (
         <div className="mb-4">
@@ -99,7 +114,8 @@ const UserInfo: React.FC<LiveProbesFragment> = ({ id, liveProbes }) => {
             <Link href="/">
                 <a href="/">
                     <div className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer">
-                        <FontAwesomeIcon icon={faArrowLeft} /> home
+                        <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />{" "}
+                        home
                     </div>
                 </a>
             </Link>
@@ -107,7 +123,7 @@ const UserInfo: React.FC<LiveProbesFragment> = ({ id, liveProbes }) => {
                 className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
                 onClick={(_) => logout()}
             >
-                <FontAwesomeIcon icon={faSignOutAlt} /> logout
+                <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" /> logout
             </div>
             <div
                 className="pl-4 mb-1 border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
@@ -116,7 +132,20 @@ const UserInfo: React.FC<LiveProbesFragment> = ({ id, liveProbes }) => {
                     notifactions.notify("api key was copied to clipboard");
                 }}
             >
-                <FontAwesomeIcon icon={faPaste} /> copy api key
+                <FontAwesomeIcon icon={faPaste} className="mr-2" /> copy api key
+            </div>
+            <div
+                className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
+                onClick={async (_) => {
+                    notifactions.notify(
+                        "clearing all modules, in order to create new ones restart your python probe"
+                    );
+                    await removeRootDirectory();
+                    await clearFiles();
+                }}
+            >
+                <FontAwesomeIcon icon={faTrash} className="mr-2" /> clear all
+                modules
             </div>
             <div className="pl-4 mb-1 border rounded py-1 px-2 text-gray-700">
                 <b>{numProbes}</b> probe
@@ -127,13 +156,17 @@ const UserInfo: React.FC<LiveProbesFragment> = ({ id, liveProbes }) => {
 };
 
 function Dashboard() {
-    const { loading, error, data } = useQuery<UserContextQuery>(
+    const { loading, error, data, refetch } = useQuery<UserContextQuery>(
         USER_CONTEXT_QUERY,
         {
             pollInterval: ms("5s"),
         }
     );
     const [fileFragment, setFileFragment] = useState<FileFragment | null>(null);
+    const clearFileFragment = useCallback(async () => {
+        setFileFragment(null), await refetch();
+    }, [refetch, setFileFragment]);
+
     const [width, setWidth] = useState<number | null>(null);
     useEffect(() => {
         if (error) {
@@ -164,7 +197,7 @@ function Dashboard() {
     return (
         <div className="flex w-full h-screen overflow-none">
             <SideBar>
-                <UserInfo {...traceSet} />
+                <UserInfo {...traceSet} clearFiles={clearFileFragment} />
                 <FileTreeConnector
                     fileTree={traceSet}
                     onPick={setFileFragment}
