@@ -5,8 +5,9 @@ import copy
 import logging
 from typing import Dict, List, Optional
 
-from gql import AsyncClient, gql
+from gql import Client, gql
 from gql.transport.websockets import WebsocketsTransport
+
 from inquest.comms.client_consumer import ClientConsumer
 
 LOGGER = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ mutation NewProbeMutation($traceSetId: String!) {
     async def login(self):
         authorization = 'Authorization'
         if 'Authorization' not in self.headers:
-            async with AsyncClient(retries=3, transport=WebsocketsTransport(
+            async with Client(transport=WebsocketsTransport(
                     url=self.url,
                     ssl=None,
                     headers=self.headers,
@@ -52,10 +53,8 @@ mutation NewProbeMutation($traceSetId: String!) {
                         self.query,
                         variable_values={'traceSetId': self.trace_set_id}
                     )
-                ).to_dict()
-                if 'errors' in result:
-                    raise Exception('failed to connect')
-                id = str(result['data']['newProbe']['id'])
+                )
+                id = str(result['newProbe']['id'])
                 result = base64.b64encode(f'probe_{id}:'.encode('utf8'))
 
             value = f'Basic {result.decode("utf8")}'
@@ -65,9 +64,8 @@ mutation NewProbeMutation($traceSetId: String!) {
     async def __aenter__(self):
         await super().__aenter__()
         await self.login()
-        self.client: AsyncClient = await self.enter_async_context(
-            AsyncClient(
-                retries=3,
+        self.client: Client = await self.enter_async_context(
+            Client(
                 transport=WebsocketsTransport(
                     url=self.url,
                     ssl=None,

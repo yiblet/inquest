@@ -2,6 +2,7 @@ import ast
 import inspect
 import logging
 import re
+import sys
 import types
 from typing import List, NamedTuple
 
@@ -58,7 +59,14 @@ def _inject_and_codegen(func1_ast: ast.AST, filename):
         ),
     )
 
-    mod = compile(ast.Module(body=[func1_ast]), filename, 'exec')
+    # python 3.8 introduced type_ignores into ast.Module
+    if sys.version_info[0:2] >= (3, 8):
+        mod = compile(
+            ast.Module(body=[func1_ast], type_ignores=[]), filename, 'exec'
+        )
+    else:
+        mod = compile(ast.Module(body=[func1_ast]), filename, 'exec')
+
     for obj in mod.co_consts:
         if isinstance(obj, types.CodeType):
             return obj
@@ -66,7 +74,7 @@ def _inject_and_codegen(func1_ast: ast.AST, filename):
 
 
 def add_log_statements(
-    func1: FunctionOrMethod, traces: List[Trace]
+        func1: FunctionOrMethod, traces: List[Trace]
 ) -> types.CodeType:
     LOGGER.debug('adding log statements to %s with traces %s', func1, traces)
 

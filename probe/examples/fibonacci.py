@@ -14,7 +14,7 @@ def fib(value: int):
         return 1
     if value == 1:
         return 1
-    sleep(0.2)
+    sleep(0.5)
     return fib(value - 1) + fib(value - 2)
 
 

@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from gql import gql
 
 from inquest.comms.client_consumer import ClientConsumer
-from inquest.comms.utils import log_result
+from inquest.comms.utils import wrap_log
 from inquest.file_module_resolver import get_root_dir
 from inquest.file_sender import FileSender
 from inquest.module_tree import FileInfo, ModuleTree
@@ -59,10 +59,9 @@ mutation NewFileContentMutation($input: FileContentInput!) {
             },
         }
         LOGGER.debug("input params %s", params)
-
-        result = await self.client.execute(self.query, variable_values=params)
-        result = result.to_dict()
-        log_result(LOGGER, result)
+        await wrap_log(
+            LOGGER, self.client.execute(self.query, variable_values=params)
+        )
 
     async def main(self):
         """

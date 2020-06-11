@@ -41,8 +41,7 @@ mutation ProbeFailureMutation($input: NewProbeFailureInput!) {
                         }
                 }
             )
-        ).to_dict()
-        log_result(LOGGER, result)
+        )
 
     async def send_exception(self, exception: Exception):
         if isinstance(exception, MultiTraceException):

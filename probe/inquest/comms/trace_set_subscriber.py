@@ -2,6 +2,7 @@ import logging
 from collections import OrderedDict
 
 from gql import gql
+from gql.transport.exceptions import TransportQueryError
 
 from inquest.comms.client_consumer import ClientConsumer
 from inquest.comms.exception_sender import ExceptionSender
@@ -58,11 +59,12 @@ query InitialProbeInfo {
     '''
         )
 
-        result = await self.client.execute(query)
-        result = result.to_dict()
-        if 'data' in result:
-            desired_set = result['data']['thisProbe']['traceSet']['desiredSet']
+        try:
+            result = await self.client.execute(query)
+            desired_set = result['thisProbe']['traceSet']['desiredSet']
             await self.update_state(desired_set)
+        except:
+            pass
 
     async def main(self):
         """
@@ -72,8 +74,8 @@ query InitialProbeInfo {
         # Request subscription
         subscription = gql(
             '''
-subscription probeNotification {
-  probeNotification(traceSetId: "%s") {
+subscription probeNotification($traceSetId: String!){
+  probeNotification(traceSetId: $traceSetId) {
     message
     traceSet {
       id
@@ -95,15 +97,21 @@ subscription probeNotification {
     }
   }
 }
-        ''' % (self.trace_set_id)
+        '''
         )
 
         await self._send_initial()
+        LOGGER.debug('waiting for traces')
 
-        async for result in self.client.subscribe(subscription):
-            result: OrderedDict = result.to_dict()
-            log_result(LOGGER, result)
-            if 'data' in result:
-                desired_set = result['data']['probeNotification']['traceSet'][
+        try:
+            async for result in self.client.subscribe(
+                    subscription,
+                    variable_values={'traceSetId': self.trace_set_id}):
+                desired_set = result['probeNotification']['traceSet'][
                     'desiredSet']
+                LOGGER.debug(
+                    'notification', extra={'desired_set': desired_set}
+                )
                 await self.update_state(desired_set)
+        except TransportQueryError as err:
+            LOGGER.error('notification returned error', extra={'error': err})

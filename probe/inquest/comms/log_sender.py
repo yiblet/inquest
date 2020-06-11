@@ -3,11 +3,11 @@ import logging
 from typing import List, NamedTuple, Union
 
 import janus
-
 from gql import gql
+
 from inquest.comms.client_consumer import ClientConsumer
 from inquest.comms.exception_sender import ExceptionSender
-from inquest.comms.utils import log_result
+from inquest.comms.utils import wrap_log
 from inquest.logging import Callback, with_callback
 from inquest.utils.exceptions import ProbeException
 
@@ -73,9 +73,10 @@ mutation PublishLogMutation($content: [String!]!) {
             "traceSetId": self.trace_set_id,
         }
 
-        result = await self.client.execute(self.query, variable_values=params)
-        result = result.to_dict()
-        log_result(LOGGER, result)
+        return await wrap_log(
+            LOGGER,
+            self.client.execute(self.query, variable_values=params),
+        )
 
     @staticmethod
     def add_to_buffers(

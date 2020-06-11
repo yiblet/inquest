@@ -1,9 +1,10 @@
 import asyncio
-import json
 import logging
 
 from gql import gql
+
 from inquest.comms.client_consumer import ClientConsumer
+from inquest.comms.utils import wrap_log
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,15 +28,10 @@ mutation HeartbeatMutation {
         )
 
     async def _send_heartbeat(self):
-        return (await self.client.execute(self.query)).to_dict()
+        return (await self.client.execute(self.query))
 
     async def main(self):
         while True:
             LOGGER.debug("heartbeat")
-            result = await self._send_heartbeat()
-            if 'errors' in result:
-                LOGGER.warning(
-                    "backend returned with errors: %s",
-                    json.dumps(result['errors']),
-                )
+            await wrap_log(LOGGER, self._send_heartbeat(), mute_error=True)
             await asyncio.sleep(self.delay)

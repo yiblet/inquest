@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "inquest"
-version = "0.3.4"
+version = "0.3.5"
 description = ""
 authors = ["Shalom Yiblet <shalom.yiblet@gmail.com>"]
 license = "LGPL-3.0+"
@@ -10,7 +10,7 @@ python = "^3.7"
 pandas = "^1.0.3"
 aiohttp = "^3.6.2"
 janus = "^0.5.0"
-gql = { git = "https://github.com/leszekhanusz/gql.git", rev = "81b795064f06e4466ce30affea8465a86c3358b3"}
+gql = { version = '3.0.0a0', allow-prereleases = true }
 
 [tool.poetry.dev-dependencies]
 pytest-asyncio = "^0.11.0"

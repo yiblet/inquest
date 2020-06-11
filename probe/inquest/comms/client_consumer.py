@@ -1,6 +1,6 @@
 import contextlib
 
-from gql import AsyncClient
+from gql import Client
 
 
 class ClientConsumer(contextlib.AsyncExitStack):
@@ -12,7 +12,7 @@ class ClientConsumer(contextlib.AsyncExitStack):
         self._client = None
         self._trace_set_id = None
 
-    def _set_values(self, client: AsyncClient, trace_set_id: str):
+    def _set_values(self, client: Client, trace_set_id: str):
         self._client = client
         self._trace_set_id = trace_set_id
 
@@ -23,7 +23,7 @@ class ClientConsumer(contextlib.AsyncExitStack):
         return self._trace_set_id
 
     @property
-    def client(self) -> AsyncClient:
+    def client(self) -> Client:
         if self._client is None:
             raise ValueError('consumer wasn\'t given asccess to the client')
         return self._client
