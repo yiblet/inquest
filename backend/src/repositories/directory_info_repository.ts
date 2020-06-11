@@ -32,6 +32,14 @@ export class DirectoryInfoRepository extends Repository<DirectoryInfo> {
         else return dir;
     }
 
+    async genRemoveRootDir(traceSetId: string) {
+        const dir = await this.findOne({
+            name: "",
+            traceSetId: traceSetId,
+        });
+        if (dir) return await this.remove(dir);
+    }
+
     async genDirpath(
         dirpath: string,
         traceSetId: string

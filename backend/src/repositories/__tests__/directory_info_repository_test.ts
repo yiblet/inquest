@@ -39,4 +39,14 @@ it("test generate dirpath", async () => {
     expect(parent3).toMatchObject({
         name: "",
     });
+
+    await expect(dirRepo.genRemoveRootDir(traceSet.id)).resolves.toMatchObject({
+        id: undefined,
+    });
+    await expect(
+        dirRepo.findOne({
+            name: "",
+            traceSetId: traceSet.id,
+        })
+    ).resolves.toBeUndefined();
 });

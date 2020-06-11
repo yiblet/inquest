@@ -1,4 +1,12 @@
-import { Resolver, FieldResolver, Root, Arg, Query } from "type-graphql";
+import {
+    Resolver,
+    FieldResolver,
+    Root,
+    Arg,
+    Query,
+    Mutation,
+    Ctx,
+} from "type-graphql";
 import { Inject } from "typedi";
 import { StorageService } from "../services/storage";
 
@@ -6,10 +14,13 @@ import { FileInfo, FunctionInfo, ClassInfo } from "../entities";
 import { EntityManager } from "typeorm";
 import { InjectManager } from "typeorm-typedi-extensions";
 import { FileInfoRepository } from "../repositories/file_info_repository";
+import { Context } from "../context";
+import { DirectoryInfoRepository } from "../repositories/directory_info_repository";
 
 @Resolver((of) => FileInfo)
 export class FileResolver {
     private readonly fileInfoRepository: FileInfoRepository;
+    private readonly directoryInfoRepository: DirectoryInfoRepository;
     constructor(
         @InjectManager()
         private readonly manager: EntityManager,
@@ -18,6 +29,9 @@ export class FileResolver {
     ) {
         this.fileInfoRepository = manager.getCustomRepository(
             FileInfoRepository
+        );
+        this.directoryInfoRepository = manager.getCustomRepository(
+            DirectoryInfoRepository
         );
     }
 
@@ -46,5 +60,17 @@ export class FileResolver {
     @FieldResolver((type) => [ClassInfo], { nullable: false })
     async classes(@Root() file: FileInfo): Promise<ClassInfo[]> {
         return this.fileInfoRepository.classes(file);
+    }
+
+    @Mutation((type) => Boolean, {
+        nullable: false,
+        description:
+            "returns true if the root directory was removed false if it didn't exist in the first place",
+    })
+    async removeRootDirectory(@Ctx() context: Context): Promise<boolean> {
+        const traceSetId = (await context.traceSet()).id;
+        return !!(await this.directoryInfoRepository.genRemoveRootDir(
+            traceSetId
+        ));
     }
 }

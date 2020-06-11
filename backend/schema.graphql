@@ -76,6 +76,11 @@ input FunctionInput {
 
 type Mutation {
   newFileContent(fileInput: FileContentInput!): FileInfo!
+
+  """
+  returns true if the root directory was removed false if it didn't exist in the first place
+  """
+  removeRootDirectory: Boolean!
   publishLog(content: [String!]!): [String!]!
   newProbeFailure(newProbeFailure: NewProbeFailureInput!): ProbeFailure!
   heartbeat: Probe!
