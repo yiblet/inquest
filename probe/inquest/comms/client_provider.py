@@ -7,7 +7,6 @@ from typing import Dict, List, Optional
 
 from gql import Client, gql
 from gql.transport.websockets import WebsocketsTransport
-
 from inquest.comms.client_consumer import ClientConsumer
 
 LOGGER = logging.getLogger(__name__)
@@ -20,6 +19,7 @@ class ClientProvider(contextlib.AsyncExitStack):
         *,
         trace_set_id: str,
         url: str,
+        ssl: bool,
         consumers: List[ClientConsumer],
         headers: Optional[Dict[str, str]] = None,
     ):
@@ -27,6 +27,7 @@ class ClientProvider(contextlib.AsyncExitStack):
         self.url = url
         self.consumers: List[ClientConsumer] = consumers
         self.headers = copy.copy(headers) if headers is not None else dict()
+        self.ssl = ssl
         self.trace_set_id = trace_set_id
         self.client = None
 
@@ -45,7 +46,7 @@ mutation NewProbeMutation($traceSetId: String!) {
         if 'Authorization' not in self.headers:
             async with Client(transport=WebsocketsTransport(
                     url=self.url,
-                    ssl=None,
+                    ssl=self.ssl,
                     headers=self.headers,
             )) as client:
                 result = (
@@ -68,7 +69,7 @@ mutation NewProbeMutation($traceSetId: String!) {
             Client(
                 transport=WebsocketsTransport(
                     url=self.url,
-                    ssl=None,
+                    ssl=self.ssl,
                     headers=self.headers,
                 )
             )

@@ -42,6 +42,7 @@ class ProbeRunner(threading.Thread):
         trace_set_id: str,
         host: str,
         port: int,
+        ssl: bool,
         glob: Optional[Union[str, List[str]]],
         exclude: Optional[List[str]],
     ):
@@ -50,9 +51,14 @@ class ProbeRunner(threading.Thread):
         self.trace_set_id = trace_set_id
         self.send_modules = glob is not None
         self.endpoint = f"{host}:{port}"
+        self.ssl = ssl
         self.probe = Probe(package)
         self.glob = glob
         self.exclude = exclude
+
+    @property
+    def _ssl_suffix(self):
+        return "" if not self.ssl else "s"
 
     def client_consumers(self):
         sender = ExceptionSender()
@@ -70,7 +76,7 @@ class ProbeRunner(threading.Thread):
         if self.send_modules:
             consumers.append(
                 ModuleSender(
-                    url=f'http://{self.endpoint}/api/upload',
+                    url=f'http{self._ssl_suffix}://{self.endpoint}/api/upload',
                     glob=self.glob,
                     exclude=self.exclude,
                 )
@@ -88,21 +94,28 @@ class ProbeRunner(threading.Thread):
             evloop = asyncio.new_event_loop()
             evloop.run_until_complete(self._run_async())
             LOGGER.info('inquest daemon closed')
-        except Exception:
+        except Exception as err:
+            LOGGER.error(
+                "inquest daemon stopped due to exception",
+                extra={'error': err}
+            )
             # when the runner fails out we set enabled to false again
             with _LOCK:
                 _ENABLED = False
 
     async def _run_async(self):
-        url = f'ws://{self.endpoint}/api/graphql'
+        url = f'ws{self._ssl_suffix}://{self.endpoint}/api/graphql'
 
         # checks that the versions match between the backend and the frontend
-        await check_version(f'http://{self.endpoint}/api/version')
+        await check_version(
+            f'http{self._ssl_suffix}://{self.endpoint}/api/version'
+        )
 
         consumers = self.client_consumers()
         async with ClientProvider(
                 trace_set_id=self.trace_set_id,
                 url=url,
+                ssl=self.ssl,
                 consumers=consumers,
         ) as provider:
             await provider.main()
@@ -113,7 +126,8 @@ def enable(
         *,
         api_key: str,
         host: str = "inquest.dev",
-        port: int = 80,
+        port: int = 443,
+        ssl: Optional[bool] = None,
         glob: Optional[Union[str, List[str]]] = None,
         daemon: bool = True,
         package: Optional[str] = None,
@@ -130,6 +144,9 @@ def enable(
     with _LOCK:
         if _ENABLED and not force_start:
             return
+        if ssl is None:
+            # set ssl to true if the port points to the classic ssl port
+            ssl = port == 443
         if package is None:
             frame = inspect.stack()[1]
             mod = inspect.getmodule(frame[0])
@@ -140,6 +157,7 @@ def enable(
             host=host,
             port=port,
             glob=glob,
+            ssl=ssl,
             exclude=exclude,
         )
         probe.setName('inquest probe')
