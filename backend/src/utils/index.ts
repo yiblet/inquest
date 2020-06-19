@@ -1,5 +1,4 @@
 import { EntityManager } from "typeorm";
-import { logger } from "../logging";
 
 export class PublicError extends Error {}
 
