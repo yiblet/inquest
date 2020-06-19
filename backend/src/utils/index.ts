@@ -23,27 +23,3 @@ export function createTransaction<V>(
     }
     return manager.transaction(transaction);
 }
-
-type Thunk<T> = () => Promise<T>;
-/**
- * forces a series of Thunks to be guaranteed to evaluate serially
- */
-export class Serial<T, E = Error> {
-    private successes: T[] = [];
-    private errors: E[] = [];
-    private processing?: Promise<number>;
-
-    push(thunk: Thunk<T>) {
-        this.processing = (this.processing
-            ? this.processing.then(thunk)
-            : thunk()
-        )
-            .then(this.successes.push)
-            .catch(this.errors.push);
-    }
-
-    async done(): Promise<[T[], E[]]> {
-        if (this.processing) await this.processing;
-        return [this.successes, this.errors];
-    }
-}
