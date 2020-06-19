@@ -1,6 +1,5 @@
 import { EntityManager } from "typeorm";
 import { Service, Inject } from "typedi";
-import { InjectManager } from "typeorm-typedi-extensions";
 import { FileInfo } from "../entities";
 import { StorageService } from "./storage";
 import { v4 as uuidv4 } from "uuid";
@@ -10,20 +9,19 @@ import {
     getParentDirName,
 } from "../repositories/directory_info_repository";
 import { FileInfoRepository } from "../repositories/file_info_repository";
-import { PublicError, createTransaction } from "../utils";
+import { PublicError } from "../utils";
+import { logger } from "../logging";
 
 enum FileState {
-    NEW_FILE,
-    UNCHANGED_FILE,
-    OVERWRITE_FILE,
-    ALREADY_EXISTS_ERROR,
+    NEW_FILE = "NEW_FILE",
+    UNCHANGED_FILE = "UNCHANGED_FILE",
+    OVERWRITE_FILE = "OVERWRITE_FILE",
+    ALREADY_EXISTS_ERROR = "ALREADY_EXISTS_ERROR",
 }
 
 @Service()
 export class UploadService {
     constructor(
-        @InjectManager()
-        private manager: EntityManager,
         @Inject((type) => StorageService)
         private storageService: StorageService
     ) {}
@@ -47,6 +45,7 @@ export class UploadService {
      * TODO this doesn't delete removed directories
      */
     private async saveFile(
+        manager: EntityManager,
         name: string,
         objectName: string,
         md5sum: string,
@@ -54,59 +53,63 @@ export class UploadService {
         blob: Buffer,
         overwrite = true
     ): Promise<FileInfo> {
-        return createTransaction(
-            this.manager,
-            async (manager): Promise<FileInfo> => {
-                const dirpath = getParentDirName(name);
-                const directoryInfoRepository = manager.getCustomRepository(
-                    DirectoryInfoRepository
-                );
-                const fileInfoRepository = manager.getCustomRepository(
-                    FileInfoRepository
-                );
-
-                const file = await manager.findOne(FileInfo, {
-                    name: name,
-                    traceSetId,
-                });
-
-                // setting this up as a switch statement makes it extremely readable
-                switch (UploadService.getFileState(file, overwrite, md5sum)) {
-                    case FileState.NEW_FILE: {
-                        const parentDirectory = await directoryInfoRepository.genDirpath(
-                            dirpath,
-                            traceSetId
-                        );
-                        const file = FileInfo.create({
-                            name: name,
-                            objectName: objectName,
-                            parentDirectoryId: parentDirectory.id,
-                            traceSetId,
-                            md5sum,
-                        });
-                        await this.storageService.save(objectName, blob);
-                        return await manager.save(file);
-                    }
-                    case FileState.ALREADY_EXISTS_ERROR:
-                        throw new PublicError("file already exists");
-                    case FileState.OVERWRITE_FILE: {
-                        if (!file) throw new Error("file should not be null");
-                        await Promise.all([
-                            fileInfoRepository.removeContents(file),
-                            this.storageService.remove(file.objectName),
-                        ]);
-                        file.objectName = objectName;
-                        await this.storageService.save(objectName, blob);
-                        return await manager.save(file);
-                    }
-                    case FileState.UNCHANGED_FILE:
-                        if (!file) throw new Error("file should not be null");
-                        return file;
-                    default:
-                        throw new Error("unexpected case");
-                }
-            }
+        const dirpath = getParentDirName(name);
+        const directoryInfoRepository = manager.getCustomRepository(
+            DirectoryInfoRepository
         );
+        const fileInfoRepository = manager.getCustomRepository(
+            FileInfoRepository
+        );
+
+        let file = await manager.findOne(FileInfo, {
+            name: name,
+            traceSetId,
+        });
+
+        // setting this up as a switch statement makes it extremely readable
+        const fileState = UploadService.getFileState(file, overwrite, md5sum);
+        logger.debug("file state", {
+            name: name,
+            state: fileState,
+        });
+        switch (fileState) {
+            case FileState.NEW_FILE: {
+                const parentDirectory = await directoryInfoRepository.genDirpath(
+                    dirpath,
+                    traceSetId
+                );
+                file = FileInfo.create({
+                    name: name,
+                    objectName: objectName,
+                    parentDirectoryId: parentDirectory.id,
+                    traceSetId,
+                    md5sum,
+                });
+                await this.storageService.save(objectName, blob);
+                file = await manager.save(file);
+                logger.debug("file saved", file);
+                return file;
+            }
+            case FileState.ALREADY_EXISTS_ERROR:
+                throw new PublicError("file already exists");
+            case FileState.OVERWRITE_FILE: {
+                if (!file) throw new Error("file should not be null");
+                await Promise.all([
+                    fileInfoRepository.removeContents(file),
+                    this.storageService.remove(file.objectName),
+                ]);
+                file.objectName = objectName;
+                await this.storageService.save(objectName, blob);
+                file = await manager.save(file);
+                logger.debug("file overwritten", file);
+                return file;
+            }
+            case FileState.UNCHANGED_FILE:
+                if (!file) throw new Error("file should not be null");
+                return file;
+            default:
+                throw new Error("unexpected case");
+        }
     }
 
     /**
@@ -126,9 +129,22 @@ export class UploadService {
     /**
      * upload will send the file to the blob store if the buffer publishes a new file
      */
-    async upload(name: string, traceSetId: string, blob: Buffer) {
+    async upload(
+        manager: EntityManager,
+        name: string,
+        traceSetId: string,
+        blob: Buffer
+    ) {
         const objectName: string = uuidv4();
+        // TODO change from md5 -> sha256
         const sum = createHash("md5").update(blob).digest("hex");
-        return await this.saveFile(name, objectName, sum, traceSetId, blob);
+        return await this.saveFile(
+            manager,
+            name,
+            objectName,
+            sum,
+            traceSetId,
+            blob
+        );
     }
 }

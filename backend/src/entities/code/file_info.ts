@@ -43,6 +43,7 @@ export class FileInfo {
     readonly updatedAt: Date;
 
     @Field({ nullable: false })
+    @Index()
     @Column()
     name: string;
 

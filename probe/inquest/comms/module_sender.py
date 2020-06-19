@@ -2,7 +2,6 @@ import logging
 from typing import List, Optional, Union
 
 from gql import gql
-
 from inquest.comms.client_consumer import ClientConsumer
 from inquest.comms.utils import wrap_log
 from inquest.file_module_resolver import get_root_dir
@@ -69,26 +68,26 @@ mutation NewFileContentMutation($input: FileContentInput!) {
         """
         LOGGER.info("sending modules")
         module_tree = ModuleTree(self.root_dir, self.glob, self.exclude)
+        modules = {
+            module.name: module
+            for module in module_tree.modules()
+            if module.name  # filters out modules with no known file
+        }
 
-        for module in module_tree.modules():
-            file_name = module.name
-            if not file_name:
-                LOGGER.warning(
-                    "ModuleTree pulled a module with no known file: %s",
-                    module.__name__
-                )
-                continue
-            response = await self.sender.send_file(
-                relative_name=module.name,
-                filename=module.absolute_name,
+        modified_modules = await self.sender.check_hashes(
+            self.trace_set_id,
+            [
+                (module.name, module.absolute_name)
+                for module in modules.values()
+            ],
+        )
+
+        async for module_name, file_id in self.sender.send_files(
                 trace_set_id=self.trace_set_id,
-            )
+                filenames=list((name, modules[name].absolute_name)
+                               for name in modified_modules),
+        ):
+            LOGGER.debug("sending module", extra={"module_name": module_name})
+            await self._send_module(modules[module_name], file_id)
 
-            file_id: str = (response).get("fileId")
-            LOGGER.debug('sending file %s', module.name)
-            if file_id is None:
-                LOGGER.error("failed to send file to endpoint")
-                continue
-            await self._send_module(module, file_id)
-
-        LOGGER.info("modules finished being sent")
+    LOGGER.info("modules finished being sent")

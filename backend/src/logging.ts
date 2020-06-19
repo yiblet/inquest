@@ -6,7 +6,7 @@ function createLogger() {
             return winston.createLogger({
                 silent: true,
             });
-        case "debug":
+        case "dev":
             return winston.createLogger({
                 level: "debug",
                 format: winston.format.prettyPrint(),

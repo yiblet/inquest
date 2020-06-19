@@ -8,7 +8,7 @@ import {
     Ctx,
 } from "type-graphql";
 import { Inject } from "typedi";
-import { StorageService } from "../services/storage";
+import { StorageService, streamToString } from "../services/storage";
 
 import { FileInfo, FunctionInfo, ClassInfo } from "../entities";
 import { EntityManager } from "typeorm";
@@ -47,7 +47,7 @@ export class FileResolver {
 
     @FieldResolver((type) => String, { nullable: false })
     async content(@Root() file: FileInfo): Promise<string> {
-        return await StorageService.streamToString(
+        return await streamToString(
             await this.storageService.load(file.objectName)
         );
     }
