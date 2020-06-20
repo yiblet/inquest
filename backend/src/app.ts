@@ -21,7 +21,7 @@ import { UploadService } from "./services/upload";
 import cors from "cors";
 import bodyParser from "body-parser";
 import session from "express-session";
-import { PublicError, createTransaction, Serial } from "./utils";
+import { PublicError, createTransaction } from "./utils";
 import { createServer } from "http";
 import { logger } from "./logging";
 import Busboy from "busboy";

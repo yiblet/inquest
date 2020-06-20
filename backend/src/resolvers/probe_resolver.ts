@@ -104,10 +104,6 @@ export class ProbeResolver {
     async heartbeat(@Ctx() context: Context): Promise<Probe> {
         const probe = context.probe;
         probe.lastHeartbeat = new Date();
-        this.probeRepository.update(probe.id, {
-            lastHeartbeat: new Date(),
-        });
-        probe.traceSet = Promise.resolve(await probe.traceSet);
         return await this.probeRepository.save(probe);
     }
 
