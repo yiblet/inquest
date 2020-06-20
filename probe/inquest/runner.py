@@ -88,6 +88,7 @@ class ProbeRunner(threading.Thread):
         The ProbeRunner's main loop. This fires up the full inquest probe.
         It starts communicating with the backend in a background thread.
         """
+        # pylint: disable=global-statement, broad-except
         global _ENABLED
         try:
             LOGGER.info('inquest daemon is running')
@@ -123,21 +124,22 @@ class ProbeRunner(threading.Thread):
 
 # TODO pass the TraceSet Key in as an argument
 def enable(
-        *,
-        api_key: str,
-        host: str = "inquest.dev",
-        port: int = 443,
-        ssl: Optional[bool] = None,
-        glob: Optional[Union[str, List[str]]] = None,
-        daemon: bool = True,
-        package: Optional[str] = None,
-        exclude: Optional[List[str]] = None,
-        force_start: bool = False,
+    *,
+    api_key: str,
+    host: str = "inquest.dev",
+    port: int = 443,
+    ssl: Optional[bool] = None,
+    glob: Optional[Union[str, List[str]]] = None,
+    daemon: bool = True,
+    package: Optional[str] = None,
+    exclude: Optional[List[str]] = None,
+    force_start: bool = False,
 ) -> None:
     '''
     runs the probe in a separate thread
     '''
 
+    # pylint: disable=global-statement
     # _ENABLED & _LOCK to prevent inquest daemon from being fired
     # up more than once in a given python thread
     global _ENABLED

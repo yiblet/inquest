@@ -14,6 +14,7 @@ def get_root_dir():
 
 
 class FileModuleResolverException(Exception):
+
     def __init__(self, message: str):
         super().__init__(message)
         self.message = message
@@ -35,7 +36,7 @@ class FileModuleResolver:
                 "current calling module %s is not inside of root" % package
             )
 
-        self.main = main[len(self.root_dir) + 1 :]
+        self.main = main[len(self.root_dir) + 1:]
         LOGGER.debug("main is %s", self.main)
 
     def convert_filename_to_modulename(self, filename: str) -> str:
@@ -44,24 +45,27 @@ class FileModuleResolver:
             return "__main__"
         if filename.endswith("/__init__.py"):
             # python file is a __init__.py
-            modname = filename[: -len("/__init__.py")]
+            modname = filename[:-len("/__init__.py")]
             modname = modname.replace("/", ".")
         elif filename.endswith(".py"):
             # filename is a normal python file
-            modname = filename[: -len(".py")]
+            modname = filename[:-len(".py")]
             modname = modname.replace("/", ".")
         else:
             raise ValueError("file %s is not a python file" % filename)
 
         LOGGER.debug(
             "converting filename",
-            extra={"input_filename": filename, "output_modulename": modname},
+            extra={
+                "input_filename": filename,
+                "output_modulename": modname
+            },
         )
 
         if sys.modules.get(modname) is None:
             raise FileModuleResolverException(
-                "could not find module %s for file %s with given root %s"
-                % (modname, filename, self.root_dir)
+                "could not find module %s for file %s with given root %s" %
+                (modname, filename, self.root_dir)
             )
 
         return modname

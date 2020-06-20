@@ -74,7 +74,7 @@ def _inject_and_codegen(func1_ast: ast.AST, filename):
 
 
 def add_log_statements(
-        func1: FunctionOrMethod, traces: List[Trace]
+    func1: FunctionOrMethod, traces: List[Trace]
 ) -> types.CodeType:
     LOGGER.debug('adding log statements to %s with traces %s', func1, traces)
 

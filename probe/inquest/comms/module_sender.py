@@ -31,15 +31,6 @@ class ModuleSender(ClientConsumer):
 mutation NewFileContentMutation($input: FileContentInput!) {
   newFileContent(fileInput: $input) {
     name
-    classes {
-      name
-      methods {
-        name
-      }
-    }
-    functions {
-      name
-    }
   }
 }
             """

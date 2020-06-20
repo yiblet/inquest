@@ -25,10 +25,10 @@ fix:
 	yapf -ir inquest
 
 lint:
-	@echo "\n${BLUE}Running yapf against source and test files...${NC}\n"
-	@yapf -qr inquest
 	@echo "\n${BLUE}Running Pylint against source and test files...${NC}\n"
 	@pylint --rcfile=setup.cfg **/*.py
+	@echo "\n${BLUE}Running yapf against source and test files...${NC}\n"
+	@yapf -qr inquest
 
 # Example: make build-prod VERSION=1.0.0
 build-prod:
