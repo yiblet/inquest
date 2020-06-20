@@ -13,7 +13,8 @@
     "@docusaurus/preset-classic": "^2.0.0-alpha.58",
     "clsx": "^1.1.1",
     "react": "^16.8.4",
-    "react-dom": "^16.8.4"
+    "react-dom": "^16.8.4",
+    "react-typist": "^2.0.5"
   },
   "browserslist": {
     "production": [

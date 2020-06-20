@@ -12,10 +12,36 @@
   overflow: hidden;
 }
 
+.heroContent {
+  margin: 0 auto;
+  max-width: 40rem;
+  text-align: center;
+  color: white;
+}
+
 @media screen and (max-width: 966px) {
   .heroBanner {
     padding: 2rem;
   }
+}
+
+.button {
+  color: white;
+  border-color: white;
+  padding: 0.5rem 2rem;
+  border: 2px solid;
+  border-radius: 10px;
+  transition: all 0.4s;
+}
+
+.button:hover {
+  color: white;
+  border-color: white;
+  padding: 0.5rem 2rem;
+  border: 2px solid;
+  border-radius: 10px;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.5);
+  transform: translate(0px, -5px);
 }
 
 .buttons {

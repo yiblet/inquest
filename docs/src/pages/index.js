@@ -5,6 +5,38 @@ import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import styles from "./styles.module.css";
+import Typist from "react-typist";
+
+const features = [
+    {
+        title: "Easy Setup",
+        imageUrl: "img/undraw_publish_article_icso.svg",
+        description: (
+            <React.Fragment>
+                Get started with a simple <code>pip install</code> and an{" "}
+                <code>inquest.enable()</code>
+            </React.Fragment>
+        )
+    },
+    {
+        title: "Open Source",
+        imageUrl: "img/undraw_developer_activity_bv83.svg",
+        description: (
+            <React.Fragment>
+                We're open source, you can host everything all on one laptop.
+            </React.Fragment>
+        )
+    },
+    {
+        title: "Prevent Bloat",
+        imageUrl: "img/undraw_To_the_stars_qhyy.svg",
+        description: (
+            <React.Fragment>
+                We're open source, you can host everything all on one laptop.
+            </React.Fragment>
+        )
+    }
+];
 
 function Feature({ imageUrl, title, description }) {
     const imgUrl = useBaseUrl(imageUrl);
@@ -33,14 +65,42 @@ function Home() {
             title={`Hello from ${siteConfig.title}`}
             description="Description will go into a meta tag in <head />"
         >
-            <main>
-                <div style={{ margin: "5rem auto 5rem", maxWidth: "30rem" }}>
-                    <h1> 404 - Page Not Found</h1>
-                    <p>
-                        The page your looking for is not available
-                        <a href="/docs"> click here to go back </a>
-                    </p>
+            <header className={clsx("hero hero--primary", styles.heroBanner)}>
+                <div className={clsx("container", styles.heroContainer)}>
+                    <div className={styles.heroContent}>
+                        <h1 className="hero__title">
+                            <span>Setup Inquest To Run In </span>
+                            <Typist>
+                                <span> Your Computer </span>
+                                <Typist.Backspace count={14} delay={1000} />
+                                <span> Your Cloud </span>
+                                <Typist.Backspace count={14} delay={1000} />
+                                <span> Our Managed Service</span>
+                            </Typist>
+                        </h1>
+                        <div className={styles.buttons}>
+                            <Link
+                                className={clsx(styles.button)}
+                                to={useBaseUrl("docs")}
+                            >
+                                Get Started
+                            </Link>
+                        </div>
+                    </div>
                 </div>
+            </header>
+            <main>
+                {features && features.length && (
+                    <section className={styles.features}>
+                        <div className="container">
+                            <div className="row">
+                                {features.map((props, idx) => (
+                                    <Feature key={idx} {...props} />
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                )}
             </main>
         </Layout>
     );

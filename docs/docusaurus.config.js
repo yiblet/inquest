@@ -9,7 +9,18 @@ module.exports = {
     themeConfig: {
         navbar: {
             title: "Inquest",
+            logo: {
+                alt: "Site Logo",
+                href: "https://inquest.dev/", // Default to `siteConfig.baseUrl`.
+                target: "_self" // By default, this value is calculated based on the `href` attribute (the external link will open in a new tab, all others in the current one).
+            },
             links: [
+                {
+                    to: "/",
+                    activeBaseRegex: "^\/?$",
+                    label: "Home",
+                    position: "left"
+                },
                 {
                     to: "docs/",
                     activeBasePath: "docs",
