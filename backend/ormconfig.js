@@ -5,7 +5,7 @@ module.exports = {
     username: process.env.POSTGRES_USER || "postgres",
     password: process.env.POSTGRES_PASSWORD || "postgres",
     database: process.env.POSTGRES_DB || "postgres",
-    synchronize: false,
+    synchronize: process.env.BACKEND_SYNCHRONIZE != undefined,
     logger: "debug",
     cache: true,
     entities: [__dirname + "/build/entities/**/*.js"],
