@@ -1,4 +1,4 @@
-# Inquest: Logging On Steriods
+# Inquest: Point, Click, and See
 
 Inquest is a logging tool for python programs. It let's you add logs to your running python programs without restarting the program, redeploying the program, or modifying the code in any way. Inquest takes extremely low overhead: the part that's a python library is completely idle unless there is something to log. Inquest is specifically designed to enable you to quickly introspect into Python even in production environments.
 
