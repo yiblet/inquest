@@ -1,7 +1,7 @@
 const getFrontendUrl = () =>
     process.env.NODE_ENV === "production"
         ? "https://inquest.dev/"
-        : `http://localhost:${process.env.FRONTEND_HOST || 4000}`;
+        : `http://localhost:${process.env.FRONTEND_PORT || 3000}`;
 
 module.exports = {
     title: "Inquest",
