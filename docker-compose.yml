@@ -1,53 +1,63 @@
 version: "3"
 
 services:
-    backend:
-        depends_on:
-            - minio
-        build:
-            context: ./backend
-            dockerfile: ./docker/prod.Dockerfile
-        ports:
-            - "4000:4000"
-        env_file:
-            - docker-compose.env
+  backend:
+    depends_on:
+      - minio
+      - postgres
+    build:
+      context: ./backend
+      dockerfile: ./docker/prod.Dockerfile
+    ports:
+      - "4000:4000"
+    env_file:
+      - docker-compose.env
 
-    frontend:
-        depends_on:
-            - backend
-        build:
-            context: ./frontend
-            dockerfile: ./docker/prod.Dockerfile
-        ports:
-            - "3000:3000"
-        env_file:
-            - docker-compose.env
+  frontend:
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: ./docker/prod.Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - docker-compose.env
 
-    minio:
-        image: minio/minio:RELEASE.2020-04-10T03-34-42Z
-        volumes:
-            - data:/data
-        ports:
-            - "9000:9000"
-        env_file:
-            - docker-compose.env
-        command: server /data
-        healthcheck:
-            test:
-                ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-            interval: 30s
-            timeout: 20s
-            retries: 3
+  docs:
+    build:
+      context: ./docs
+      dockerfile: ./docker/dev.Dockerfile
+    ports:
+      - "3001:3001"
+    env_file:
+      - docker-compose.env
 
-    postgres:
-        image: postgres:12
-        volumes:
-            - pgdata:/var/lib/postgres/data
-        ports:
-            - "5432:5432"
-        env_file:
-            - docker-compose.env
+  # backend dependencies
+  minio:
+    image: minio/minio:RELEASE.2020-04-10T03-34-42Z
+    volumes:
+      - data:/data
+    ports:
+      - "9000:9000"
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    env_file:
+      - docker-compose.env
+
+  postgres:
+    image: postgres:12
+    volumes:
+      - pgdata:/var/lib/postgres/data
+    ports:
+      - "5432:5432"
+    env_file:
+      - docker-compose.env
 
 volumes:
-    data:
-    pgdata:
+  data:
+  pgdata:
