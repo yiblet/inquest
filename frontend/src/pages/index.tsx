@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { getToken } from "../utils/auth";
+import React from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { atomOneDark } from "react-syntax-highlighter/dist/cjs/styles/hljs";
-import Head from "next/head";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
@@ -11,8 +9,10 @@ import {
     faPowerOff,
     faExpandArrowsAlt,
     faWaveSquare,
+    faHeart,
 } from "@fortawesome/free-solid-svg-icons";
-import { gaService } from "../services/ga_service";
+import { Navbar, Footnotes } from "../components/utils/layout";
+import { useLoggedInState } from "../components/utils/hooks";
 
 const CODE_STRING = `import inquest
 
@@ -23,60 +23,18 @@ def main():
 
 `;
 
-declare global {
-    const Calendly: {
-        initPopupWidget: (data: Record<string, string>) => void;
-    };
-}
-
-const openCalendly = gaService.wrapWithGa(
-    () => {
-        Calendly.initPopupWidget({
-            url: "https://calendly.com/yiblet/30min",
-        });
-    },
-    () => "User Clicked Calendly"
-);
-
-const Login: React.FC = () => {
-    const [loggedIn, setLoggedIn] = useState(false);
-    useEffect(() => {
-        setLoggedIn(getToken() != undefined);
-    });
-
-    return loggedIn ? (
-        <Link href="/dashboard">
-            <button className="mr-4 text-white px-4 rounded border">
-                Dashboard
-            </button>
-        </Link>
-    ) : (
-        <Link href="/login">
-            <button className="mr-4 text-white px-4 rounded border">
-                Login
-            </button>
-        </Link>
-    );
-};
-
 const Hero: React.FC = () => {
+    const loggedIn = useLoggedInState();
+
     return (
-        <section className="hero bg-blue-600 w-full px-4">
+        <section className="hero bg-blue-600 w-full">
             <div className="container mx-auto" style={{ minHeight: "60vh" }}>
-                <div className="pt-5 flex justify-center md:justify-between mb-32 text-left items-baseline text-lg tracking-wider text-white">
-                    <div className="hidden md:block logo uppercase text-2xl">
-                        <Link href="/">
-                            <a href="/">Inquest</a>
-                        </Link>
-                    </div>
-                    <div>
-                        <a className="mr-6" href="#features">
-                            Features
-                        </a>
-                        <Login />
+                <div className={"sm:h-16 flex items-center"}>
+                    <div className="w-full">
+                        <Navbar light />
                     </div>
                 </div>
-                <div className="flex flex-wrap justify-center">
+                <div className="px-4 py-10 sm:py-20 flex flex-wrap justify-center">
                     <div className="max-w-lg my-5">
                         <div className="">
                             <div className="mb-3 text-5xl font-bold text-white">
@@ -87,12 +45,19 @@ const Hero: React.FC = () => {
                                 running code. Instantly peer into what's
                                 happening on any line of running code.
                             </div>
-                            <button
-                                className="font-bold bg-blue-200 px-12 py-4 text-blue-900 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1"
-                                onClick={openCalendly}
-                            >
-                                Sign Up For A Demo
-                            </button>
+                            {!loggedIn ? (
+                                <Link href="/signup">
+                                    <button className="font-bold bg-blue-200 px-12 py-4 text-blue-900 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1">
+                                        Get Started
+                                    </button>
+                                </Link>
+                            ) : (
+                                <Link href="/dashboard">
+                                    <button className="font-bold bg-blue-200 px-12 py-4 text-blue-900 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1">
+                                        Go To Dashboard
+                                    </button>
+                                </Link>
+                            )}
                         </div>
                     </div>
                     <div className="mb-12 py-10 md:px-10">
@@ -175,41 +140,13 @@ const Features: React.FC = () => {
         </section>
     );
 };
-
-const Footnotes: React.FC = () => {
-    return (
-        <section id="footnotes" className="">
-            <div className="container mx-auto py-4">
-                <div className="flex flex-wrap justify-center items-center">
-                    <div className="mr-2 text-blue-900">
-                        <p className="text-lg">
-                            Made With Love In San Francisco
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
-};
-
 function Index() {
     return (
-        <div>
-            <Head>
-                <link
-                    href="https://assets.calendly.com/assets/external/widget.css"
-                    rel="stylesheet"
-                />
-                <script
-                    src="https://assets.calendly.com/assets/external/widget.js"
-                    type="text/javascript"
-                ></script>
-            </Head>
+        <>
             <Hero />
             <Features />
-            {/* <Pricing /> */}
             <Footnotes />
-        </div>
+        </>
     );
 }
 

@@ -53,6 +53,10 @@ function MyApp({ Component, pageProps }) {
                     href="/resources/favicon.ico"
                 />
                 <link rel="manifest" href="/resources/site.webmanifest" />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Lato&family=Roboto:wght@400;500;700&display=swap"
+                    rel="stylesheet"
+                />
             </Head>
             <Notifications />
             <Component {...pageProps} />
