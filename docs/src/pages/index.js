@@ -9,31 +9,34 @@ import Typist from "react-typist";
 
 const features = [
     {
+        title: "Instrument Your Python Quickly",
+        imageUrl: "img/undraw_To_the_stars_qhyy.svg",
+        description: (
+            <>
+                Inquest let's you add log statements like you add break points
+                in debugger. Just click, point, and see your logs.
+            </>
+        )
+    },
+    {
         title: "Easy Setup",
         imageUrl: "img/undraw_publish_article_icso.svg",
         description: (
-            <React.Fragment>
+            <>
                 Get started with a simple <code>pip install</code> and an{" "}
                 <code>inquest.enable()</code>
-            </React.Fragment>
+                <a href="/docs"> Learn more </a>
+            </>
         )
     },
     {
-        title: "Open Source",
+        title: "We're Open Source",
         imageUrl: "img/undraw_developer_activity_bv83.svg",
         description: (
-            <React.Fragment>
-                We're open source, you can host everything all on one laptop.
-            </React.Fragment>
-        )
-    },
-    {
-        title: "Prevent Bloat",
-        imageUrl: "img/undraw_To_the_stars_qhyy.svg",
-        description: (
-            <React.Fragment>
-                We're open source, you can host everything all on one laptop.
-            </React.Fragment>
+            <>
+                You can contribute or host everything all on one laptop.
+                <a href="/docs/getting_started_with_docker"> Learn more </a>
+            </>
         )
     }
 ];
@@ -75,7 +78,7 @@ function Home() {
                                 <Typist.Backspace count={14} delay={1000} />
                                 <span> Your Cloud </span>
                                 <Typist.Backspace count={14} delay={1000} />
-                                <span> Our Managed Service</span>
+                                <span> Inquest Cloud </span>
                             </Typist>
                         </h1>
                         <div className={styles.buttons}>
@@ -83,7 +86,7 @@ function Home() {
                                 className={clsx(styles.button)}
                                 to={useBaseUrl("docs")}
                             >
-                                Get Started
+                               See The Docs 
                             </Link>
                         </div>
                     </div>

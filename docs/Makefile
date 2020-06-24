@@ -27,7 +27,17 @@ build-prod:
 	@sed                                     \
 	    -e 's|{NAME}|$(MODULE)|g'            \
 	    -e 's|{VERSION}|$(VERSION)|g'        \
-	    Dockerfile | docker build -t $(IMAGE):$(VERSION) -f- .
+	    docker/prod.Dockerfile | docker build -t $(IMAGE):$(VERSION) -f- .
+
+
+build-dev:
+	@echo "\n${BLUE}Building Development image with labels:\n"
+	@echo "name: $(MODULE)"
+	@echo "version: $(TAG)${NC}\n"
+	@sed                                 \
+	    -e 's|{NAME}|$(MODULE)|g'        \
+	    -e 's|{VERSION}|$(TAG)|g'        \
+	    docker/dev.Dockerfile | docker build -t $(IMAGE):$(TAG) -f- .
 
 # Example: make push VERSION=0.0.2
 push: build-prod

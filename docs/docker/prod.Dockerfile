@@ -11,6 +11,5 @@ RUN yarn build
 FROM nginx:1.19 AS deploy
 COPY --from=runner /app/build /usr/share/nginx/html
 
-
 LABEL name={NAME}
 LABEL version={VERSION}

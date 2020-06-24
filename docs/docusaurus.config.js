@@ -1,3 +1,8 @@
+const getFrontendUrl = () =>
+    process.env.NODE_ENV === "production"
+        ? "https://inquest.dev/"
+        : `http://localhost:${process.env.FRONTEND_HOST || 4000}`;
+
 module.exports = {
     title: "Inquest",
     tagline: "The tagline of my site",
@@ -11,16 +16,10 @@ module.exports = {
             title: "Inquest",
             logo: {
                 alt: "Site Logo",
-                href: "https://inquest.dev/", // Default to `siteConfig.baseUrl`.
+                href: getFrontendUrl(),
                 target: "_self" // By default, this value is calculated based on the `href` attribute (the external link will open in a new tab, all others in the current one).
             },
             links: [
-                {
-                    to: "/",
-                    activeBaseRegex: "^\/?$",
-                    label: "Home",
-                    position: "left"
-                },
                 {
                     to: "docs/",
                     activeBasePath: "docs",
@@ -28,7 +27,7 @@ module.exports = {
                     position: "left"
                 },
                 {
-                    href: "https://github.com/facebook/docusaurus",
+                    href: "https://github.com/yiblet/inquest",
                     label: "GitHub",
                     position: "right"
                 }
@@ -41,8 +40,12 @@ module.exports = {
                     title: "Docs",
                     items: [
                         {
-                            label: "Style Guide",
+                            label: "Getting Started",
                             to: "docs/"
+                        },
+                        {
+                            label: "Self-Hosting",
+                            to: "docs/getting_started_with_docker"
                         }
                     ]
                 },
@@ -51,12 +54,20 @@ module.exports = {
                     items: [
                         {
                             label: "GitHub",
+                            href: "https://github.com/yiblet/inquest"
+                        },
+                        {
+                            label: "Home",
+                            href: getFrontendUrl()
+                        },
+                        {
+                            label: "Built With Docusaurus",
                             href: "https://github.com/facebook/docusaurus"
-                        }
+                        },
                     ]
                 }
             ],
-            copyright: `Copyright © ${new Date().getFullYear()} Inquest. Built with Docusaurus.`
+            copyright: `© ${new Date().getFullYear()} Inquest`
         }
     },
     presets: [
