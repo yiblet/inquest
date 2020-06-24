@@ -9,10 +9,9 @@ import {
     faPowerOff,
     faExpandArrowsAlt,
     faWaveSquare,
-    faHeart,
 } from "@fortawesome/free-solid-svg-icons";
 import { Navbar, Footnotes } from "../components/utils/layout";
-import { useLoggedInState } from "../components/utils/hooks";
+import { useLoggedInState } from "../utils/auth";
 
 const CODE_STRING = `import inquest
 

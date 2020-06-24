@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { isSecure } from "../../utils/protocol";
-import { getPublicRuntimeConfig } from "../../config";
+import { getDocsURL } from "../../utils/protocol";
 import { PropsOf } from "../../utils/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faHeart } from "@fortawesome/free-solid-svg-icons";
-import { useLoggedInState } from "./hooks";
+import { useLoggedInState } from "../../utils/auth";
 
 const Login: React.FC<{ borderColor: string }> = ({ borderColor }) => {
     const loggedIn = useLoggedInState();
@@ -105,9 +104,8 @@ export const ScrollingNavbar: React.FC<PropsOf<typeof Navbar>> = (props) => {
 };
 
 export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
-    const secure = isSecure();
     const [mobileVisible, setMobileVisible] = useState(false);
-    const { docsEndpoint } = getPublicRuntimeConfig();
+    const docsURL = getDocsURL();
 
     let borderColor = "border-black";
     let textColor = "text-black";
@@ -123,7 +121,9 @@ export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
 
     return (
         <>
-            <div className={`mt-4 px-4 flex sm:hidden justify-between ${textColor}`}>
+            <div
+                className={`mt-4 px-4 flex sm:hidden justify-between ${textColor}`}
+            >
                 <div className="logo uppercase text-2xl">
                     <Link href="/">
                         <a href="/">Inquest</a>
@@ -150,12 +150,7 @@ export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
                     className={`sm:flex sm:flex-row 
                     ${mobileVisible ? "grid grid-cols-1 gap-1" : "hidden"}`}
                 >
-                    <a
-                        className="mr-6"
-                        href={`http${
-                            secure ? "s" : ""
-                        }://${docsEndpoint}/docs/overview`}
-                    >
+                    <a className="mr-6" href={docsURL}>
                         Docs
                     </a>
                     <a className="mr-6" href="/#features">

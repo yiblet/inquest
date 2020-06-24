@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext } from "react";
+import React, { useState, useEffect, createContext, useContext } from "react";
 import { Observable } from "../../utils/observable";
 import { OrderedMap } from "../../utils/collections";
 
@@ -15,9 +15,14 @@ type NotificationData = {
     timeout: number;
 };
 
-export const NotificationContext = createContext<Observable<Notification>>(
+const NotificationContext = createContext<Observable<Notification>>(
     new Observable()
 );
+
+export const NotificationProvider = NotificationContext.Provider;
+
+export const useNotifications: () => Observable<Notification> = () =>
+    useContext(NotificationContext);
 
 export const Notifications: React.FC<{
     timeout?: number;

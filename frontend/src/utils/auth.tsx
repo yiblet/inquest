@@ -1,17 +1,59 @@
-import React from "react";
+import React, { useState } from "react";
 import { NextPageContext, NextComponentType } from "next";
 import { useEffect } from "react";
-import Router from "next/router";
+import Router, { useRouter } from "next/router";
 import { Cookie } from "next-cookie";
 import cookie from "js-cookie";
+import { useNotifications } from "../components/utils/notifications";
 
 export const login = (token: string) => {
     cookie.set("token", token, { expires: 3 });
-    Router.push("/dashboard");
+    Router.replace("/dashboard");
 };
 
 export const getToken = () => {
     return cookie.get("token");
+};
+
+/**
+ * returns undefined if loggedIn is not known (on first render)
+ */
+export const useLoggedInState = (): boolean | undefined => {
+    const [loggedIn, setLoggedIn] = useState<boolean | undefined>(undefined);
+    useEffect(() => {
+        setLoggedIn(getToken() != undefined);
+    });
+    return loggedIn;
+};
+
+/**
+ * redirects if the user is not logged in
+ */
+export const useEnsureLoggedIn = () => {
+    const notifications = useNotifications();
+    const loggedIn = useLoggedInState();
+    const router = useRouter();
+    useEffect(() => {
+        if (loggedIn === false) {
+            notifications.notify("need to log in");
+            router.replace("/login");
+        }
+    }, [loggedIn]);
+};
+
+/**
+ * redirects of the user is already logged in
+ */
+export const useEnsureNotLoggedIn = (redirectLocation: string) => {
+    const notifications = useNotifications();
+    const loggedIn = useLoggedInState();
+    const router = useRouter();
+    useEffect(() => {
+        if (loggedIn === true) {
+            notifications.notify("already logged in");
+            router.replace(redirectLocation);
+        }
+    }, [loggedIn]);
 };
 
 export const auth = (ctx: NextPageContext) => {
@@ -23,7 +65,7 @@ export const auth = (ctx: NextPageContext) => {
             ctx.res?.writeHead(302, { Location: "/login" });
             ctx.res?.end();
         } else {
-            Router.push("/login");
+            Router.replace("/login");
         }
     }
     return token;
@@ -32,7 +74,7 @@ export const auth = (ctx: NextPageContext) => {
 export const logout = () => {
     cookie.remove("token");
     if (window) window.localStorage.setItem("logout", `${Date.now()}`);
-    Router.push("/login");
+    Router.replace("/login");
 };
 
 export function withAuth<P>(

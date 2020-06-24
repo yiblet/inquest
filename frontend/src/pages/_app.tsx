@@ -3,15 +3,15 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import {
-    Notifications,
     Notification,
-    NotificationContext,
+    NotificationProvider,
+    Notifications,
 } from "../components/utils/notifications";
 import { Observable } from "../utils/observable";
-// Prevent fontawesome from adding its CSS since we did it manually above:
 import { config } from "@fortawesome/fontawesome-svg-core";
 import { gaService } from "../services/ga_service";
 
+// Prevent fontawesome from adding its CSS since we did it manually above:
 config.autoAddCss = false;
 
 function MyApp({ Component, pageProps }) {
@@ -23,7 +23,7 @@ function MyApp({ Component, pageProps }) {
     });
 
     return (
-        <NotificationContext.Provider value={observable}>
+        <NotificationProvider value={observable}>
             <Head>
                 <title>
                     Inquest - Get Vision On Your Production Code Instantly
@@ -60,7 +60,7 @@ function MyApp({ Component, pageProps }) {
             </Head>
             <Notifications />
             <Component {...pageProps} />
-        </NotificationContext.Provider>
+        </NotificationProvider>
     );
 }
 

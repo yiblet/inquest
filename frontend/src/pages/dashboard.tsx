@@ -11,10 +11,9 @@ import {
     FILE_TREE_FRAGMENT,
 } from "../components/file_tree.connector";
 import { Resizable } from "re-resizable";
-import { getToken, logout } from "../utils/auth";
+import { getToken, logout, useEnsureLoggedIn } from "../utils/auth";
 import { UserContextQuery } from "../generated/UserContextQuery";
 import { copyToClipboard } from "../utils/clipboard_copy";
-import { NotificationContext } from "../components/utils/notifications";
 import { LiveProbesFragment } from "../generated/LiveProbesFragment";
 import ms from "ms";
 import {
@@ -22,10 +21,15 @@ import {
     faPaste,
     faArrowLeft,
     faTrash,
+    faBook,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { RemoveRootDirectoryMutation } from "../generated/RemoveRootDirectoryMutation";
+import { getDocsURL } from "../utils/protocol";
+import { useNotifications } from "../components/utils/notifications";
+
+// TODO refactor this file into multiple files
 
 const CodeViewConnector = dynamic<CodeViewConnectorProps>(
     import("../connectors/code_view.connector").then(
@@ -81,12 +85,8 @@ const SideBar: React.FC<{}> = ({ children }) => {
 
 function withApollo<P>(Comp: React.ComponentType<P>): React.ComponentType<P> {
     return function WithApollo(props: P) {
+        useEnsureLoggedIn();
         const token = getToken();
-        useEffect(() => {
-            if (!token) {
-                logout();
-            }
-        }, [token]);
         return (
             <ApolloProvider client={createApolloClient(token)}>
                 <Comp {...props} />
@@ -100,12 +100,12 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
     liveProbes,
     clearFiles,
 }) => {
-    const notifactions = useContext(NotificationContext);
+    const notifications = useNotifications();
     const numProbes = liveProbes?.length || 0;
     const [removeRootDirectory] = useMutation<RemoveRootDirectoryMutation>(
         REMOVE_ROOT_DIRECTORY
     );
-
+    const docsURL = getDocsURL();
     return (
         <div className="mb-4">
             <div className="pl-2 text-md mb-2 font-semibold text-gray-800">
@@ -129,15 +129,20 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
                 className="pl-4 mb-1 border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
                 onClick={(_) => {
                     copyToClipboard(id);
-                    notifactions.notify("api key was copied to clipboard");
+                    notifications.notify("api key was copied to clipboard");
                 }}
             >
                 <FontAwesomeIcon icon={faPaste} className="mr-2" /> copy api key
             </div>
+            <a href={docsURL}>
+                <div className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer">
+                    <FontAwesomeIcon icon={faBook} className="mr-2" /> docs
+                </div>
+            </a>
             <div
                 className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
                 onClick={async (_) => {
-                    notifactions.notify(
+                    notifications.notify(
                         "clearing all modules, in order to create new ones restart your python probe"
                     );
                     await removeRootDirectory();
@@ -148,7 +153,7 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
                 modules
             </div>
             <div className="pl-4 mb-1 border rounded py-1 px-2 text-gray-700">
-                <b>{numProbes}</b> probe
+                <b>{numProbes}</b> instance
                 {numProbes === 1 ? "" : "s"} connected
             </div>
         </div>

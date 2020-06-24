@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { login } from "../utils/auth";
+import { login, useEnsureNotLoggedIn } from "../utils/auth";
 import Router from "next/router";
 import { getPublicRuntimeConfig } from "../config";
 import { WithTitle } from "../components/utils/with_title";
@@ -25,6 +25,7 @@ export default function Signup() {
     const { watch, handleSubmit, register, errors } = useForm();
     const [fetching, setFetching] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
+    useEnsureNotLoggedIn("/dashboard");
 
     const onSubmit = async (values: {
         email: string;
