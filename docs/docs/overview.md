@@ -11,7 +11,7 @@ After two lines of integration in python, you're able to to add a log statement 
 
 To get started, there are 2 ways of running inquest:
 
-1. [Hosting it on a single computer via docker-compose](getting_started_with_docker.md)
-2. [Running It through our managed service](getting_started.md)
+1. [Running It With Inquest Cloud](getting_started.md)
+2. [Hosting it on a your computer via docker-compose](getting_started_with_docker.md)
 
-Right now, during beta, Inquest cloud is completely free (and we'll permanently have a free-tier) so if you want to get started with that. If you want to just try it out without hosting, you can get started for free.
+Right now, during beta, Inquest Cloud is completely free (and we'll permanently have a free-tier). If you want to just try it out without hosting, you can get started for free.

@@ -27,8 +27,8 @@ if __name__ == '__main__':
     main()
 ```
 
-Retrieve your `api_key` from logging into the dashboard. Put the files you want
-to have access to in `glob`.
+Retrieve your `api_key` by logging in to the dashboard. Put the files you want
+to have access to in dashboard into the `glob` parameter.
 
 ### More Info On Globbing Files
 
