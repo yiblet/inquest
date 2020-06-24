@@ -1,0 +1,96 @@
+.article {
+    @apply text-gray-900 leading-normal break-words;
+}
+
+.article > * + * {
+    @apply mt-0 mb-4;
+}
+
+.article li + li {
+    @apply mt-1;
+}
+
+.article li > p + p {
+    @apply mt-6;
+}
+
+.article strong {
+    @apply font-semibold;
+}
+
+.article a {
+    @apply text-blue-600 font-semibold;
+}
+
+.article strong a {
+    @apply font-bold;
+}
+
+.article h1 {
+    @apply leading-tight border-b text-4xl font-semibold mb-4 mt-6 pb-2;
+}
+
+.article h2 {
+    @apply leading-tight border-b text-2xl font-semibold mb-4 mt-6 pb-2;
+}
+
+.article h3 {
+    @apply leading-snug text-lg font-semibold mb-4 mt-6;
+}
+
+.article h4 {
+    @apply leading-none text-base font-semibold mb-4 mt-6;
+}
+
+.article h5 {
+    @apply leading-tight text-sm font-semibold mb-4 mt-6;
+}
+
+.article h6 {
+    @apply leading-tight text-sm font-semibold text-gray-600 mb-4 mt-6;
+}
+
+.article blockquote {
+    @apply text-base border-l-4 border-gray-300 pl-4 pr-4 text-gray-600;
+}
+
+.article code {
+    @apply font-mono text-sm inline bg-gray-200 rounded px-1 py-1;
+}
+
+.article pre {
+    @apply bg-gray-100 rounded p-4;
+}
+
+.article pre code {
+    @apply block bg-transparent p-0 overflow-visible rounded-none;
+}
+
+.article ul {
+    @apply text-base pl-8 list-disc;
+}
+
+.article ol {
+    @apply text-base pl-8 list-decimal;
+}
+
+.article kbd {
+    @apply text-xs inline-block rounded border px-1 py-1 align-middle font-normal font-mono shadow;
+}
+
+.article table {
+    @apply text-base border-gray-600;
+}
+
+.article th {
+    @apply border py-1 px-3;
+}
+
+.article td {
+    @apply border py-1 px-3;
+}
+
+/* Override pygments style background color. */
+.article .highlight pre {
+    @apply bg-gray-100 !important;
+}
