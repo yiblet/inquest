@@ -122,7 +122,6 @@ class ProbeRunner(threading.Thread):
             await provider.main()
 
 
-# TODO pass the TraceSet Key in as an argument
 def enable(
     *,
     api_key: str,
