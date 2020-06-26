@@ -103,8 +103,15 @@ export class ProbeResolver {
     @Mutation((returns) => Probe)
     async heartbeat(@Ctx() context: Context): Promise<Probe> {
         const probe = context.probe;
-        probe.lastHeartbeat = new Date();
-        return await this.probeRepository.save(probe);
+        await this.manager
+            .createQueryBuilder()
+            .update(Probe)
+            .set({
+                lastHeartbeat: new Date(),
+            })
+            .where("id = :id", { id: probe.id })
+            .execute();
+        return (await this.manager.findOne(Probe, probe.id)) || probe;
     }
 
     @Mutation((returns) => Probe)
