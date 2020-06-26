@@ -189,7 +189,7 @@ export default function Signup() {
                                 <div className="flex items-baseline pt-4">
                                     {!fetching ? (
                                         <button className="rounded inline-block bg-blue-600 text-white text-lg text-md p-2 px-4 mr-4">
-                                            Sign Up
+                                           Go To Dashboard 
                                         </button>
                                     ) : (
                                         <div className="rounded inline-block bg-gray-600 text-white text-lg text-md p-2 px-4 mr-4">

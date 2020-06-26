@@ -36,27 +36,27 @@ const Hero: React.FC = () => {
                         <Navbar light />
                     </div>
                 </div>
-                <div className="px-4 py-10 sm:py-20 flex flex-wrap justify-center">
+                <div className="px-4 pt-10 sm:pt-20 flex flex-wrap justify-center">
                     <div className="max-w-lg my-5">
                         <div className="">
                             <div className="mb-3 text-5xl font-bold text-white">
                                 Point, Click, And See.
                             </div>
-                            <div className="mb-8 text-xl text-white">
+                            <p className="mb-8 text-xl text-white">
                                 Inquest is the fastest way to monitor your
                                 running code. Instantly peer into what's
-                                happening on any line of running code.
-                            </div>
+                                happening on any line of running code.{" "}
+                            </p>
                             {!loggedIn ? (
                                 <Link href="/signup">
-                                    <button className="font-bold bg-blue-200 px-12 py-4 text-blue-900 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1">
-                                        Get Started
+                                    <button className="font-bold bg-white px-12 py-4 text-blue-600 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1">
+                                        Try It Out
                                     </button>
                                 </Link>
                             ) : (
                                 <Link href="/dashboard">
-                                    <button className="font-bold bg-blue-200 px-12 py-4 text-blue-900 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1">
-                                        Go To Dashboard
+                                    <button className="font-bold bg-white px-12 py-4 text-blue-600 uppercase text-center text-2xl rounded-md shadow-md transition duration-500 ease-in-out hover:shadow-2xl transform hover:-translate-y-1">
+                                        Go To The Dashboard
                                     </button>
                                 </Link>
                             )}
@@ -82,6 +82,11 @@ const Hero: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+                <div className="text-center text-2xl pb-12">
+                    <span className="text-blue-100">
+                        Inquest Free During Beta, and Completely Open Source
+                    </span>
                 </div>
             </div>
         </section>

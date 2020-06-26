@@ -17,7 +17,7 @@ const Login: React.FC<{ borderColor: string }> = ({ borderColor }) => {
     ) : (
         <Link href="/login">
             <button className={`mr-4 px-4 rounded border ${borderColor}`}>
-                Login
+                Log In
             </button>
         </Link>
     );
@@ -44,7 +44,9 @@ export const Footnotes: React.FC = () => {
                         </a>
                     </Link>
                     <Link href="/terms_of_service">
-                        <a href="/terms_of_service" className="mr-4">Terms of Service</a>
+                        <a href="/terms_of_service" className="mr-4">
+                            Terms of Service
+                        </a>
                     </Link>
                     <a href="https://join.slack.com/t/inquestcommunity/shared_invite/zt-fq7lra68-nems8~EkICvgf6xRW_J3eg">
                         Join the Community
