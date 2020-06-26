@@ -29,6 +29,7 @@ import { RemoveRootDirectoryMutation } from "../generated/RemoveRootDirectoryMut
 import { getGetStartedDocsURL } from "../utils/protocol";
 import { useNotifications } from "../components/utils/notifications";
 import Skeleton from "react-loading-skeleton";
+import { Tooltip } from "../components/utils/tooltip";
 
 // TODO refactor this file into multiple files
 
@@ -158,18 +159,27 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
                     <FontAwesomeIcon icon={faBook} className="mr-2" /> docs
                 </div>
             </a>
-            <div
-                className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer"
-                onClick={async (_) => {
-                    notifications.notify(
-                        "clearing all modules, in order to create new ones restart your python probe"
-                    );
-                    await removeRootDirectory();
-                    await clearFiles();
-                }}
-            >
-                <FontAwesomeIcon icon={faTrash} className="mr-2" /> clear all
-                modules
+            <div className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer">
+                <span
+                    onClick={async (_) => {
+                        notifications.notify(
+                            "clearing all modules, in order to create new ones restart your python instance"
+                        );
+                        await removeRootDirectory();
+                        await clearFiles();
+                    }}
+                >
+                    <FontAwesomeIcon icon={faTrash} className="mr-2" /> clear
+                    all modules
+                </span>
+                <div className="float-right text-gray-500">
+                    <Tooltip width="20rem">
+                        Deletes all files sent to the dashboard.
+                        <br />
+                        Restart your python instance in order to upload new
+                        ones.
+                    </Tooltip>
+                </div>
             </div>
             <div className="pl-4 mb-1 border rounded py-1 px-2 text-gray-700">
                 <b>{numProbes}</b> instance
@@ -210,6 +220,12 @@ const WelcomeMessage: React.FC = () => {
                 />
                 Your browser does not support the video tag.
             </video>
+            <a
+                href="https://join.slack.com/t/inquestcommunity/shared_invite/zt-fq7lra68-nems8~EkICvgf6xRW_J3eg"
+                className="mt-8"
+            >
+                Need Help? Join Our Slack
+            </a>
         </div>
     );
 };

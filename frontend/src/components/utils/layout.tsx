@@ -37,15 +37,18 @@ export const Footnotes: React.FC = () => {
                         In San Francisco
                     </p>
                 </div>
-                <div className="text-center md:text-right">
+                <div className="flex justify-center md:justify-right flex-wrap">
                     <Link href="/privacy_policy">
                         <a href="/privacy_policy" className="mr-4">
                             Privacy Policy
                         </a>
                     </Link>
                     <Link href="/terms_of_service">
-                        <a href="/terms_of_service">Terms of Service</a>
+                        <a href="/terms_of_service" className="mr-4">Terms of Service</a>
                     </Link>
+                    <a href="https://join.slack.com/t/inquestcommunity/shared_invite/zt-fq7lra68-nems8~EkICvgf6xRW_J3eg">
+                        Join the Community
+                    </a>
                 </div>
             </div>
         </section>

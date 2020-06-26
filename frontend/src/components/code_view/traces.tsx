@@ -116,13 +116,11 @@ export function TraceCreator(props: { onCreate: (trace: string) => any }) {
             </button>
             <div className="mx-2 inline-block text-gray-600">
                 <Tooltip width="20rem">
-                    <div className="p-2 border shadow-md rounded bg-white text-black">
-                        You can log python variables by using
-                        <code className="mx-2 p-1 bg-gray-200 rounded">
-                            {"{bracket}"}
-                        </code>
-                        format.
-                    </div>
+                    You can log python variables by using
+                    <code className="mx-2 p-1 bg-gray-200 rounded">
+                        {"{bracket}"}
+                    </code>
+                    format.
                 </Tooltip>
             </div>
         </form>
