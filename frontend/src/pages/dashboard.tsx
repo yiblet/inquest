@@ -26,9 +26,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { RemoveRootDirectoryMutation } from "../generated/RemoveRootDirectoryMutation";
-import { getDocsURL } from "../utils/protocol";
+import { getGetStartedDocsURL } from "../utils/protocol";
 import { useNotifications } from "../components/utils/notifications";
-import { getPublicRuntimeConfig } from "../config";
 import Skeleton from "react-loading-skeleton";
 
 // TODO refactor this file into multiple files
@@ -126,7 +125,6 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
     const [removeRootDirectory] = useMutation<RemoveRootDirectoryMutation>(
         REMOVE_ROOT_DIRECTORY
     );
-    const docsURL = getDocsURL();
     return (
         <div className="mb-4">
             <div className="pl-2 text-md mb-2 font-semibold text-gray-800">
@@ -155,7 +153,7 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
             >
                 <FontAwesomeIcon icon={faPaste} className="mr-2" /> copy api key
             </div>
-            <a href={docsURL + "/docs/overview"}>
+            <a href={getGetStartedDocsURL()}>
                 <div className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer">
                     <FontAwesomeIcon icon={faBook} className="mr-2" /> docs
                 </div>
@@ -182,18 +180,13 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
 };
 
 const WelcomeMessage: React.FC = () => {
-    const { docsEndpoint } = getPublicRuntimeConfig();
-    let route = "/docs";
-    if (docsEndpoint !== "docs.inquest.dev") {
-        route = "/docs/getting_started_with_docker";
-    }
     return (
         <div className="px-8 py-4 article max-w-xl">
             <h2>Welcome To The Dashboard!</h2>
             <p>
                 In order to get started make sure you have a python instance
                 connected with Inquest.{" "}
-                <a href={getDocsURL() + route}>
+                <a href={getGetStartedDocsURL()}>
                     {" "}
                     Follow this documentation to learn more.
                 </a>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { getDocsURL } from "../../utils/protocol";
+import { getGetStartedDocsURL } from "../../utils/protocol";
 import { PropsOf } from "../../utils/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faHeart } from "@fortawesome/free-solid-svg-icons";
@@ -74,7 +74,6 @@ function inViewport(el: HTMLElement) {
 
 export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
     const [mobileVisible, setMobileVisible] = useState(false);
-    const docsURL = getDocsURL();
 
     let borderColor = "border-black";
     let textColor = "text-black";
@@ -119,7 +118,7 @@ export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
                     className={`sm:flex sm:flex-row 
                     ${mobileVisible ? "grid grid-cols-1 gap-1" : "hidden"}`}
                 >
-                    <a className="mr-6" href={docsURL + "/docs"}>
+                    <a className="mr-6" href={getGetStartedDocsURL()}>
                         Docs
                     </a>
                     <a className="mr-6" href="/#features">
