@@ -6,7 +6,8 @@ export const Tooltip: React.FC<{
     width?: string;
     floatHorizontal?: "left" | "right";
     floatVertical?: "above" | "below";
-}> = ({ children, floatVertical, floatHorizontal, width }) => {
+    unwrapChildren?: boolean;
+}> = ({ children, floatVertical, floatHorizontal, width, unwrapChildren }) => {
     const [isShown, setIsShown] = useState<boolean | "out">(false);
     useEffect(() => {
         if (isShown === "out") {
@@ -22,7 +23,7 @@ export const Tooltip: React.FC<{
         floatHorizontal = "right";
     }
 
-    const style: React.CSSProperties = { width };
+    const style: React.CSSProperties = {};
     if (floatVertical === "above") {
         style.top = "1.5rem";
     } else {
@@ -35,6 +36,15 @@ export const Tooltip: React.FC<{
         style.left = "1rem";
     }
 
+    let newChildren: React.ReactNode = (
+        <div className="p-2 border shadow-md rounded bg-white text-black">
+            {children}
+        </div>
+    );
+    if (unwrapChildren) {
+        newChildren = children;
+    }
+
     return (
         <div
             className="relative z-10 inline-block cursor-pointer"
@@ -43,8 +53,12 @@ export const Tooltip: React.FC<{
         >
             <FontAwesomeIcon icon={faQuestionCircle} />
             {isShown ? (
-                <div className="absolute" style={style}>
-                    {children}
+                <div className="absolute">
+                    <div className="fixed" style={{ width }}>
+                        <div className="absolute" style={style}>
+                            {newChildren}
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <> </>
