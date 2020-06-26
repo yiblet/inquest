@@ -22,6 +22,9 @@ def main():
 
 `;
 
+/**
+ * The Hero section
+ */
 const Hero: React.FC = () => {
     const loggedIn = useLoggedInState();
 

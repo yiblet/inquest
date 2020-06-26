@@ -150,7 +150,7 @@ export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
                     className={`sm:flex sm:flex-row 
                     ${mobileVisible ? "grid grid-cols-1 gap-1" : "hidden"}`}
                 >
-                    <a className="mr-6" href={docsURL}>
+                    <a className="mr-6" href={docsURL + "/docs"}>
                         Docs
                     </a>
                     <a className="mr-6" href="/#features">
