@@ -3,14 +3,14 @@ id: getting_started_with_docker
 title: Self-Hosting With Docker
 ---
 
-If you want to run Inquest on your own computer, it takes just three 
-steps. 
-
+If you want to run Inquest on your own computer, it takes just three
+steps.
 
 :::note
+Inquest is only verified to work with python versions 3.7 and later
 
-If you just want to try it out quickly with less installation 
-[follow this guide](getting_started.md) on how to set it up with Inquest Cloud.  It's also free, but it takes less work to set up.
+If you just want to try it out quickly with less installation
+[follow this guide](getting_started.md) on how to set it up with Inquest Cloud. It's also free, but it takes less work to set up.
 :::
 
 ## 1. Setup Up The Inquest API Server & Frontend
@@ -27,15 +27,20 @@ Then, once inside the directory, you simply have to run
 docker-compose up
 ```
 
-to get services running. 
+to get services running.
 
-(If you haven't installed docker, [Here's a link](https://docs.docker.com/get-docker/) to get started, and 
+(If you haven't installed docker, [Here's a link](https://docs.docker.com/get-docker/) to get started, and
 to install docker-compose simply run `pip install docker-compose`)
-
 
 ## 2. Install It With `pip`
 
-Just run `pip install inquest`. Make sure to add it to your requirements.txt.
+Just run
+
+```python
+pip install inquest
+```
+
+Make sure to add it to your requirements.txt.
 
 ## 3. Import It Into Your Code
 
@@ -55,21 +60,21 @@ if __name__ == '__main__':
     main()
 ```
 
-Retrieve your `api_key` by logging in to the dashboard. Put the files you want
+Retrieve your `api_key` from the sidebar after you log into in the dashboard. Put the files you want
 to have access to in dashboard into the `glob` parameter.
 
 ### More Info On Globbing Files
 
 To upload python files are in the directory `my_project`, the glob `my_project/**/*.py` will
-verify and upload all these. These files will be uploaded securely to backend so you can view 
+verify and upload all these. These files will be uploaded securely to backend so you can view
 it in the dashboard. Once you've uploaded them, you can delete them any time.
 
-glob takes in any list of valid python globs. So for more complex use cases, read python's standard 
-library on [globs](https://docs.python.org/3/library/glob.html). 
+glob takes in any list of valid python globs. So for more complex use cases, read python's standard
+library on [globs](https://docs.python.org/3/library/glob.html).
 
 We check against the files' hashes so files are only uploaded if they've been modified between runs.
 
 ## What's Next?
 
-You're set up! Now just run your python script like you usually do, and go to `localhost:3000` on your 
+You're set up! Now just run your python script like you usually do, and go to `localhost:3000` on your
 browser to get access to your own personal copy of Inquest.

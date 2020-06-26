@@ -50,6 +50,16 @@ module.exports = {
                     ]
                 },
                 {
+                    title: "Community",
+                    items: [
+                        {
+                            label: "Join Our Slack",
+                            href:
+                                "https://join.slack.com/t/inquestcommunity/shared_invite/zt-fq7lra68-nems8~EkICvgf6xRW_J3eg"
+                        }
+                    ]
+                },
+                {
                     title: "More",
                     items: [
                         {
@@ -65,7 +75,22 @@ module.exports = {
                             href: "https://github.com/facebook/docusaurus"
                         },
                     ]
-                }
+                },
+                {
+                    title: "Legal",
+                    items: [
+                        {
+                            label: "Privacy Policy",
+                            href: getFrontendUrl() + "/privacy_policy"
+                                
+                        },
+                        {
+                            label: "Terms Of Service",
+                            href: getFrontendUrl() + "/terms_of_service"
+                                
+                        },
+                    ]
+                },
             ],
             copyright: `© ${new Date().getFullYear()} Inquest`
         }

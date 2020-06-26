@@ -4,10 +4,19 @@ title: Get Started
 ---
 
 Getting up inquest just takes 2 steps!
+:::note
+Inquest is only verified to work with python versions 3.7 and later
+:::
 
 ## 1. Install It With `pip`
 
-Just run `pip install inquest`. Make sure to add it to your requirements.txt.
+Just run
+
+```python
+pip install inquest
+```
+
+Make sure to add it to your requirements.txt.
 
 ## 2. Import It Into Your Code
 
@@ -27,17 +36,17 @@ if __name__ == '__main__':
     main()
 ```
 
-Retrieve your `api_key` by logging in to the dashboard. Put the files you want
+Retrieve your `api_key` from the sidebar after you log into in the dashboard. Put the files you want
 to have access to in dashboard into the `glob` parameter.
 
 ### More Info On Globbing Files
 
 To upload python files are in the directory `my_project`, the glob `my_project/**/*.py` will
-verify and upload all these. These files will be uploaded securely to backend so you can view 
+verify and upload all these. These files will be uploaded securely to backend so you can view
 it in the dashboard. Once you've uploaded them, you can delete them any time.
 
-glob takes in any list of valid python globs. So for more complex use cases, read python's standard 
-library on [globs](https://docs.python.org/3/library/glob.html). 
+glob takes in any list of valid python globs. So for more complex use cases, read python's standard
+library on [globs](https://docs.python.org/3/library/glob.html).
 
 We check against the files' hashes so files are only uploaded if they've been modified between runs.
 
