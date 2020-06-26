@@ -1,4 +1,3 @@
-
 export type PublicRuntimeConfig = {
     endpoint: string;
     docsEndpoint: string;
@@ -12,7 +11,7 @@ export function getPublicRuntimeConfig(): PublicRuntimeConfig {
                 process.env.BACKEND_PORT || 4000
             }`,
         docsEndpoint:
-            process.env.NEXT_PUBLIC_DOCS_ENDPOINT || `docs.inquest.dev`,
+            process.env.NEXT_PUBLIC_DOCS_ENDPOINT || "docs.inquest.dev",
     };
 }
 

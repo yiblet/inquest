@@ -11,7 +11,6 @@ import { List, ImmMap } from "../../utils/collections";
 import { FunctionFragment } from "../../generated/FunctionFragment";
 import { CodeViewFragment } from "../../generated/CodeViewFragment";
 import { TraceFragment } from "../../generated/TraceFragment";
-import { Tooltip } from "../utils/tooltip";
 
 const logger = createLogger(["CodeView"]);
 
@@ -190,7 +189,7 @@ export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
                         <span className="font-medium">
                             Create Log After Line {visibleLine}
                         </span>
-                        <br/>
+                        <br />
                         <TraceCreator
                             onCreate={(statement) =>
                                 onCreate(fragment, statement, visibleLine)

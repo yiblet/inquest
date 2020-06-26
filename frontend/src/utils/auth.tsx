@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { NextPageContext, NextComponentType } from "next";
+import { useState } from "react";
+import { NextPageContext } from "next";
 import { useEffect } from "react";
 import Router, { useRouter } from "next/router";
 import { Cookie } from "next-cookie";

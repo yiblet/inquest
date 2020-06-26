@@ -72,37 +72,6 @@ function inViewport(el: HTMLElement) {
     );
 }
 
-export const ScrollingNavbar: React.FC<PropsOf<typeof Navbar>> = (props) => {
-    const ref = useRef<HTMLDivElement>(null);
-    const [fixed, setFixed] = useState(false);
-
-    useEffect(() => {
-        const handler = () => {
-            if (!ref.current) return;
-            setFixed(!inViewport(ref.current));
-        };
-
-        window.addEventListener("scroll", handler);
-        return () => window.removeEventListener("scroll", handler);
-    }, [ref]);
-
-    return (
-        <div ref={ref} className={"sm:h-16 flex items-center w-full"}>
-            <div
-                className={
-                    fixed
-                        ? "bg-white fixed top-0 left-0 shadow-md sm:h-16 w-full flex items-center"
-                        : "bg-white w-full"
-                }
-            >
-                <div className="container mx-auto my-auto">
-                    <Navbar {...props} />
-                </div>
-            </div>
-        </div>
-    );
-};
-
 export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
     const [mobileVisible, setMobileVisible] = useState(false);
     const docsURL = getDocsURL();
@@ -162,6 +131,37 @@ export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
                 </div>
             </div>
         </>
+    );
+};
+
+export const ScrollingNavbar: React.FC<PropsOf<typeof Navbar>> = (props) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [fixed, setFixed] = useState(false);
+
+    useEffect(() => {
+        const handler = () => {
+            if (!ref.current) return;
+            setFixed(!inViewport(ref.current));
+        };
+
+        window.addEventListener("scroll", handler);
+        return () => window.removeEventListener("scroll", handler);
+    }, [ref]);
+
+    return (
+        <div ref={ref} className={"sm:h-16 flex items-center w-full"}>
+            <div
+                className={
+                    fixed
+                        ? "bg-white fixed top-0 left-0 shadow-md sm:h-16 w-full flex items-center"
+                        : "bg-white w-full"
+                }
+            >
+                <div className="container mx-auto my-auto">
+                    <Navbar {...props} />
+                </div>
+            </div>
+        </div>
     );
 };
 
