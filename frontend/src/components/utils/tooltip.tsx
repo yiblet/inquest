@@ -2,12 +2,21 @@ import React, { useState, useEffect } from "react";
 import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export const Tooltip: React.FC<{
+export type TooltipProps = {
     width?: string;
     floatHorizontal?: "left" | "right";
     floatVertical?: "above" | "below";
-    unwrapChildren?: boolean;
-}> = ({ children, floatVertical, floatHorizontal, width, unwrapChildren }) => {
+};
+
+/**
+ * this tooltip doesn't wrap the inside with a div
+ */
+export const RawTooltip: React.FC<TooltipProps> = ({
+    children,
+    floatVertical,
+    floatHorizontal,
+    width,
+}) => {
     const [isShown, setIsShown] = useState<boolean | "out">(false);
     useEffect(() => {
         if (isShown === "out") {
@@ -36,15 +45,6 @@ export const Tooltip: React.FC<{
         style.left = "1rem";
     }
 
-    let newChildren: React.ReactNode = (
-        <div className="p-2 border shadow-md rounded bg-white text-black">
-            {children}
-        </div>
-    );
-    if (unwrapChildren) {
-        newChildren = children;
-    }
-
     return (
         <div
             className="relative z-10 inline-block cursor-pointer"
@@ -56,7 +56,7 @@ export const Tooltip: React.FC<{
                 <div className="absolute">
                     <div className="fixed" style={{ width }}>
                         <div className="absolute" style={style}>
-                            {newChildren}
+                            {children}
                         </div>
                     </div>
                 </div>
@@ -66,3 +66,23 @@ export const Tooltip: React.FC<{
         </div>
     );
 };
+
+/**
+ * this tooltip wraps the inside with a div
+ */
+export const Tooltip: React.FC<TooltipProps> = ({
+    children,
+    floatVertical,
+    floatHorizontal,
+    width,
+}) => (
+    <RawTooltip
+        floatHorizontal={floatHorizontal}
+        floatVertical={floatVertical}
+        width={width}
+    >
+        <div className="p-2 border shadow-md rounded bg-white text-black">
+            {children}
+        </div>
+    </RawTooltip>
+);
