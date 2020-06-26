@@ -1,3 +1,5 @@
+// TODO move to an actual logging framework
+
 export interface Logger {
     debug(message: string, tags?: string[]);
     info(message: string, tags?: string[]);

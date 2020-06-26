@@ -5,12 +5,13 @@ const MonacoEditor = dynamic(import("react-monaco-editor"), { ssr: false });
 import { ExistingTrace, Editor } from "./utils";
 import { Marker } from "./marker";
 import { createLogger } from "../../utils/logger";
-import { Traces, TraceCreator } from "./traces";
+import { Traces, TraceCreator, CodePopup } from "./traces";
 import { debounce } from "../../utils/debounce";
 import { List, ImmMap } from "../../utils/collections";
 import { FunctionFragment } from "../../generated/FunctionFragment";
 import { CodeViewFragment } from "../../generated/CodeViewFragment";
 import { TraceFragment } from "../../generated/TraceFragment";
+import { Tooltip } from "../utils/tooltip";
 
 const logger = createLogger(["CodeView"]);
 
@@ -157,6 +158,7 @@ export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
                         visible={visibleLine === line}
                     >
                         <Traces
+                            lineno={line}
                             tag={`Trace:${line}`}
                             traces={traces}
                             onDelete={onDelete}
@@ -184,12 +186,17 @@ export const CodeView: React.FC<CodeViewProps> = (props: CodeViewProps) => {
                     editor={editor}
                     visible={true}
                 >
-                    <TraceCreator
-                        onCreate={(statement) =>
-                            onCreate(fragment, statement, visibleLine)
-                        }
-                        hasBorder
-                    />
+                    <CodePopup>
+                        <span className="font-medium">
+                            Create Log After Line {visibleLine}
+                        </span>
+                        <br/>
+                        <TraceCreator
+                            onCreate={(statement) =>
+                                onCreate(fragment, statement, visibleLine)
+                            }
+                        />
+                    </CodePopup>
                 </Marker>
             );
         }

@@ -5,6 +5,9 @@ import fetch from "isomorphic-unfetch";
 import { getPublicRuntimeConfig, getServerRuntimeConfig } from "../config";
 import { isSecure } from "./protocol";
 
+/**
+ *  generates a websocket connection with the user client
+ */
 export function createApolloClient(token) {
     const secure = isSecure();
     const ssrMode = !process.browser;

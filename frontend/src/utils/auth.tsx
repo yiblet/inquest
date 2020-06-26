@@ -6,11 +6,17 @@ import { Cookie } from "next-cookie";
 import cookie from "js-cookie";
 import { useNotifications } from "../components/utils/notifications";
 
+/**
+ * logs the user in
+ */
 export const login = (token: string) => {
     cookie.set("token", token, { expires: 3 });
     Router.replace("/dashboard");
 };
 
+/**
+ * retrieves the user's JWT token
+ */
 export const getToken = () => {
     return cookie.get("token");
 };
@@ -38,7 +44,9 @@ export const useEnsureLoggedIn = () => {
             notifications.notify("need to log in");
             router.replace("/login");
         }
-    }, [loggedIn]);
+    }, [loggedIn !== undefined]); // effect is only fired off twice
+    // once when loggedIn === undefined (at first render)
+    // second when loggedIn is a boolean (after the first render)
 };
 
 /**
@@ -53,7 +61,9 @@ export const useEnsureNotLoggedIn = (redirectLocation: string) => {
             notifications.notify("already logged in");
             router.replace(redirectLocation);
         }
-    }, [loggedIn]);
+    }, [loggedIn !== undefined]); // effect is only fired off twice
+    // once when loggedIn === undefined (at first render)
+    // second when loggedIn is a boolean (after the first render)
 };
 
 export const auth = (ctx: NextPageContext) => {
@@ -71,43 +81,12 @@ export const auth = (ctx: NextPageContext) => {
     return token;
 };
 
+/**
+ * logs the user out
+ * TODO set up a way to ensure other tabs are also logged out of
+ */
 export const logout = () => {
     cookie.remove("token");
     if (window) window.localStorage.setItem("logout", `${Date.now()}`);
     Router.replace("/login");
 };
-
-export function withAuth<P>(
-    WrappedComponent: NextComponentType<NextPageContext, {}, P>
-) {
-    const Wrapper = (props: P) => {
-        const syncLogout = (event: StorageEvent) => {
-            if (event.key === "logout") {
-                Router.push("/login");
-            }
-        };
-
-        useEffect(() => {
-            window.addEventListener("storage", syncLogout);
-
-            return () => {
-                window.removeEventListener("storage", syncLogout);
-                window.localStorage.removeItem("logout");
-            };
-        }, []);
-
-        return <WrappedComponent {...props} />;
-    };
-
-    Wrapper.getInitialProps = async (ctx: NextPageContext) => {
-        const token = auth(ctx);
-
-        const componentProps =
-            WrappedComponent.getInitialProps &&
-            (await WrappedComponent.getInitialProps(ctx));
-
-        return { ...componentProps, token };
-    };
-
-    return Wrapper;
-}

@@ -28,14 +28,35 @@ import Link from "next/link";
 import { RemoveRootDirectoryMutation } from "../generated/RemoveRootDirectoryMutation";
 import { getDocsURL } from "../utils/protocol";
 import { useNotifications } from "../components/utils/notifications";
+import { getPublicRuntimeConfig } from "../config";
+import Skeleton from "react-loading-skeleton";
 
 // TODO refactor this file into multiple files
+
+const CodeViewSkeleton = () => (
+    <div className="h-full max-w-xl px-4 py-10">
+        <Skeleton />
+        <Skeleton />
+        <Skeleton />
+        <Skeleton width="50%" />
+        <br />
+        <br />
+        <br />
+        <Skeleton />
+        <Skeleton />
+        <Skeleton />
+        <Skeleton width="50%" />
+    </div>
+);
 
 const CodeViewConnector = dynamic<CodeViewConnectorProps>(
     import("../connectors/code_view.connector").then(
         (mod) => mod.CodeViewConnector
     ),
-    { ssr: false }
+    {
+        ssr: false,
+        loading: CodeViewSkeleton,
+    }
 );
 
 const LIVE_PROBES_FRAGMENT = gql`
@@ -134,7 +155,7 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
             >
                 <FontAwesomeIcon icon={faPaste} className="mr-2" /> copy api key
             </div>
-            <a href={docsURL}>
+            <a href={docsURL + "/docs/overview"}>
                 <div className="pl-4 mb-w border rounded py-1 px-2 hover:bg-gray-400 cursor-pointer">
                     <FontAwesomeIcon icon={faBook} className="mr-2" /> docs
                 </div>
@@ -156,6 +177,46 @@ const UserInfo: React.FC<LiveProbesFragment & { clearFiles: () => any }> = ({
                 <b>{numProbes}</b> instance
                 {numProbes === 1 ? "" : "s"} connected
             </div>
+        </div>
+    );
+};
+
+const WelcomeMessage: React.FC = () => {
+    const { docsEndpoint } = getPublicRuntimeConfig();
+    let route = "/docs";
+    if (docsEndpoint !== "docs.inquest.dev") {
+        route = "/docs/getting_started_with_docker";
+    }
+    return (
+        <div className="px-8 py-4 article max-w-xl">
+            <h2>Welcome To The Dashboard!</h2>
+            <p>
+                In order to get started make sure you have a python instance
+                connected with Inquest.{" "}
+                <a href={getDocsURL() + route}>
+                    {" "}
+                    Follow this documentation to learn more.
+                </a>
+            </p>
+
+            <h3> What's Next?</h3>
+            <p>
+                You should see that you now have 1 python instance connected. If
+                that's the case you're all set. If you've passed in files in the{" "}
+                <code>{"glob"}</code> keyword, you'll be able to open them up
+                under modules in the sidebar.
+            </p>
+            <p>
+                Open a file, click on a line inside of a function and see the
+                magic!
+            </p>
+            <video width={570} height={398} autoPlay loop>
+                <source
+                    src="/resources/inquest_logging_video.webm"
+                    type="video/webm"
+                />
+                Your browser does not support the video tag.
+            </video>
         </div>
     );
 };
@@ -220,11 +281,15 @@ function Dashboard() {
                     maxWidth="70%"
                     minWidth="30%"
                 >
-                    <CodeViewConnector
-                        file={fileFragment || undefined}
-                        width={width || undefined}
-                        traceSetId={traceSet.id}
-                    />
+                    {!fileFragment ? (
+                        <WelcomeMessage />
+                    ) : (
+                        <CodeViewConnector
+                            file={fileFragment}
+                            width={width || undefined}
+                            traceSetId={traceSet.id}
+                        />
+                    )}
                 </Resizable>
                 <div className="w-full overflow-auto">
                     <LiveTailConnector traceSetId={traceSet.id} />

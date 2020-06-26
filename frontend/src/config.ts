@@ -1,3 +1,4 @@
+
 export type PublicRuntimeConfig = {
     endpoint: string;
     docsEndpoint: string;

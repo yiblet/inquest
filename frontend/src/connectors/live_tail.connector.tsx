@@ -10,6 +10,9 @@ const LIVE_TAIL_SUBSCRIPTION = gql`
     }
 `;
 
+/**
+ * shows the user's live tail
+ */
 export const LiveTailConnector: React.FC<{ traceSetId: string }> = ({
     traceSetId,
 }) => {

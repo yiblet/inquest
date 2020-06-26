@@ -3,7 +3,7 @@ import { OrderedSet } from "./collections";
 export type Observer<T> = (value: T, order: number) => any;
 
 /**
- * A simplistic observer class
+ * A Observer class
  */
 export class Observable<T> {
     private observers: OrderedSet<Observer<T>> = OrderedSet();

@@ -4,6 +4,7 @@ import { ExistingTrace } from "./utils";
 import { PropsOf } from "../../utils/types";
 import { createLogger } from "../../utils/logger";
 import { ImmSet, List } from "../../utils/collections";
+import { Tooltip } from "../utils/tooltip";
 
 export function TraceFailure(props: ExistingTrace) {
     if (props.currentFailures.length == 0) {
@@ -26,8 +27,8 @@ export function TraceViewer(props: {
     return (
         <div>
             <div>
-                <div className="inline-block my-2 mr-2 font-mono placeholder-black">
-                    <span className="text-blue-700">logging "</span>
+                <div className="inline-block my-2 mr-2 font-mono placeholder-gray-600">
+                    <span className="text-blue-700">"</span>
                     {props.trace.statement}
                     <span className="text-blue-700">"</span>
                 </div>
@@ -68,7 +69,7 @@ export function TraceEditor(props: {
         <div className="flex">
             <form onSubmit={handleSubmit(submit)}>
                 <input
-                    className="my-2 mr-2 px-1 rounded bg-gray-300 placeholder-black"
+                    className="my-2 mr-2 px-1 rounded bg-gray-300 placeholder-gray-600"
                     type="text"
                     autoComplete={"off"}
                     name="trace"
@@ -90,10 +91,7 @@ export function TraceEditor(props: {
     );
 }
 
-export function TraceCreator(props: {
-    onCreate: (trace: string) => any;
-    hasBorder?: boolean;
-}) {
+export function TraceCreator(props: { onCreate: (trace: string) => any }) {
     const { handleSubmit, register, reset } = useForm();
     const submit = (values: { trace?: string }) => {
         if (values.trace) {
@@ -102,31 +100,45 @@ export function TraceCreator(props: {
         }
     };
 
-    const borderClass = props.hasBorder
-        ? "py-2 px-4 border border-black rounded-lg bg-white shadow-lg inline-block"
-        : "inline-block";
-
     return (
-        <form onSubmit={handleSubmit(submit)} className="">
-            <div className={borderClass}>
-                <input
-                    className="my-2 mr-2 bg-gray-300 placeholder-black rounded px-1"
-                    type="text"
-                    name="trace"
-                    autoComplete={"off"}
-                    required
-                    placeholder="new log string"
-                    ref={register({ required: true })}
-                />
-                <button type="submit" className="font-semibold text-blue-600">
-                    create
-                </button>
+        <form onSubmit={handleSubmit(submit)} className="inline-block">
+            <input
+                className="my-2 mr-2 bg-gray-300 min-w-2xl placeholder-gray-600 rounded px-1"
+                type="text"
+                name="trace"
+                autoComplete={"off"}
+                required
+                placeholder="add log statement"
+                ref={register({ required: true })}
+            />
+            <button type="submit" className="font-semibold text-blue-600">
+                create
+            </button>
+            <div className="mx-2 inline-block text-gray-600">
+                <Tooltip width="20rem">
+                    <div className="p-2 border shadow-md rounded bg-white text-black">
+                        You can log python variables by using
+                        <code className="mx-2 p-1 bg-gray-200 rounded">
+                            {"{bracket}"}
+                        </code>
+                        format.
+                    </div>
+                </Tooltip>
             </div>
         </form>
     );
 }
 
+export const CodePopup: React.FC = ({ children }) => {
+    return (
+        <div className="inline-block py-2 px-4 border border-black rounded-lg bg-white shadow-lg">
+            {children}
+        </div>
+    );
+};
+
 export function Traces(props: {
+    lineno: number;
     tag: string;
     traces: List<ExistingTrace>;
     onDelete: (trace: ExistingTrace) => any;
@@ -140,33 +152,39 @@ export function Traces(props: {
     useEffect(() => setState(ImmSet()), [props.tag]);
 
     return (
-        <div className="flex flex-col w-full h-full bg-white px-4 py-2 border border-black rounded shadow-xl">
-            {props.traces.map((trace: ExistingTrace) =>
-                editing.has(trace.id) ? (
-                    <TraceEditor
-                        trace={trace}
-                        key={trace.id}
-                        onBack={() =>
-                            setState((state) => state.delete(trace.id))
-                        }
-                        onSubmit={(statement) => {
-                            props.onEdit(trace, statement);
-                            setState((state) => state.delete(trace.id));
-                        }}
-                    />
-                ) : (
-                    <TraceViewer
-                        trace={trace}
-                        key={trace.id}
-                        onEdit={() => {
-                            setState((state) => state.add(trace.id));
-                        }}
-                        onDelete={() => props.onDelete(trace)}
-                    />
-                )
-            )}
-            <TraceCreator onCreate={props.onCreate} />
-        </div>
+        <CodePopup>
+            <div className="grid grid-cols-1 gap-1 w-full h-full">
+                <span className="font-medium">Current Logs</span>
+                {props.traces.map((trace: ExistingTrace) =>
+                    editing.has(trace.id) ? (
+                        <TraceEditor
+                            trace={trace}
+                            key={trace.id}
+                            onBack={() =>
+                                setState((state) => state.delete(trace.id))
+                            }
+                            onSubmit={(statement) => {
+                                props.onEdit(trace, statement);
+                                setState((state) => state.delete(trace.id));
+                            }}
+                        />
+                    ) : (
+                        <TraceViewer
+                            trace={trace}
+                            key={trace.id}
+                            onEdit={() => {
+                                setState((state) => state.add(trace.id));
+                            }}
+                            onDelete={() => props.onDelete(trace)}
+                        />
+                    )
+                )}
+                <span className="font-medium">
+                    Create Log After Line {props.lineno}{" "}
+                </span>
+                <TraceCreator onCreate={props.onCreate} />
+            </div>
+        </CodePopup>
     );
 }
 
