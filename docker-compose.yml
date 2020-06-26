@@ -18,7 +18,7 @@ services:
       - backend
     build:
       context: ./frontend
-      dockerfile: ./docker/prod.Dockerfile
+      dockerfile: ./docker/dev.Dockerfile
     ports:
       - "3000:3000"
     env_file:
