@@ -129,6 +129,12 @@ export const Navbar: React.FC<{ light?: boolean }> = ({ light }) => {
                     <a className="mr-6" href="/#features">
                         Features
                     </a>
+                    <a
+                        className="mr-6"
+                        href={"https://github.com/yiblet/inquest"}
+                    >
+                        GitHub
+                    </a>
                     <div>
                         <Login borderColor={borderColor} />
                     </div>
