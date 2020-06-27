@@ -27,10 +27,13 @@ Then, once inside the directory, you simply have to run
 docker-compose up
 ```
 
-to get services running.
+to get services running. By default the frontend dashboard will be located at `localhost:3000` and
+the api backend will be at `localhost:4000`.
 
-(If you haven't installed docker, [Here's a link](https://docs.docker.com/get-docker/) to get started, and
-to install docker-compose simply run `pip install docker-compose`)
+:::note
+If you haven't installed docker, [Here's a link](https://docs.docker.com/get-docker/) to get started, and
+to install docker-compose simply run `pip install docker-compose`
+:::
 
 ## 2. Install It With `pip`
 
