@@ -49,7 +49,7 @@ export const Footnotes: React.FC = () => {
                         </a>
                     </Link>
                     <a href="https://join.slack.com/t/inquestcommunity/shared_invite/zt-fq7lra68-nems8~EkICvgf6xRW_J3eg">
-                        Join the Community
+                        Join Our Slack
                     </a>
                 </div>
             </div>
