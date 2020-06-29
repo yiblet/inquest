@@ -66,7 +66,7 @@ build-dev:
 
 
 set-version:
-	sed 's/"version".*/"version": $(VERSION)",/g' -i package.json
+	sed 's/"version".*/"version": "$(VERSION)",/g' -i package.json
 	sed 's/version.*/version = "$(VERSION)";/g' -i src/version.ts
 
 
