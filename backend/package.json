@@ -1,6 +1,6 @@
 {
     "name": "inquest-backend",
-    "version": "0.0.1",
+    "version": "0.4.2",
     "description": "the inquest backend",
     "main": "index.js",
     "author": "The Inquest Authors",
