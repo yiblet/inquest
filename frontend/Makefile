@@ -49,6 +49,9 @@ build-dev:
 	    -e 's|{VERSION}|$(TAG)|g'        \
 	    docker/dev.Dockerfile | docker build -t $(IMAGE):$(TAG) -f- .
 
+set-version:
+	sed 's/"version".*/"version": $(VERSION)",/g' -i package.json
+
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev
 	@echo "\n${BLUE}Launching a shell in the containerized build environment...${NC}\n"
@@ -71,7 +74,7 @@ push-latest: push
 version:
 	@echo $(TAG)
 
-.PHONY: clean image-clean build-prod push test build
+.PHONY: clean image-clean build-prod push test build set-version
 
 clean:
 	rm -rf node_modules/

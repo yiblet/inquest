@@ -66,7 +66,9 @@ build-dev:
 
 
 set-version:
+	sed 's/"version".*/"version": $(VERSION)",/g' -i package.json
 	sed 's/version.*/version = "$(VERSION)";/g' -i src/version.ts
+
 
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev
@@ -91,7 +93,7 @@ push-latest: push
 version:
 	@echo $(TAG)
 
-.PHONY: clean image-clean build-prod push test build python-generated
+.PHONY: clean image-clean build-prod push test build python-generated set-version
 
 clean:
 	rm -rf node_modules/
