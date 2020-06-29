@@ -1,6 +1,6 @@
 {
     "name": "frontend",
-    "version": "0.0.1",
+    "version": 0.4.3",
     "main": "index.js",
     "license": "LGPL-3.0+",
     "dependencies": {
