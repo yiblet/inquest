@@ -4,7 +4,7 @@ Inquest is a logging tool for python programs. It let's you add logs to your run
 
 ## Installation
 
-There are three ways to use Inquest:
+There are two ways to use Inquest:
 
 1. [A simple docker-compose](https://docs.inquest.dev/docs/getting_started_with_docker)
 3. [The Inquest Cloud](https://inquest.dev) 
