@@ -20,6 +20,7 @@ Make sure to add it to your requirements.txt.
 
 ## 2. Import It Into Your Code
 
+
 initialize it once at the start of your python script.
 For a normal python script that just means putting it before the
 first line that's run.
@@ -29,7 +30,7 @@ first line that's run.
 import inquest
 
 def main():
-    inquest.enable(api_key='<YOUR_API_KEY_HERE>', glob=["my_project/**/*.py"])
+    inquest.enable(api_key='<YOUR_API_KEY_HERE>', glob=["main.py", "some_subdirectory/**/*.py"])
     ...
 
 if __name__ == '__main__':
@@ -41,11 +42,11 @@ to have access to in dashboard into the `glob` parameter.
 
 ### More Info On Globbing Files
 
-To upload python files are in the directory `my_project`, the glob `my_project/**/*.py` will
-verify and upload all these. These files will be uploaded securely to backend so you can view
+To upload all python files are in the directory `my_directory`, the glob `my_directory/**/*.py` will
+verify and upload all these files. The files will be uploaded securely to backend so you can view
 it in the dashboard. Once you've uploaded them, you can delete them any time.
 
-glob takes in any list of valid python globs. So for more complex use cases, read python's standard
+Glob takes in any list of valid python globs. So for more complex use cases, read python's standard
 library on [globs](https://docs.python.org/3/library/glob.html).
 
 We check against the files' hashes so files are only uploaded if they've been modified between runs.

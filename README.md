@@ -12,6 +12,7 @@ There are three ways to use Inquest:
 ## Resources 
 
 - [Documentation](https://docs.inquest.dev/docs/overview)
+- [Troubleshooting](https://docs.inquest.dev/docs/logs_dont_appear)
 - [Slack Group](https://join.slack.com/t/inquestcommunity/shared_invite/zt-fq7lra68-nems8~EkICvgf6xRW_J3eg)
 - [Bug Tracker](https://github.com/yiblet/inquest/issues)
 

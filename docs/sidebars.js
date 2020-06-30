@@ -5,11 +5,9 @@ module.exports = {
             id: "overview"
         },
         {
-            "Quick Start": [
-                "getting_started",
-                "getting_started_with_docker"
-            ],
-            Library: ["running_inquest"]
+            "Quick Start": ["getting_started", "getting_started_with_docker"],
+            Library: ["running_inquest"],
+            "Troubleshooting": ["logs_dont_appear", "yellow_warning"]
         }
     ]
 };
