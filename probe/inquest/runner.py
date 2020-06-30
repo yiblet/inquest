@@ -97,8 +97,8 @@ class ProbeRunner(threading.Thread):
             LOGGER.info('inquest daemon closed')
         except Exception as err:
             LOGGER.error(
-                "inquest daemon stopped due to exception",
-                extra={'error': err}
+                "inquest daemon stopped due to exception: %s",
+                err,
             )
             # when the runner fails out we set enabled to false again
             with _LOCK:

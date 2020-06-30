@@ -6,7 +6,9 @@ import logging
 from typing import Dict, List, Optional
 
 from gql import Client, gql
+from gql.transport.exceptions import TransportQueryError
 from gql.transport.websockets import WebsocketsTransport
+
 from inquest.comms.client_consumer import ClientConsumer
 
 LOGGER = logging.getLogger(__name__)
@@ -49,14 +51,18 @@ mutation NewProbeMutation($traceSetId: String!) {
                     ssl=self.ssl,
                     headers=self.headers,
             )) as client:
-                result = (
-                    await client.execute(
-                        self.query,
-                        variable_values={'traceSetId': self.trace_set_id}
+                try:
+                    result = (
+                        await client.execute(
+                            self.query,
+                            variable_values={'traceSetId': self.trace_set_id}
+                        )
                     )
-                )
-                id = str(result['newProbe']['id'])
-                result = base64.b64encode(f'probe_{id}:'.encode('utf8'))
+                    id = str(result['newProbe']['id'])
+                    result = base64.b64encode(f'probe_{id}:'.encode('utf8'))
+                except TransportQueryError as err: 
+                    raise Exception("failed to authenticate api key")
+
 
             value = f'Basic {result.decode("utf8")}'
             self.headers[authorization] = value
