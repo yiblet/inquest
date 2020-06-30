@@ -50,7 +50,7 @@ build-dev:
 	    docker/dev.Dockerfile | docker build -t $(IMAGE):$(TAG) -f- .
 
 set-version:
-	sed 's/"version".*/"version": "$(VERSION)",/g' -i package.json
+	# sed 's/"version".*/"version": "$(VERSION)",/g' -i package.json
 
 # Example: make shell CMD="-c 'date > datefile'"
 shell: build-dev
