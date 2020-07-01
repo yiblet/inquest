@@ -16,7 +16,10 @@ import { useLoggedInState } from "../utils/auth";
 const CODE_STRING = `import inquest
 
 def main():
-    inquest.enable()
+    inquest.enable(
+        api_key="example-key", 
+        glob=["example.py"],
+    )
     ...
 
 
@@ -43,9 +46,9 @@ const Hero: React.FC = () => {
                                 Point, Click, And See.
                             </div>
                             <p className="mb-8 text-xl text-white">
-                                Inquest is the fastest way to monitor your
-                                running code. Instantly peer into what's
-                                happening on any line of running code.{" "}
+                                Inquest lets you add log statements to python
+                                without restarting your python instance. It
+                                helps you quickly uncover what is going wrong.
                             </p>
                             {!loggedIn ? (
                                 <Link href="/signup">
