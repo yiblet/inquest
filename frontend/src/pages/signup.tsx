@@ -12,15 +12,6 @@ import { isSecure } from "../utils/protocol";
 const INPUT_STYLE =
     "bg-gray-200 placeholder-gray-700 text-lg text-md my-2 p-2 w-full";
 
-const isValidString = (value: string) => {
-    for (let i = 0; i < value.length; i++) {
-        if (value.charAt(i) !== value.charAt(value.length - 1 - i)) {
-            return false;
-        }
-    }
-    return true;
-};
-
 export default function Signup() {
     const { watch, handleSubmit, register, errors } = useForm();
     const [fetching, setFetching] = useState(false);
@@ -167,22 +158,6 @@ export default function Signup() {
                                             validate: (val) =>
                                                 val === watch("password") ||
                                                 "passwords must match",
-                                        })}
-                                    />
-                                </LabelledField>
-                                <LabelledField label="Beta Code*">
-                                    <input
-                                        className={INPUT_STYLE}
-                                        type="betacode"
-                                        name="betacode"
-                                        placeholder="If you don't have one, schedule a demo to get one for free"
-                                        required
-                                        ref={register({
-                                            required: true,
-                                            validate: (val) =>
-                                                (typeof val === "string" &&
-                                                    isValidString(val)) ||
-                                                "must have valid beta code",
                                         })}
                                     />
                                 </LabelledField>
