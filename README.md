@@ -2,7 +2,7 @@
 
 Inquest is a logging tool for python programs. It let's you add logs to your running python programs without restarting the program, redeploying the program, or modifying the code in any way. Inquest takes extremely low overhead: the part that's a python library is completely idle unless there is something to log. Inquest is specifically designed to enable you to quickly introspect into Python even in production environments.
 
-Here's gif of the magic. I'm running a single python instance in the background and I use instead to dynamically add log statements to the running code.
+Here's gif of the magic. I'm running a single python instance in the background and I use Inquest to dynamically add log statements to the running code.
 <img src="https://raw.githubusercontent.com/yiblet/inquest/master/static/example.gif"/>
 
 ## Installation
