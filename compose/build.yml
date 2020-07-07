@@ -6,32 +6,32 @@ services:
       - minio
       - postgres
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: ./docker/prod.Dockerfile
     ports:
       - "4000:4000"
     env_file:
-      - docker-compose.env
+      - ../docker-compose.env
 
   frontend:
     depends_on:
       - backend
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: ./docker/dev.Dockerfile
     ports:
       - "3000:3000"
     env_file:
-      - docker-compose.env
+      - ../docker-compose.env
 
   docs:
     build:
-      context: ./docs
+      context: ../docs
       dockerfile: ./docker/dev.Dockerfile
     ports:
       - "3001:3001"
     env_file:
-      - docker-compose.env
+      - ../docker-compose.env
 
   # backend dependencies
   minio:
@@ -47,7 +47,7 @@ services:
       timeout: 20s
       retries: 3
     env_file:
-      - docker-compose.env
+      - ../docker-compose.env
 
   postgres:
     image: postgres:12
@@ -56,7 +56,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - docker-compose.env
+      - ../docker-compose.env
 
 volumes:
   data:
