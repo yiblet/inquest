@@ -2,7 +2,7 @@
 MODULE := backend
 
 # Where to push the docker image.
-REGISTRY ?= gcr.io/inquest-dev
+REGISTRY ?= gcr.io/yiblet/inquest
 
 IMAGE := $(REGISTRY)/$(MODULE)
 
